@@ -838,7 +838,8 @@ class Printer implements NodeVisitor {
     out("=>");
     if (fun.body is Expression) {
       spaceOut();
-      fun.body.accept(this);
+      visitNestedExpression(fun.body, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
     } else {
       blockBody(fun.body, needsSeparation: false, needsNewline: false);
     }
