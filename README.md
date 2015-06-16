@@ -1,6 +1,8 @@
 dev_compiler
 ============
 
+[![Join the chat at https://gitter.im/dart-lang/dev_compiler](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dart-lang/dev_compiler?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/dart-lang/dev_compiler.svg?branch=master)](https://travis-ci.org/dart-lang/dev_compiler)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/dev_compiler/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/dev_compiler)
 
