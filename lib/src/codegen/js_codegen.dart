@@ -531,7 +531,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var genericName = '$name\$';
 
     JS.Statement genericDef = null;
-    if (type.typeParameters.isNotEmpty) {
+    if (type.typeParameters.isNotEmpty && genericClassesEnabled) {
       genericDef = _emitGenericClassDef(type, body);
     }
 
@@ -700,7 +700,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     body.add(new JS.ClassDeclaration(cls));
 
     // TODO(jmesserly): we should really just extend native Array.
-    if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
+    if (jsPeerName != null && classElem.typeParameters.isNotEmpty
+        && genericClassesEnabled) {
       body.add(js.statement('dart.setBaseClass(#, dart.global.#);',
           [classElem.name, _propertyName(jsPeerName)]));
     }
@@ -1600,12 +1601,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// the definitions for typedefs and generic types, respectively.
   JS.Expression _emitTypeName(DartType type,
       {bool lowerTypedef: false, bool lowerGeneric: false}) {
+
+    isSkippedTypeParameterType() =>
+        type is TypeParameterType && !genericClassesEnabled;
+    
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {
       return js.call('dart.void');
     } else if (type.isDynamic) {
       return js.call('dart.dynamic');
-    } else if (type.isBottom) {
+    } else if (type.isBottom || isSkippedTypeParameterType()) {
       return js.call('dart.bottom');
     }
 
@@ -1625,7 +1630,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       return new JS.Identifier(name);
     }
 
-    if (type is ParameterizedType) {
+    if (type is ParameterizedType && genericClassesEnabled) {
       var args = type.typeArguments;
       var isCurrentClass =
           args.isNotEmpty && _loader.isCurrentElement(type.element);
@@ -3205,6 +3210,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     JS.TemporaryId id = _imports[type.library];
     return id == null ? type.name : '${id.name}.${type.name}';
   }
+
+  bool get genericClassesEnabled => !options.closure;
 
   JS.Node annotate(JS.Node method, ExecutableElement e) =>
       options.closure && e != null

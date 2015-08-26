@@ -1,7 +1,6 @@
 library test;
 import 'dart:js';
 
-
 typedef void Callback({int i});
 
 class Foo<T> {
@@ -46,13 +45,16 @@ class Foo<T> {
   static String some_static_var = "abc";
 }
 
-class Bar {}
+class Bar<T> {}
 
-class Baz extends Foo<int> with Bar {
-  Baz(int i) : super(i, 123);
+class Baz<T> extends Foo<T> with Bar<T> {
+  Baz(int i, T v) : super(i, v);
 }
 
-void main(args) {}
+void main(args) {
+  print(new Bar());
+  print(new Bar<String>());
+}
 
 const String some_top_level_constant = "abc";
 final String some_top_level_final = "abc";
