@@ -73,7 +73,7 @@ class _TestUtils {}
 ///     });
 ///
 void testChecker(String name, Map<String, String> testFiles,
-    {String sdkDir: '/usr/local/opt/dart/libexec/',
+    {String sdkDir,
     customUrlMappings: const {},
     relaxedCasts: true,
     inferDownwards: StrongModeOptions.inferDownwardsDefault,
