@@ -208,6 +208,10 @@ class RestrictedRules extends TypeRules {
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
     if (type != null) return type;
+    if (expr is SimpleIdentifier) {
+      type = expr.staticElement?.type;
+      if (type != null) return type;
+    }
     if (reportMissingType != null) reportMissingType(expr);
     return provider.dynamicType;
   }
