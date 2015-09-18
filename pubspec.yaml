@@ -41,3 +41,6 @@ executables:
   # Similar to dartdevc, but runs the (single) entry point with iojs (requires
   # a very recent iojs next-nightly version).
   dartdevrun: devrun
+dependency_overrides:
+  analyzer:
+    path: ../dart/sdk/pkg/analyzer/

@@ -73,7 +73,7 @@ class _TestUtils {}
 ///     });
 ///
 void testChecker(String name, Map<String, String> testFiles,
-    {String sdkDir,
+    {String sdkDir: '/usr/local/opt/dart/libexec/',
     customUrlMappings: const {},
     relaxedCasts: true,
     inferDownwards: StrongModeOptions.inferDownwardsDefault,
@@ -86,7 +86,10 @@ void testChecker(String name, Map<String, String> testFiles,
 
     var provider = createTestResourceProvider(testFiles);
     var uriResolver = new TestUriResolver(provider);
+    // Enable task model strong mode
+    AnalysisEngine.instance.useTaskModel = true;
     var context = AnalysisEngine.instance.createAnalysisContext();
+    context.analysisOptions.strongMode = true;
     context.sourceFactory = createSourceFactory(
         new SourceResolverOptions(
             customUrlMappings: customUrlMappings,

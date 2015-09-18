@@ -29,8 +29,10 @@ AnalysisContext createAnalysisContextWithSources(
 
 /// Creates an analysis context that contains our restricted typing rules.
 AnalysisContext createAnalysisContext(StrongModeOptions options) {
-  AnalysisContextImpl res = AnalysisEngine.instance.createAnalysisContext();
-  enableDevCompilerInference(res, options);
+  AnalysisEngine.instance.useTaskModel = true;
+  var res = AnalysisEngine.instance.createAnalysisContext();
+  res.analysisOptions.strongMode = true;
+  if (!AnalysisEngine.instance.useTaskModel) enableDevCompilerInference(res, options);
   return res;
 }
 
