@@ -1,1 +1,11 @@
 // Messages from compiling html_input.html
+warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/dir/html_input_a.dart, line 9, col 3)
+warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/dir/html_input_a.dart, line 10, col 3)
+warning: [MissingTypeError] type analysis didn't compute the type of: fib SimpleIdentifier (test/codegen/dir/html_input_a.dart, line 10, col 18)
+warning: [MissingTypeError] type analysis didn't compute the type of: fib SimpleIdentifier (test/codegen/dir/html_input_d.dart, line 7, col 42)
+warning: [MissingTypeError] type analysis didn't compute the type of: fib SimpleIdentifier (test/codegen/dir/html_input_d.dart, line 7, col 55)
+info: [DynamicInvoke] print('fib(${x} + ${y}) = ') requires dynamic invoke (test/codegen/dir/html_input_a.dart, line 9, col 3)
+info: [DynamicInvoke] print('  ... ${fib(x + y)}') requires dynamic invoke (test/codegen/dir/html_input_a.dart, line 10, col 3)
+info: [DynamicInvoke] fib(x + y) requires dynamic invoke (test/codegen/dir/html_input_a.dart, line 10, col 18)
+info: [DynamicInvoke] fib(n - 1) requires dynamic invoke (test/codegen/dir/html_input_d.dart, line 7, col 42)
+info: [DynamicInvoke] fib(n - 2) requires dynamic invoke (test/codegen/dir/html_input_d.dart, line 7, col 55)

@@ -6,10 +6,10 @@ dart_library.library('script', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function main(args) {
-    let name = args[dartx.join](' ');
+    let name = dart.dcall(args[dartx.join], ' ');
     if (name == '')
       name = 'world';
-    core.print(`hello ${name}`);
+    dart.dcall(core.print, `hello ${name}`);
   }
   dart.fn(main, dart.void, [core.List$(core.String)]);
   // Exports:

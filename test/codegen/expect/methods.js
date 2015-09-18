@@ -35,7 +35,7 @@ dart_library.library('methods', null, /* Imports */[
       return dart.notNull(a) + dart.notNull(b);
     }
     get a() {
-      return this.x();
+      return dart.dcall(this.x);
     }
     set b(b) {}
     get c() {
@@ -57,7 +57,7 @@ dart_library.library('methods', null, /* Imports */[
   });
   class Bar extends core.Object {
     call(x) {
-      return core.print(`hello from ${x}`);
+      return dart.dcall(core.print, `hello from ${x}`);
     }
   }
   dart.setSignature(Bar, {

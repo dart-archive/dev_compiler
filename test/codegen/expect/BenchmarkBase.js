@@ -16,7 +16,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
         dart.throw(`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
       }
       for (let i = 0; dart.notNull(i) < dart.notNull(actual[dartx.length]); i = dart.notNull(i) + 1) {
-        Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
+        dart.dcall(Expect.equals, expected[dartx.get](i), actual[dartx.get](i));
       }
     }
     fail(message) {
@@ -37,11 +37,11 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     }
     run() {}
     warmup() {
-      this.run();
+      dart.dcall(this.run);
     }
     exercise() {
       for (let i = 0; dart.notNull(i) < 10; i = dart.notNull(i) + 1) {
-        this.run();
+        dart.dcall(this.run);
       }
     }
     setup() {}
@@ -50,7 +50,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
       let time = 0;
       let iter = 0;
       let watch = new core.Stopwatch();
-      watch.start();
+      dart.dcall(watch.start);
       let elapsed = 0;
       while (dart.notNull(elapsed) < dart.notNull(timeMinimum)) {
         dart.dcall(f);
@@ -60,19 +60,19 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
       return 1000.0 * dart.notNull(elapsed) / dart.notNull(iter);
     }
     measure() {
-      this.setup();
-      BenchmarkBase.measureFor(dart.fn(() => {
-        this.warmup();
+      dart.dcall(this.setup);
+      dart.dcall(BenchmarkBase.measureFor, dart.fn(() => {
+        dart.dcall(this.warmup);
       }), 100);
-      let result = BenchmarkBase.measureFor(dart.fn(() => {
-        this.exercise();
+      let result = dart.dcall(BenchmarkBase.measureFor, dart.fn(() => {
+        dart.dcall(this.exercise);
       }), 2000);
-      this.teardown();
+      dart.dcall(this.teardown);
       return result;
     }
     report() {
-      let score = this.measure();
-      core.print(`${this.name}(RunTime): ${score} us.`);
+      let score = dart.dcall(this.measure);
+      dart.dcall(core.print, `${this.name}(RunTime): ${score} us.`);
     }
   }
   dart.setSignature(BenchmarkBase, {

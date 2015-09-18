@@ -1,1 +1,11 @@
 // Messages from compiling try_catch.dart
+warning: [MissingTypeError] type analysis didn't compute the type of: foo SimpleIdentifier (test/codegen/try_catch.dart, line 49, col 3)
+warning: [MissingTypeError] type analysis didn't compute the type of: bar SimpleIdentifier (test/codegen/try_catch.dart, line 50, col 3)
+warning: [MissingTypeError] type analysis didn't compute the type of: baz SimpleIdentifier (test/codegen/try_catch.dart, line 51, col 3)
+warning: [MissingTypeError] type analysis didn't compute the type of: qux SimpleIdentifier (test/codegen/try_catch.dart, line 52, col 3)
+warning: [MissingTypeError] type analysis didn't compute the type of: wub SimpleIdentifier (test/codegen/try_catch.dart, line 53, col 3)
+info: [DynamicInvoke] foo() requires dynamic invoke (test/codegen/try_catch.dart, line 49, col 3)
+info: [DynamicInvoke] bar() requires dynamic invoke (test/codegen/try_catch.dart, line 50, col 3)
+info: [DynamicInvoke] baz() requires dynamic invoke (test/codegen/try_catch.dart, line 51, col 3)
+info: [DynamicInvoke] qux() requires dynamic invoke (test/codegen/try_catch.dart, line 52, col 3)
+info: [DynamicInvoke] wub() requires dynamic invoke (test/codegen/try_catch.dart, line 53, col 3)

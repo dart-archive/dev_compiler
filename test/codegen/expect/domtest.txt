@@ -1,1 +1,7 @@
 // Messages from compiling domtest.dart
+warning: [MissingTypeError] type analysis didn't compute the type of: querySelector SimpleIdentifier (test/codegen/domtest.dart, line 11, col 24)
+warning: [MissingTypeError] type analysis didn't compute the type of: createElement SimpleIdentifier (test/codegen/domtest.dart, line 14, col 25)
+warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/domtest.dart, line 15, col 5)
+info: [DynamicInvoke] document.querySelector('body') requires dynamic invoke (test/codegen/domtest.dart, line 11, col 15)
+info: [DynamicInvoke] document.createElement('div') requires dynamic invoke (test/codegen/domtest.dart, line 14, col 16)
+info: [DynamicInvoke] print(nodes[i] == old) requires dynamic invoke (test/codegen/domtest.dart, line 15, col 5)

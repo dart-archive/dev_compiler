@@ -7,7 +7,7 @@ dart_library.library('opassign', null, /* Imports */[
   let dartx = dart.dartx;
   dart.copyProperties(exports, {
     get index() {
-      core.print('called "index" getter');
+      dart.dcall(core.print, 'called "index" getter');
       return 0;
     }
   });
@@ -18,7 +18,7 @@ dart_library.library('opassign', null, /* Imports */[
   });
   dart.copyProperties(exports, {
     get foo() {
-      core.print('called "foo" getter');
+      dart.dcall(core.print, 'called "foo" getter');
       return exports._foo;
     }
   });
@@ -29,23 +29,23 @@ dart_library.library('opassign', null, /* Imports */[
   }
   function main() {
     let f = dart.map([0, 40]);
-    core.print('should only call "index" 2 times:');
+    dart.dcall(core.print, 'should only call "index" 2 times:');
     let i = exports.index;
     f.set(i, dart.dsend(f.get(i), '+', 1));
-    forcePostfix((() => {
+    dart.dcall(forcePostfix, (() => {
       let i = exports.index, x = f.get(i);
       f.set(i, dart.dsend(x, '+', 1));
       return x;
     })());
-    core.print('should only call "foo" 2 times:');
+    dart.dcall(core.print, 'should only call "foo" 2 times:');
     let o = exports.foo;
     dart.dput(o, 'x', dart.dsend(dart.dload(o, 'x'), '+', 1));
-    forcePostfix((() => {
+    dart.dcall(forcePostfix, (() => {
       let o = exports.foo, x = dart.dload(o, 'x');
       dart.dput(o, 'x', dart.dsend(x, '+', 1));
       return x;
     })());
-    core.print('op assign test, should only call "index" twice:');
+    dart.dcall(core.print, 'op assign test, should only call "index" twice:');
     let i$ = exports.index;
     f.set(i$, dart.dsend(f.get(i$), '+', f.get(exports.index)));
   }

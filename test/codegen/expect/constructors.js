@@ -170,7 +170,7 @@ dart_library.library('constructors', null, /* Imports */[
         return new (Q$())("hello");
       }
       bar() {
-        let q = Q$().foo();
+        let q = dart.dcall(Q$().foo);
         return dart.as(q.x, core.String);
       }
       bar2() {
@@ -179,7 +179,7 @@ dart_library.library('constructors', null, /* Imports */[
       }
       static baz() {
         let q = new (Q$(core.int))(42);
-        return dart.notNull(q.bar()) + dart.notNull(q.bar2());
+        return dart.notNull(dart.dcall(q.bar)) + dart.notNull(dart.dcall(q.bar2));
       }
     }
     dart.setSignature(Q, {

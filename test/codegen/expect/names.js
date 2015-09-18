@@ -45,13 +45,13 @@ dart_library.library('names', null, /* Imports */[
     set arguments(_) {}
   });
   function main() {
-    core.print(exports.exports);
-    core.print(new Foo()[_foo$]());
-    core.print(_foo());
-    core.print(new Frame.caller([1, 2, 3]));
+    dart.dcall(core.print, exports.exports);
+    dart.dcall(core.print, dart.dcall(new Foo()[_foo$]));
+    dart.dcall(core.print, dart.dcall(_foo));
+    dart.dcall(core.print, new Frame.caller([1, 2, 3]));
     let eval$ = Frame.callee;
-    core.print(eval$);
-    core.print(dart.notNull(Frame2.caller) + dart.notNull(Frame2.arguments));
+    dart.dcall(core.print, eval$);
+    dart.dcall(core.print, dart.notNull(Frame2.caller) + dart.notNull(Frame2.arguments));
   }
   dart.fn(main);
   // Exports:

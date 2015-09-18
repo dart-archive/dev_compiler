@@ -26,13 +26,13 @@ dart_library.library('async_helper/async_helper', null, /* Imports */[
   });
   function asyncStart() {
     if (dart.notNull(exports._initialized) && exports._asyncLevel == 0) {
-      dart.throw(_buildException('asyncStart() was called even though we are done ' + 'with testing.'));
+      dart.throw(dart.dcall(_buildException, 'asyncStart() was called even though we are done ' + 'with testing.'));
     }
     if (!dart.notNull(exports._initialized)) {
       if (exports._onAsyncEnd == null) {
-        dart.throw(_buildException('asyncStart() was called before asyncTestInitialize()'));
+        dart.throw(dart.dcall(_buildException, 'asyncStart() was called before asyncTestInitialize()'));
       }
-      core.print('unittest-suite-wait-for-done');
+      dart.dcall(core.print, 'unittest-suite-wait-for-done');
       exports._initialized = true;
     }
     exports._asyncLevel = dart.notNull(exports._asyncLevel) + 1;
@@ -41,9 +41,9 @@ dart_library.library('async_helper/async_helper', null, /* Imports */[
   function asyncEnd() {
     if (dart.notNull(exports._asyncLevel) <= 0) {
       if (!dart.notNull(exports._initialized)) {
-        dart.throw(_buildException('asyncEnd() was called before asyncStart().'));
+        dart.throw(dart.dcall(_buildException, 'asyncEnd() was called before asyncStart().'));
       } else {
-        dart.throw(_buildException('asyncEnd() was called more often than ' + 'asyncStart().'));
+        dart.throw(dart.dcall(_buildException, 'asyncEnd() was called more often than ' + 'asyncStart().'));
       }
     }
     exports._asyncLevel = dart.notNull(exports._asyncLevel) - 1;
@@ -51,16 +51,16 @@ dart_library.library('async_helper/async_helper', null, /* Imports */[
       let callback = exports._onAsyncEnd;
       exports._onAsyncEnd = null;
       callback();
-      core.print('unittest-suite-success');
+      dart.dcall(core.print, 'unittest-suite-success');
     }
   }
   dart.fn(asyncEnd, dart.void, []);
   function asyncSuccess(_) {
-    return asyncEnd();
+    return dart.dcall(asyncEnd);
   }
   dart.fn(asyncSuccess, dart.void, [dart.dynamic]);
   function asyncTest(f) {
-    asyncStart();
+    dart.dcall(asyncStart);
     dart.dsend(f(), 'then', asyncSuccess);
   }
   dart.fn(asyncTest, dart.void, [dart.functionType(dart.dynamic, [])]);

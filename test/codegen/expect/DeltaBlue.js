@@ -7,7 +7,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function main() {
-    new DeltaBlue().report();
+    dart.dcall(new DeltaBlue().report);
   }
   dart.fn(main);
   class DeltaBlue extends BenchmarkBase.BenchmarkBase {
@@ -15,8 +15,8 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       super.BenchmarkBase("DeltaBlue");
     }
     run() {
-      chainTest(100);
-      projectionTest(100);
+      dart.dcall(chainTest, 100);
+      dart.dcall(projectionTest, 100);
     }
   }
   dart.setSignature(DeltaBlue, {
@@ -28,7 +28,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.name = name;
     }
     nextWeaker() {
-      return dart.const(dart.list([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST], Strength))[dartx.get](this.value);
+      return dart.const(dart.list([dart.as(STRONG_PREFERRED, Strength), dart.as(PREFERRED, Strength), dart.as(STRONG_DEFAULT, Strength), dart.as(NORMAL, Strength), dart.as(WEAK_DEFAULT, Strength), dart.as(WEAKEST, Strength)], Strength))[dartx.get](this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
@@ -37,10 +37,10 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       return dart.notNull(s1.value) > dart.notNull(s2.value);
     }
     static weakest(s1, s2) {
-      return dart.notNull(Strength.weaker(s1, s2)) ? s1 : s2;
+      return dart.notNull(dart.dcall(Strength.weaker, s1, s2)) ? s1 : s2;
     }
     static strongest(s1, s2) {
-      return dart.notNull(Strength.stronger(s1, s2)) ? s1 : s2;
+      return dart.notNull(dart.dcall(Strength.stronger, s1, s2)) ? s1 : s2;
     }
   }
   dart.setSignature(Strength, {
@@ -66,32 +66,32 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.strength = strength;
     }
     addConstraint() {
-      this.addToGraph();
-      exports.planner.incrementalAdd(this);
+      dart.dcall(this.addToGraph);
+      dart.dcall(exports.planner.incrementalAdd, this);
     }
     satisfy(mark) {
-      this.chooseMethod(dart.as(mark, core.int));
-      if (!dart.notNull(this.isSatisfied())) {
+      dart.dcall(this.chooseMethod, mark);
+      if (!dart.notNull(dart.dcall(this.isSatisfied))) {
         if (dart.equals(this.strength, REQUIRED)) {
-          core.print("Could not satisfy a required constraint!");
+          dart.dcall(core.print, "Could not satisfy a required constraint!");
         }
         return null;
       }
-      this.markInputs(dart.as(mark, core.int));
-      let out = this.output();
+      dart.dcall(this.markInputs, mark);
+      let out = dart.dcall(this.output);
       let overridden = out.determinedBy;
       if (overridden != null)
-        overridden.markUnsatisfied();
+        dart.dcall(overridden.markUnsatisfied);
       out.determinedBy = this;
-      if (!dart.notNull(exports.planner.addPropagate(this, dart.as(mark, core.int))))
-        core.print("Cycle encountered");
+      if (!dart.notNull(dart.dcall(exports.planner.addPropagate, this, mark)))
+        dart.dcall(core.print, "Cycle encountered");
       out.mark = dart.as(mark, core.int);
       return overridden;
     }
     destroyConstraint() {
-      if (dart.notNull(this.isSatisfied()))
-        exports.planner.incrementalRemove(this);
-      this.removeFromGraph();
+      if (dart.notNull(dart.dcall(this.isSatisfied)))
+        dart.dcall(exports.planner.incrementalRemove, this);
+      dart.dcall(this.removeFromGraph);
     }
     isInput() {
       return false;
@@ -111,14 +111,14 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.myOutput = myOutput;
       this.satisfied = false;
       super.Constraint(strength);
-      this.addConstraint();
+      dart.dcall(this.addConstraint);
     }
     addToGraph() {
-      this.myOutput.addConstraint(this);
+      dart.dcall(this.myOutput.addConstraint, this);
       this.satisfied = false;
     }
     chooseMethod(mark) {
-      this.satisfied = this.myOutput.mark != mark && dart.notNull(Strength.stronger(this.strength, this.myOutput.walkStrength));
+      this.satisfied = this.myOutput.mark != mark && dart.notNull(dart.dcall(Strength.stronger, this.strength, this.myOutput.walkStrength));
     }
     isSatisfied() {
       return this.satisfied;
@@ -129,9 +129,9 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     recalculate() {
       this.myOutput.walkStrength = this.strength;
-      this.myOutput.stay = !dart.notNull(this.isInput());
+      this.myOutput.stay = !dart.notNull(dart.dcall(this.isInput));
       if (dart.notNull(this.myOutput.stay))
-        this.execute();
+        dart.dcall(this.execute);
     }
     markUnsatisfied() {
       this.satisfied = false;
@@ -141,7 +141,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     removeFromGraph() {
       if (this.myOutput != null)
-        this.myOutput.removeConstraint(this);
+        dart.dcall(this.myOutput.removeConstraint, this);
       this.satisfied = false;
     }
   }
@@ -191,31 +191,31 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.v2 = v2;
       this.direction = NONE;
       super.Constraint(strength);
-      this.addConstraint();
+      dart.dcall(this.addConstraint);
     }
     chooseMethod(mark) {
       if (this.v1.mark == mark) {
-        this.direction = this.v2.mark != mark && dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
+        this.direction = this.v2.mark != mark && dart.notNull(dart.dcall(Strength.stronger, this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
       }
       if (this.v2.mark == mark) {
-        this.direction = this.v1.mark != mark && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
+        this.direction = this.v1.mark != mark && dart.notNull(dart.dcall(Strength.stronger, this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
       }
-      if (dart.notNull(Strength.weaker(this.v1.walkStrength, this.v2.walkStrength))) {
-        this.direction = dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
+      if (dart.notNull(dart.dcall(Strength.weaker, this.v1.walkStrength, this.v2.walkStrength))) {
+        this.direction = dart.notNull(dart.dcall(Strength.stronger, this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
       } else {
-        this.direction = dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : BACKWARD;
+        this.direction = dart.notNull(dart.dcall(Strength.stronger, this.strength, this.v2.walkStrength)) ? FORWARD : BACKWARD;
       }
     }
     addToGraph() {
-      this.v1.addConstraint(this);
-      this.v2.addConstraint(this);
+      dart.dcall(this.v1.addConstraint, this);
+      dart.dcall(this.v2.addConstraint, this);
       this.direction = NONE;
     }
     isSatisfied() {
       return this.direction != NONE;
     }
     markInputs(mark) {
-      this.input().mark = mark;
+      dart.dcall(this.input).mark = mark;
     }
     input() {
       return this.direction == FORWARD ? this.v1 : this.v2;
@@ -224,24 +224,24 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       return this.direction == FORWARD ? this.v2 : this.v1;
     }
     recalculate() {
-      let ihn = this.input(), out = this.output();
-      out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
+      let ihn = dart.dcall(this.input), out = dart.dcall(this.output);
+      out.walkStrength = dart.dcall(Strength.weakest, this.strength, ihn.walkStrength);
       out.stay = ihn.stay;
       if (dart.notNull(out.stay))
-        this.execute();
+        dart.dcall(this.execute);
     }
     markUnsatisfied() {
       this.direction = NONE;
     }
     inputsKnown(mark) {
-      let i = this.input();
+      let i = dart.dcall(this.input);
       return i.mark == mark || dart.notNull(i.stay) || i.determinedBy == null;
     }
     removeFromGraph() {
       if (this.v1 != null)
-        this.v1.removeConstraint(this);
+        dart.dcall(this.v1.removeConstraint, this);
       if (this.v2 != null)
-        this.v2.removeConstraint(this);
+        dart.dcall(this.v2.removeConstraint, this);
       this.direction = NONE;
     }
   }
@@ -267,19 +267,19 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       super.BinaryConstraint(src, dest, strength);
     }
     addToGraph() {
-      super.addToGraph();
-      this.scale.addConstraint(this);
-      this.offset.addConstraint(this);
+      dart.dcall(super.addToGraph);
+      dart.dcall(this.scale.addConstraint, this);
+      dart.dcall(this.offset.addConstraint, this);
     }
     removeFromGraph() {
-      super.removeFromGraph();
+      dart.dcall(super.removeFromGraph);
       if (this.scale != null)
-        this.scale.removeConstraint(this);
+        dart.dcall(this.scale.removeConstraint, this);
       if (this.offset != null)
-        this.offset.removeConstraint(this);
+        dart.dcall(this.offset.removeConstraint, this);
     }
     markInputs(mark) {
-      super.markInputs(mark);
+      dart.dcall(super.markInputs, mark);
       this.scale.mark = this.offset.mark = mark;
     }
     execute() {
@@ -290,11 +290,11 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       }
     }
     recalculate() {
-      let ihn = this.input(), out = this.output();
-      out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
+      let ihn = dart.dcall(this.input), out = dart.dcall(this.output);
+      out.walkStrength = dart.dcall(Strength.weakest, this.strength, ihn.walkStrength);
       out.stay = dart.notNull(ihn.stay) && dart.notNull(this.scale.stay) && dart.notNull(this.offset.stay);
       if (dart.notNull(out.stay))
-        this.execute();
+        dart.dcall(this.execute);
     }
   }
   dart.setSignature(ScaleConstraint, {
@@ -306,7 +306,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       super.BinaryConstraint(v1, v2, strength);
     }
     execute() {
-      this.output().value = this.input().value;
+      dart.dcall(this.output).value = dart.dcall(this.input).value;
     }
   }
   dart.setSignature(EqualityConstraint, {
@@ -316,18 +316,18 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   class Variable extends core.Object {
     Variable(name, value) {
       this.constraints = dart.list([], Constraint);
+      this.walkStrength = dart.as(WEAKEST, Strength);
       this.name = name;
       this.value = value;
       this.determinedBy = null;
       this.mark = 0;
-      this.walkStrength = WEAKEST;
       this.stay = true;
     }
     addConstraint(c) {
-      this.constraints[dartx.add](c);
+      dart.dcall(this.constraints[dartx.add], c);
     }
     removeConstraint(c) {
-      this.constraints[dartx.remove](c);
+      dart.dcall(this.constraints[dartx.remove], c);
       if (dart.equals(this.determinedBy, c))
         this.determinedBy = null;
     }
@@ -344,38 +344,38 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.currentMark = 0;
     }
     incrementalAdd(c) {
-      let mark = this.newMark();
-      for (let overridden = c.satisfy(mark); overridden != null; overridden = overridden.satisfy(mark))
+      let mark = dart.dcall(this.newMark);
+      for (let overridden = dart.dcall(c.satisfy, mark); overridden != null; overridden = dart.dcall(overridden.satisfy, mark))
         ;
     }
     incrementalRemove(c) {
-      let out = c.output();
-      c.markUnsatisfied();
-      c.removeFromGraph();
-      let unsatisfied = this.removePropagateFrom(out);
-      let strength = REQUIRED;
+      let out = dart.dcall(c.output);
+      dart.dcall(c.markUnsatisfied);
+      dart.dcall(c.removeFromGraph);
+      let unsatisfied = dart.dcall(this.removePropagateFrom, out);
+      let strength = dart.as(REQUIRED, Strength);
       do {
         for (let i = 0; dart.notNull(i) < dart.notNull(unsatisfied[dartx.length]); i = dart.notNull(i) + 1) {
           let u = unsatisfied[dartx.get](i);
           if (dart.equals(u.strength, strength))
-            this.incrementalAdd(u);
+            dart.dcall(this.incrementalAdd, u);
         }
-        strength = strength.nextWeaker();
+        strength = dart.dcall(strength.nextWeaker);
       } while (!dart.equals(strength, WEAKEST));
     }
     newMark() {
       return this.currentMark = dart.notNull(this.currentMark) + 1;
     }
     makePlan(sources) {
-      let mark = this.newMark();
+      let mark = dart.dcall(this.newMark);
       let plan = new Plan();
       let todo = sources;
       while (dart.notNull(todo[dartx.length]) > 0) {
-        let c = todo[dartx.removeLast]();
-        if (c.output().mark != mark && dart.notNull(c.inputsKnown(mark))) {
-          plan.addConstraint(c);
-          c.output().mark = mark;
-          this.addConstraintsConsumingTo(c.output(), todo);
+        let c = dart.dcall(todo[dartx.removeLast]);
+        if (dart.dcall(c.output).mark != mark && dart.notNull(dart.dcall(c.inputsKnown, mark))) {
+          dart.dcall(plan.addConstraint, c);
+          dart.dcall(c.output).mark = mark;
+          dart.dcall(this.addConstraintsConsumingTo, dart.dcall(c.output), todo);
         }
       }
       return plan;
@@ -384,43 +384,43 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       let sources = dart.list([], Constraint);
       for (let i = 0; dart.notNull(i) < dart.notNull(constraints[dartx.length]); i = dart.notNull(i) + 1) {
         let c = constraints[dartx.get](i);
-        if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied()))
-          sources[dartx.add](c);
+        if (dart.notNull(dart.dcall(c.isInput)) && dart.notNull(dart.dcall(c.isSatisfied)))
+          dart.dcall(sources[dartx.add], c);
       }
-      return this.makePlan(sources);
+      return dart.dcall(this.makePlan, sources);
     }
     addPropagate(c, mark) {
       let todo = dart.list([c], Constraint);
       while (dart.notNull(todo[dartx.length]) > 0) {
-        let d = todo[dartx.removeLast]();
-        if (d.output().mark == mark) {
-          this.incrementalRemove(c);
+        let d = dart.dcall(todo[dartx.removeLast]);
+        if (dart.dcall(d.output).mark == mark) {
+          dart.dcall(this.incrementalRemove, c);
           return false;
         }
-        d.recalculate();
-        this.addConstraintsConsumingTo(d.output(), todo);
+        dart.dcall(d.recalculate);
+        dart.dcall(this.addConstraintsConsumingTo, dart.dcall(d.output), todo);
       }
       return true;
     }
     removePropagateFrom(out) {
       out.determinedBy = null;
-      out.walkStrength = WEAKEST;
+      out.walkStrength = dart.as(WEAKEST, Strength);
       out.stay = true;
       let unsatisfied = dart.list([], Constraint);
       let todo = dart.list([out], Variable);
       while (dart.notNull(todo[dartx.length]) > 0) {
-        let v = todo[dartx.removeLast]();
+        let v = dart.dcall(todo[dartx.removeLast]);
         for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[dartx.length]); i = dart.notNull(i) + 1) {
           let c = v.constraints[dartx.get](i);
-          if (!dart.notNull(c.isSatisfied()))
-            unsatisfied[dartx.add](c);
+          if (!dart.notNull(dart.dcall(c.isSatisfied)))
+            dart.dcall(unsatisfied[dartx.add], c);
         }
         let determining = v.determinedBy;
         for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[dartx.length]); i = dart.notNull(i) + 1) {
           let next = v.constraints[dartx.get](i);
-          if (!dart.equals(next, determining) && dart.notNull(next.isSatisfied())) {
-            next.recalculate();
-            todo[dartx.add](next.output());
+          if (!dart.equals(next, determining) && dart.notNull(dart.dcall(next.isSatisfied))) {
+            dart.dcall(next.recalculate);
+            dart.dcall(todo[dartx.add], dart.dcall(next.output));
           }
         }
       }
@@ -430,8 +430,8 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       let determining = v.determinedBy;
       for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[dartx.length]); i = dart.notNull(i) + 1) {
         let c = v.constraints[dartx.get](i);
-        if (!dart.equals(c, determining) && dart.notNull(c.isSatisfied()))
-          coll[dartx.add](c);
+        if (!dart.equals(c, determining) && dart.notNull(dart.dcall(c.isSatisfied)))
+          dart.dcall(coll[dartx.add], c);
       }
     }
   }
@@ -452,14 +452,14 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.list = dart.list([], Constraint);
     }
     addConstraint(c) {
-      this.list[dartx.add](c);
+      dart.dcall(this.list[dartx.add], c);
     }
     size() {
       return this.list[dartx.length];
     }
     execute() {
       for (let i = 0; dart.notNull(i) < dart.notNull(this.list[dartx.length]); i = dart.notNull(i) + 1) {
-        this.list[dartx.get](i).execute();
+        dart.dcall(this.list[dartx.get](i).execute);
       }
     }
   }
@@ -476,22 +476,22 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     for (let i = 0; dart.notNull(i) <= dart.notNull(n); i = dart.notNull(i) + 1) {
       let v = new Variable("v", 0);
       if (prev != null)
-        new EqualityConstraint(prev, v, REQUIRED);
+        new EqualityConstraint(prev, v, dart.as(REQUIRED, Strength));
       if (i == 0)
         first = v;
       if (i == n)
         last = v;
       prev = v;
     }
-    new StayConstraint(last, STRONG_DEFAULT);
-    let edit = new EditConstraint(first, PREFERRED);
-    let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], Constraint));
+    new StayConstraint(last, dart.as(STRONG_DEFAULT, Strength));
+    let edit = new EditConstraint(first, dart.as(PREFERRED, Strength));
+    let plan = dart.dcall(exports.planner.extractPlanFromConstraints, dart.list([edit], Constraint));
     for (let i = 0; dart.notNull(i) < 100; i = dart.notNull(i) + 1) {
       first.value = i;
-      plan.execute();
+      dart.dcall(plan.execute);
       if (last.value != i) {
-        core.print("Chain test failed:");
-        core.print(`Expected last value to be ${i} but it was ${last.value}.`);
+        dart.dcall(core.print, "Chain test failed:");
+        dart.dcall(core.print, `Expected last value to be ${i} but it was ${last.value}.`);
       }
     }
   }
@@ -505,36 +505,36 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     for (let i = 0; dart.notNull(i) < dart.notNull(n); i = dart.notNull(i) + 1) {
       src = new Variable("src", i);
       dst = new Variable("dst", i);
-      dests[dartx.add](dst);
-      new StayConstraint(src, NORMAL);
-      new ScaleConstraint(src, scale, offset, dst, REQUIRED);
+      dart.dcall(dests[dartx.add], dst);
+      new StayConstraint(src, dart.as(NORMAL, Strength));
+      new ScaleConstraint(src, scale, offset, dst, dart.as(REQUIRED, Strength));
     }
-    change(src, 17);
+    dart.dcall(change, src, 17);
     if (dst.value != 1170)
-      core.print("Projection 1 failed");
-    change(dst, 1050);
+      dart.dcall(core.print, "Projection 1 failed");
+    dart.dcall(change, dst, 1050);
     if (src.value != 5)
-      core.print("Projection 2 failed");
-    change(scale, 5);
+      dart.dcall(core.print, "Projection 2 failed");
+    dart.dcall(change, scale, 5);
     for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
       if (dests[dartx.get](i).value != dart.notNull(i) * 5 + 1000)
-        core.print("Projection 3 failed");
+        dart.dcall(core.print, "Projection 3 failed");
     }
-    change(offset, 2000);
+    dart.dcall(change, offset, 2000);
     for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
       if (dests[dartx.get](i).value != dart.notNull(i) * 5 + 2000)
-        core.print("Projection 4 failed");
+        dart.dcall(core.print, "Projection 4 failed");
     }
   }
   dart.fn(projectionTest, dart.void, [core.int]);
   function change(v, newValue) {
-    let edit = new EditConstraint(v, PREFERRED);
-    let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], EditConstraint));
+    let edit = new EditConstraint(v, dart.as(PREFERRED, Strength));
+    let plan = dart.dcall(exports.planner.extractPlanFromConstraints, dart.list([edit], EditConstraint));
     for (let i = 0; dart.notNull(i) < 10; i = dart.notNull(i) + 1) {
       v.value = newValue;
-      plan.execute();
+      dart.dcall(plan.execute);
     }
-    edit.destroyConstraint();
+    dart.dcall(edit.destroyConstraint);
   }
   dart.fn(change, dart.void, [Variable, core.int]);
   exports.planner = null;

@@ -6,7 +6,7 @@ dart_library.library('dir/html_input_d', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function fib(n) {
-    return n == 0 || n == 1 ? 1 : dart.notNull(fib(dart.notNull(n) - 1)) + dart.notNull(fib(dart.notNull(n) - 2));
+    return n == 0 || n == 1 ? 1 : dart.notNull(dart.dcall(fib, dart.notNull(n) - 1)) + dart.notNull(dart.dcall(fib, dart.notNull(n) - 2));
   }
   dart.fn(fib, core.int, [core.int]);
   // Exports:

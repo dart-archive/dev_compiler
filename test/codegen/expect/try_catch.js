@@ -64,11 +64,11 @@ dart_library.library('try_catch', null, /* Imports */[
   }
   dart.fn(wub);
   function main() {
-    foo();
-    bar();
-    baz();
-    qux();
-    wub();
+    dart.dcall(foo);
+    dart.dcall(bar);
+    dart.dcall(baz);
+    dart.dcall(qux);
+    dart.dcall(wub);
   }
   dart.fn(main);
   // Exports:

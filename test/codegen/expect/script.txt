@@ -1,1 +1,5 @@
 // Messages from compiling script.dart
+warning: [MissingTypeError] type analysis didn't compute the type of: join SimpleIdentifier (test/codegen/script.dart, line 3, col 22)
+warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/script.dart, line 5, col 3)
+info: [DynamicInvoke] args.join(' ') requires dynamic invoke (test/codegen/script.dart, line 3, col 17)
+info: [DynamicInvoke] print('hello $name') requires dynamic invoke (test/codegen/script.dart, line 5, col 3)

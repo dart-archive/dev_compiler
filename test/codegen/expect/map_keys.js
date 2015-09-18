@@ -7,12 +7,12 @@ dart_library.library('map_keys', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function main() {
-    core.print(dart.map({'1': 2, '3': 4, '5': 6}));
-    core.print(dart.map([1, 2, 3, 4, 5, 6]));
-    core.print(dart.map({'1': 2, [`${dart.notNull(math.Random.new().nextInt(2)) + 2}`]: 4, '5': 6}));
+    dart.dcall(core.print, dart.map({'1': 2, '3': 4, '5': 6}));
+    dart.dcall(core.print, dart.map([1, 2, 3, 4, 5, 6]));
+    dart.dcall(core.print, dart.map({'1': 2, [`${dart.notNull(dart.dcall(math.Random.new().nextInt, 2)) + 2}`]: 4, '5': 6}));
     let x = '3';
-    core.print(dart.map(['1', 2, x, 4, '5', 6]));
-    core.print(dart.map(['1', 2, null, 4, '5', 6]));
+    dart.dcall(core.print, dart.map(['1', 2, x, 4, '5', 6]));
+    dart.dcall(core.print, dart.map(['1', 2, null, 4, '5', 6]));
   }
   dart.fn(main);
   // Exports:

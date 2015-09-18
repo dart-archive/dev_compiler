@@ -13,23 +13,23 @@ dart_library.library('cascade', null, /* Imports */[
   function test_closure_with_mutate() {
     let a = new A();
     a.x = dart.fn(() => {
-      core.print("hi");
+      dart.dcall(core.print, "hi");
       a = null;
     });
     let _ = a;
     dart.dcall(_.x);
     dart.dcall(_.x);
-    core.print(a);
+    dart.dcall(core.print, a);
   }
   dart.fn(test_closure_with_mutate, dart.void, []);
   function test_closure_without_mutate() {
     let a = new A();
     a.x = dart.fn(() => {
-      core.print(a);
+      dart.dcall(core.print, a);
     });
     dart.dcall(a.x);
     dart.dcall(a.x);
-    core.print(a);
+    dart.dcall(core.print, a);
   }
   dart.fn(test_closure_without_mutate, dart.void, []);
   function test_mutate_inside_cascade() {
@@ -38,7 +38,7 @@ dart_library.library('cascade', null, /* Imports */[
     _.x = a = null;
     _.x = a = null;
     a = _;
-    core.print(a);
+    dart.dcall(core.print, a);
   }
   dart.fn(test_mutate_inside_cascade, dart.void, []);
   function test_mutate_outside_cascade() {
@@ -47,34 +47,34 @@ dart_library.library('cascade', null, /* Imports */[
     a.x = b = null;
     a.x = b = null;
     a = null;
-    core.print(a);
+    dart.dcall(core.print, a);
   }
   dart.fn(test_mutate_outside_cascade, dart.void, []);
   function test_VariableDeclaration_single() {
     let a = [];
     a[dartx.length] = 2;
-    a[dartx.add](42);
-    core.print(a);
+    dart.dcall(a[dartx.add], 42);
+    dart.dcall(core.print, a);
   }
   dart.fn(test_VariableDeclaration_single, dart.void, []);
   function test_VariableDeclaration_last() {
     let a = 42, b = (() => {
       let _ = [];
       _[dartx.length] = 2;
-      _[dartx.add](a);
+      dart.dcall(_[dartx.add], a);
       return _;
     })();
-    core.print(b);
+    dart.dcall(core.print, b);
   }
   dart.fn(test_VariableDeclaration_last, dart.void, []);
   function test_VariableDeclaration_first() {
     let a = (() => {
       let _ = [];
       _[dartx.length] = 2;
-      _[dartx.add](3);
+      dart.dcall(_[dartx.add], 3);
       return _;
     })(), b = 2;
-    core.print(a);
+    dart.dcall(core.print, a);
   }
   dart.fn(test_VariableDeclaration_first, dart.void, []);
   function test_increment() {
@@ -100,10 +100,10 @@ dart_library.library('cascade', null, /* Imports */[
       super.Base();
     }
     test_final_field_generic(t) {
-      this.x[dartx.add](1);
-      this.x[dartx.add](2);
-      this.x[dartx.add](3);
-      this.x[dartx.add](4);
+      dart.dcall(this.x[dartx.add], 1);
+      dart.dcall(this.x[dartx.add], 2);
+      dart.dcall(this.x[dartx.add], 3);
+      dart.dcall(this.x[dartx.add], 4);
     }
   }
   dart.setSignature(Foo, {

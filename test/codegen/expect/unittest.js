@@ -19,7 +19,7 @@ dart_library.library('unittest', null, /* Imports */[
   function test(name, body, opts) {
     let skip = opts && 'skip' in opts ? opts.skip : null;
     if (skip != null) {
-      core.print(`SKIP ${name}: ${skip}`);
+      dart.dcall(core.print, `SKIP ${name}: ${skip}`);
       return;
     }
     dart.dsend(dom.window, 'test', name, dart.fn(done => {
@@ -31,7 +31,7 @@ dart_library.library('unittest', null, /* Imports */[
         }
       }
       dart.fn(_finishTest);
-      _finishTest(body());
+      dart.dcall(_finishTest, body());
     }));
   }
   dart.fn(test, dart.void, [core.String, dart.functionType(dart.dynamic, [])], {skip: core.String});
@@ -51,7 +51,7 @@ dart_library.library('unittest', null, /* Imports */[
     let reason = opts && 'reason' in opts ? opts.reason : null;
     let verbose = opts && 'verbose' in opts ? opts.verbose : false;
     let formatter = opts && 'formatter' in opts ? opts.formatter : null;
-    matcher = util.wrapMatcher(matcher);
+    matcher = dart.dcall(util.wrapMatcher, matcher);
     let matchState = dart.map();
     try {
       if (dart.notNull(dart.as(dart.dsend(matcher, 'matches', actual, matchState), core.bool)))
@@ -59,13 +59,13 @@ dart_library.library('unittest', null, /* Imports */[
     } catch (e) {
       let trace = dart.stackTrace(e);
       if (reason == null) {
-        reason = `${typeof e == 'string' ? e : dart.toString(e)} at ${trace}`;
+        reason = `${typeof e == 'string' ? e : dart.dsend(e, 'toString')} at ${trace}`;
       }
     }
 
     if (formatter == null)
       formatter = _defaultFailFormatter;
-    fail(dart.dcall(formatter, actual, matcher, reason, matchState, verbose));
+    dart.dcall(fail, dart.dcall(formatter, actual, matcher, reason, matchState, verbose));
   }
   dart.fn(expect, dart.void, [dart.dynamic, dart.dynamic], {reason: core.String, verbose: core.bool, formatter: ErrorFormatter});
   function fail(message) {
@@ -74,16 +74,16 @@ dart_library.library('unittest', null, /* Imports */[
   dart.fn(fail, dart.void, [core.String]);
   function _defaultFailFormatter(actual, matcher, reason, matchState, verbose) {
     let description = new description$.StringDescription();
-    description.add('Expected: ').addDescriptionOf(matcher).add('\n');
-    description.add('  Actual: ').addDescriptionOf(actual).add('\n');
+    dart.dcall(dart.dcall(dart.dcall(description.add, 'Expected: ').addDescriptionOf, matcher).add, '\n');
+    dart.dcall(dart.dcall(dart.dcall(description.add, '  Actual: ').addDescriptionOf, actual).add, '\n');
     let mismatchDescription = new description$.StringDescription();
-    matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
+    dart.dcall(matcher.describeMismatch, actual, mismatchDescription, matchState, verbose);
     if (dart.notNull(mismatchDescription.length) > 0) {
-      description.add(`   Which: ${mismatchDescription}\n`);
+      dart.dcall(description.add, `   Which: ${mismatchDescription}\n`);
     }
     if (reason != null)
-      description.add(reason).add('\n');
-    return dart.toString(description);
+      dart.dcall(dart.dcall(description.add, reason).add, '\n');
+    return dart.dcall(description.toString);
   }
   dart.fn(_defaultFailFormatter, core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]);
   // Exports:

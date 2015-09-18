@@ -1,1 +1,5 @@
 // Messages from compiling functions.dart
+warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/functions.dart, line 13, col 3)
+warning: [MissingTypeError] type analysis didn't compute the type of: bootstrap SimpleIdentifier (test/codegen/functions.dart, line 13, col 9)
+info: [DynamicInvoke] print(bootstrap()[0]) requires dynamic invoke (test/codegen/functions.dart, line 13, col 3)
+info: [DynamicInvoke] bootstrap() requires dynamic invoke (test/codegen/functions.dart, line 13, col 9)
