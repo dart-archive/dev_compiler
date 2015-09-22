@@ -22,12 +22,12 @@ dart_library.library('fieldtest', null, /* Imports */[
   });
   let B = B$();
   function foo(a) {
-    dart.dcall(core.print, a.x);
+    core.print(a.x);
     return a.x;
   }
   dart.fn(foo, core.int, [A]);
   function bar(a) {
-    dart.dcall(core.print, dart.dload(a, 'x'));
+    core.print(dart.dload(a, 'x'));
     return dart.as(dart.dload(a, 'x'), core.int);
   }
   dart.fn(bar, core.int, [dart.dynamic]);
@@ -41,7 +41,7 @@ dart_library.library('fieldtest', null, /* Imports */[
   dart.fn(compute, core.int, []);
   dart.defineLazyProperties(exports, {
     get y() {
-      return dart.notNull(dart.dcall(compute)) + 444;
+      return dart.notNull(compute()) + 444;
     },
     set y(_) {}
   });
@@ -72,7 +72,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     class Generic extends core.Object {
       foo(t) {
         dart.as(t, T);
-        return dart.dcall(core.print, dart.notNull(Generic$().bar) + dart.notNull(dart.as(t, core.String)));
+        return core.print(dart.notNull(Generic$().bar) + dart.notNull(dart.as(t, core.String)));
       }
     }
     dart.setSignature(Generic, {
@@ -112,11 +112,11 @@ dart_library.library('fieldtest', null, /* Imports */[
   MyEnum.values = dart.const(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
   function main() {
     let a = new A();
-    dart.dcall(foo, a);
-    dart.dcall(bar, a);
-    dart.dcall(core.print, dart.dcall(baz, a));
-    dart.dcall(core.print, dart.dcall(new (Generic$(core.String))().foo, ' world'));
-    dart.dcall(core.print, MyEnum.values);
+    foo(a);
+    bar(a);
+    core.print(baz(a));
+    core.print(new (Generic$(core.String))().foo(' world'));
+    core.print(MyEnum.values);
   }
   dart.fn(main, dart.void, []);
   // Exports:

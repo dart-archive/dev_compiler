@@ -210,7 +210,9 @@ class RestrictedRules extends TypeRules {
     if (type != null) return type;
     if (expr is SimpleIdentifier) {
       type = expr.staticElement?.type;
-      if (type != null) return type;
+      if (type != null) {
+        return expr.staticType = type;
+      }
     }
     if (reportMissingType != null) reportMissingType(expr);
     return provider.dynamicType;

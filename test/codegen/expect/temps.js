@@ -40,9 +40,9 @@ dart_library.library('temps', null, /* Imports */[
     })
   });
   function main() {
-    dart.dcall(core.print, new FormalCollision(1, 2, dart.fn(x => x)));
-    dart.dcall(core.print, new OptionalArg()[_opt]);
-    dart.dcall(core.print, new OptionalArg.named()[_opt]);
+    core.print(new FormalCollision(1, 2, dart.fn(x => x)));
+    core.print(new OptionalArg()[_opt]);
+    core.print(new OptionalArg.named()[_opt]);
   }
   dart.fn(main);
   // Exports:

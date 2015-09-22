@@ -1,7 +1,1 @@
 // Messages from compiling covariance.dart
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/covariance.dart, line 19, col 5)
-warning: [MissingTypeError] type analysis didn't compute the type of: add SimpleIdentifier (test/codegen/covariance.dart, line 20, col 11)
-warning: [MissingTypeError] type analysis didn't compute the type of: add SimpleIdentifier (test/codegen/covariance.dart, line 26, col 7)
-info: [DynamicInvoke] print('Bar.add got $x') requires dynamic invoke (test/codegen/covariance.dart, line 19, col 5)
-info: [DynamicInvoke] super.add(x) requires dynamic invoke (test/codegen/covariance.dart, line 20, col 5)
-info: [DynamicInvoke] foo.add('hi') requires dynamic invoke (test/codegen/covariance.dart, line 26, col 3)

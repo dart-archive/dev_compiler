@@ -1,7 +1,1 @@
 // Messages from compiling temps.dart
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/temps.dart, line 20, col 3)
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/temps.dart, line 21, col 3)
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/temps.dart, line 22, col 3)
-info: [DynamicInvoke] print(new FormalCollision(1, 2, (x) => x)) requires dynamic invoke (test/codegen/temps.dart, line 20, col 3)
-info: [DynamicInvoke] print(new OptionalArg()._opt) requires dynamic invoke (test/codegen/temps.dart, line 21, col 3)
-info: [DynamicInvoke] print(new OptionalArg.named()._opt) requires dynamic invoke (test/codegen/temps.dart, line 22, col 3)

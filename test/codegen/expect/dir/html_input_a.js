@@ -9,8 +9,8 @@ dart_library.library('dir/html_input_a', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function main() {
-    dart.dcall(core.print, `fib(${html_input_b.x} + ${html_input_c.y}) = `);
-    dart.dcall(core.print, `  ... ${dart.dcall(html_input_d.fib, dart.notNull(html_input_b.x) + dart.notNull(html_input_c.y))}`);
+    core.print(`fib(${html_input_b.x} + ${html_input_c.y}) = `);
+    core.print(`  ... ${html_input_d.fib(dart.notNull(html_input_b.x) + dart.notNull(html_input_c.y))}`);
   }
   dart.fn(main);
   // Exports:

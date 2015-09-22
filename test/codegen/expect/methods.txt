@@ -1,10 +1,4 @@
 // Messages from compiling methods.dart
-warning: [MissingTypeError] type analysis didn't compute the type of: x SimpleIdentifier (test/codegen/methods.dart, line 26, col 16)
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/methods.dart, line 40, col 14)
-warning: [MissingTypeError] type analysis didn't compute the type of: bar SimpleIdentifier (test/codegen/methods.dart, line 49, col 5)
 info: [DownCastImplicit] b (num) will need runtime check to cast to type int (test/codegen/methods.dart, line 14, col 21)
 info: [DownCastImplicit] a + b (num) will need runtime check to cast to type int (test/codegen/methods.dart, line 19, col 12)
-info: [DynamicInvoke] x() requires dynamic invoke (test/codegen/methods.dart, line 26, col 16)
-info: [DynamicInvoke] print('hello from $x') requires dynamic invoke (test/codegen/methods.dart, line 40, col 14)
-info: [DynamicInvoke] f.bar("Bar's call method!") requires dynamic invoke (test/codegen/methods.dart, line 49, col 3)
 info: [DynamicInvoke] aa.x requires dynamic invoke (test/codegen/methods.dart, line 57, col 11)

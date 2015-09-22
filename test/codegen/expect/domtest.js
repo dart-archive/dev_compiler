@@ -7,11 +7,11 @@ dart_library.library('domtest', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function testNativeIndexers() {
-    let nodes = dart.dcall(dom.document.querySelector, 'body').childNodes;
+    let nodes = dom.document.querySelector('body').childNodes;
     for (let i = 0; dart.notNull(i) < dart.notNull(nodes.length); i = dart.notNull(i) + 1) {
       let old = nodes[i];
-      nodes[i] = dart.dcall(dom.document.createElement, 'div');
-      dart.dcall(core.print, dart.equals(nodes[i], old));
+      nodes[i] = dom.document.createElement('div');
+      core.print(dart.equals(nodes[i], old));
     }
   }
   dart.fn(testNativeIndexers);

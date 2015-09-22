@@ -20,7 +20,7 @@ dart_library.library('functions', null, /* Imports */[
   dart.fn(id, () => dart.definiteFunctionType(A2B$(Foo, Foo), [A2B$(Foo, Foo)]));
   class Foo extends core.Object {}
   function main() {
-    dart.dcall(core.print, dart.dcall(bootstrap)[dartx.get](0));
+    core.print(bootstrap()[dartx.get](0));
   }
   dart.fn(main, dart.void, []);
   // Exports:

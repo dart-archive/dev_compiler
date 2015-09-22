@@ -1,13 +1,1 @@
 // Messages from compiling map_keys.dart
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/map_keys.dart, line 4, col 3)
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/map_keys.dart, line 6, col 3)
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/map_keys.dart, line 8, col 3)
-warning: [MissingTypeError] type analysis didn't compute the type of: nextInt SimpleIdentifier (test/codegen/map_keys.dart, line 8, col 35)
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/map_keys.dart, line 11, col 3)
-warning: [MissingTypeError] type analysis didn't compute the type of: print SimpleIdentifier (test/codegen/map_keys.dart, line 13, col 3)
-info: [DynamicInvoke] print({'1' : 2, '3' : 4, '5' : 6}) requires dynamic invoke (test/codegen/map_keys.dart, line 4, col 3)
-info: [DynamicInvoke] print({1 : 2, 3 : 4, 5 : 6}) requires dynamic invoke (test/codegen/map_keys.dart, line 6, col 3)
-info: [DynamicInvoke] print({'1' : 2, '${new Random().nextInt(2) + 2}' : 4, '5' : 6}) requires dynamic invoke (test/codegen/map_keys.dart, line 8, col 3)
-info: [DynamicInvoke] new Random().nextInt(2) requires dynamic invoke (test/codegen/map_keys.dart, line 8, col 22)
-info: [DynamicInvoke] print({'1' : 2, x : 4, '5' : 6}) requires dynamic invoke (test/codegen/map_keys.dart, line 11, col 3)
-info: [DynamicInvoke] print({'1' : 2, null : 4, '5' : 6}) requires dynamic invoke (test/codegen/map_keys.dart, line 13, col 3)

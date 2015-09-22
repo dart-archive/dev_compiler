@@ -34,8 +34,8 @@ dart_library.library('covariance', null, /* Imports */[
       super.Foo();
     }
     add(x) {
-      dart.dcall(core.print, `Bar.add got ${x}`);
-      dart.dcall(super.add, x);
+      core.print(`Bar.add got ${x}`);
+      super.add(x);
     }
   }
   dart.setSignature(Bar, {
@@ -43,7 +43,7 @@ dart_library.library('covariance', null, /* Imports */[
   });
   function main() {
     let foo = new Bar();
-    dart.dcall(foo.add, 'hi');
+    foo.add('hi');
   }
   dart.fn(main);
   // Exports:
