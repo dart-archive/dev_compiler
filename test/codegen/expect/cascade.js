@@ -12,23 +12,23 @@ dart_library.library('cascade', null, /* Imports */[
   }
   function test_closure_with_mutate() {
     let a = new A();
-    a.x = dart.fn(() => {
+    dart.dput(a, 'x', dart.fn(() => {
       core.print("hi");
       a = null;
-    });
+    }));
     let _ = a;
-    _.x();
-    _.x();
+    dart.dsend(_, 'x');
+    dart.dsend(_, 'x');
     core.print(a);
   }
   dart.fn(test_closure_with_mutate, dart.void, []);
   function test_closure_without_mutate() {
     let a = new A();
-    a.x = dart.fn(() => {
+    dart.dput(a, 'x', dart.fn(() => {
       core.print(a);
-    });
-    a.x();
-    a.x();
+    }));
+    dart.dsend(a, 'x');
+    dart.dsend(a, 'x');
     core.print(a);
   }
   dart.fn(test_closure_without_mutate, dart.void, []);
@@ -80,8 +80,8 @@ dart_library.library('cascade', null, /* Imports */[
   function test_increment() {
     let a = new A();
     let y = ((() => {
-      a.x = dart.dsend(a.x, '+', 1);
-      a.x = dart.dsend(a.x, '-', 1);
+      dart.dput(a, 'x', dart.dsend(dart.dload(a, 'x'), '+', 1));
+      dart.dput(a, 'x', dart.dsend(dart.dload(a, 'x'), '-', 1));
       return a;
     })());
   }

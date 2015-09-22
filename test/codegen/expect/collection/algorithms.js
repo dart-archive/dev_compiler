@@ -12,7 +12,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     while (dart.notNull(min) < dart.notNull(max)) {
       let mid = dart.notNull(min) + (dart.notNull(max) - dart.notNull(min) >> 1);
       let element = list[dartx.get](mid);
-      let comp = element[dartx.compareTo](key);
+      let comp = dart.as(dart.dsend(element, 'compareTo', key), core.int);
       if (comp == 0)
         return mid;
       if (dart.notNull(comp) < 0) {

@@ -112,9 +112,9 @@ dart_library.library('fieldtest', null, /* Imports */[
   MyEnum.values = dart.const(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
   function main() {
     let a = new A();
-    foo(a);
+    foo(dart.as(a, A));
     bar(a);
-    core.print(baz(a));
+    core.print(baz(dart.as(a, A)));
     core.print(new (Generic$(core.String))().foo(' world'));
     core.print(MyEnum.values);
   }

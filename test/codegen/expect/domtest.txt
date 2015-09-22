@@ -1,1 +1,6 @@
 // Messages from compiling domtest.dart
+info: [DynamicCast] nodes.length (dynamic) will need runtime check to cast to type num (test/codegen/domtest.dart, line 12, col 23)
+info: [DynamicInvoke] nodes.length requires dynamic invoke (test/codegen/domtest.dart, line 12, col 23)
+info: [DynamicInvoke] nodes[i] requires dynamic invoke (test/codegen/domtest.dart, line 13, col 15)
+info: [DynamicInvoke] nodes[i] requires dynamic invoke (test/codegen/domtest.dart, line 14, col 5)
+info: [DynamicInvoke] nodes[i] requires dynamic invoke (test/codegen/domtest.dart, line 15, col 11)

@@ -1,2 +1,3 @@
 // Messages from compiling async_helper.dart
+info: [DynamicInvoke] callback() requires dynamic invoke (test/codegen/async_helper.dart, line 82, col 5)
 info: [DynamicInvoke] f().then(asyncSuccess) requires dynamic invoke (test/codegen/async_helper.dart, line 108, col 3)

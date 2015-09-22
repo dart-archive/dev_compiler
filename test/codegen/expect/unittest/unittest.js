@@ -74,16 +74,16 @@ dart_library.library('unittest/unittest', null, /* Imports */[
   dart.fn(fail, dart.void, [core.String]);
   function _defaultFailFormatter(actual, matcher, reason, matchState, verbose) {
     let description = new description$.StringDescription();
-    description.add('Expected: ').addDescriptionOf(matcher).add('\n');
-    description.add('  Actual: ').addDescriptionOf(actual).add('\n');
+    dart.dsend(dart.dsend(dart.dsend(description, 'add', 'Expected: '), 'addDescriptionOf', matcher), 'add', '\n');
+    dart.dsend(dart.dsend(dart.dsend(description, 'add', '  Actual: '), 'addDescriptionOf', actual), 'add', '\n');
     let mismatchDescription = new description$.StringDescription();
-    matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
-    if (dart.notNull(mismatchDescription.length) > 0) {
-      description.add(`   Which: ${mismatchDescription}\n`);
+    matcher.describeMismatch(actual, dart.as(mismatchDescription, interfaces.Description), matchState, verbose);
+    if (dart.notNull(dart.as(dart.dsend(dart.dload(mismatchDescription, 'length'), '>', 0), core.bool))) {
+      dart.dsend(description, 'add', `   Which: ${mismatchDescription}\n`);
     }
     if (reason != null)
-      description.add(reason).add('\n');
-    return dart.toString(description);
+      dart.dsend(dart.dsend(description, 'add', reason), 'add', '\n');
+    return dart.as(dart.dsend(description, 'toString'), core.String);
   }
   dart.fn(_defaultFailFormatter, core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]);
   // Exports:

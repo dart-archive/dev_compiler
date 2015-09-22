@@ -1,6 +1,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> Regen
@@ -93,6 +94,34 @@ warning: [MissingTypeError] type analysis didn't compute the type of: clear Simp
 >>>>>>> Snapshot
 =======
 >>>>>>> Regen
+=======
+severe: [AnalyzerMessage] 'fold' is inherited by at least two interfaces inconsistently, from (dynamic, (dynamic, E) → dynamic) → dynamic, (dynamic, (dynamic, Float32x4) → dynamic) → dynamic (dart:_native_typed_data, line 101, col 7)
+severe: [InvalidMethodOverride] Mixin introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<Float32x4>.fold ((dynamic, (dynamic, Float32x4) → dynamic) → dynamic). (dart:_native_typed_data, line 102, col 25)
+severe: [AnalyzerMessage] 'fold' is inherited by at least two interfaces inconsistently, from (dynamic, (dynamic, E) → dynamic) → dynamic, (dynamic, (dynamic, Int32x4) → dynamic) → dynamic (dart:_native_typed_data, line 211, col 7)
+severe: [InvalidMethodOverride] Mixin introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<Int32x4>.fold ((dynamic, (dynamic, Int32x4) → dynamic) → dynamic). (dart:_native_typed_data, line 212, col 25)
+severe: [AnalyzerMessage] 'fold' is inherited by at least two interfaces inconsistently, from (dynamic, (dynamic, E) → dynamic) → dynamic, (dynamic, (dynamic, Float64x2) → dynamic) → dynamic (dart:_native_typed_data, line 321, col 7)
+severe: [InvalidMethodOverride] Mixin introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<Float64x2>.fold ((dynamic, (dynamic, Float64x2) → dynamic) → dynamic). (dart:_native_typed_data, line 322, col 25)
+severe: [AnalyzerMessage] 'fold' is inherited by at least two interfaces inconsistently, from (dynamic, (dynamic, E) → dynamic) → dynamic, (dynamic, (dynamic, int) → dynamic) → dynamic (dart:_native_typed_data, line 913, col 16)
+severe: [InvalidMethodOverride] Mixin introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 915, col 14)
+severe: [AnalyzerMessage] 'fold' is inherited by at least two interfaces inconsistently, from (dynamic, (dynamic, E) → dynamic) → dynamic, (dynamic, (dynamic, double) → dynamic) → dynamic (dart:_native_typed_data, line 940, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<double>.fold ((dynamic, (dynamic, double) → dynamic) → dynamic). (dart:_native_typed_data, line 941, col 5)
+severe: [AnalyzerMessage] 'fold' is inherited by at least two interfaces inconsistently, from (dynamic, (dynamic, E) → dynamic) → dynamic, (dynamic, (dynamic, double) → dynamic) → dynamic (dart:_native_typed_data, line 977, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<double>.fold ((dynamic, (dynamic, double) → dynamic) → dynamic). (dart:_native_typed_data, line 978, col 5)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.fold' (dart:_native_typed_data, line 1014, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 1015, col 5)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.fold' (dart:_native_typed_data, line 1056, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 1056, col 23)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.fold' (dart:_native_typed_data, line 1096, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 1096, col 22)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.fold' (dart:_native_typed_data, line 1136, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 1136, col 24)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.fold' (dart:_native_typed_data, line 1176, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 1176, col 24)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.fold' (dart:_native_typed_data, line 1216, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 1217, col 5)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.fold' (dart:_native_typed_data, line 1266, col 7)
+severe: [InvalidMethodOverride] Base class introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<int>.fold ((dynamic, (dynamic, int) → dynamic) → dynamic). (dart:_native_typed_data, line 1266, col 23)
+>>>>>>> With leafp's CL
 warning: [DownCastComposite] doneHandlers (dynamic) will need runtime check to cast to type Iterable<SendPort> (dart:_isolate_helper, line 574, col 29)
 warning: [DownCastComposite] args (dynamic) will need runtime check to cast to type List<String> (dart:_isolate_helper, line 839, col 37)
 warning: [DownCastComposite] msg['args'] (dynamic) will need runtime check to cast to type List<String> (dart:_isolate_helper, line 886, col 11)

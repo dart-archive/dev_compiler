@@ -70,7 +70,7 @@ dart_library.library('methods', null, /* Imports */[
   }
   function test() {
     let f = new Foo();
-    f.bar("Bar's call method!");
+    dart.dsend(f, 'bar', "Bar's call method!");
     let a = new A();
     let g = dart.bind(a, 'x');
     let aa = new A();

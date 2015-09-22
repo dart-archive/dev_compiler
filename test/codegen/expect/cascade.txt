@@ -1,3 +1,11 @@
 // Messages from compiling cascade.dart
+info: [DynamicInvoke] a.x requires dynamic invoke (test/codegen/cascade.dart, line 11, col 3)
+info: [DynamicInvoke] ..x() requires dynamic invoke (test/codegen/cascade.dart, line 16, col 5)
+info: [DynamicInvoke] ..x() requires dynamic invoke (test/codegen/cascade.dart, line 17, col 5)
+info: [DynamicInvoke] a.x requires dynamic invoke (test/codegen/cascade.dart, line 23, col 3)
+info: [DynamicInvoke] ..x() requires dynamic invoke (test/codegen/cascade.dart, line 27, col 5)
+info: [DynamicInvoke] ..x() requires dynamic invoke (test/codegen/cascade.dart, line 28, col 5)
 info: [DynamicInvoke] ..x += 1 requires dynamic invoke (test/codegen/cascade.dart, line 75, col 5)
+info: [DynamicInvoke] ..x requires dynamic invoke (test/codegen/cascade.dart, line 75, col 5)
 info: [DynamicInvoke] ..x -= 1 requires dynamic invoke (test/codegen/cascade.dart, line 76, col 5)
+info: [DynamicInvoke] ..x requires dynamic invoke (test/codegen/cascade.dart, line 76, col 5)
