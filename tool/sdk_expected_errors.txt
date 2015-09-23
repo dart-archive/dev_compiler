@@ -139,8 +139,6 @@ severe: [AnalyzerMessage] The redirected constructor '(Iterable<E>) → LinkedHa
 warning: [DownCastComposite] doneHandlers (dynamic) will need runtime check to cast to type Iterable<SendPort> (dart:_isolate_helper, line 574, col 29)
 warning: [DownCastComposite] args (dynamic) will need runtime check to cast to type List<String> (dart:_isolate_helper, line 839, col 37)
 warning: [DownCastComposite] msg['args'] (dynamic) will need runtime check to cast to type List<String> (dart:_isolate_helper, line 886, col 11)
-warning: [DownCastComposite] JS('-dynamic', 'dart.list(#, #)', allocation, E) (dynamic) will need runtime check to cast to type JSArray<E> (dart:_interceptors/js_array.dart, line 23, col 7)
-warning: [DownCastComposite] JS('-dynamic', r'#.splice(#, 1)[0]', this, index) (dynamic) will need runtime check to cast to type E (dart:_interceptors/js_array.dart, line 56, col 12)
 warning: [DownCastComposite] JS('var', r'#.pop()', this) (dynamic) will need runtime check to cast to type E (dart:_interceptors/js_array.dart, line 80, col 12)
 warning: [DownCastComposite] JS('', '#[#]', this, i) (dynamic) will need runtime check to cast to type E (dart:_interceptors/js_array.dart, line 125, col 9)
 warning: [DownCastComposite] IterableMixinWorkaround.reduce(this, combine) (dynamic) will need runtime check to cast to type E (dart:_interceptors/js_array.dart, line 161, col 12)

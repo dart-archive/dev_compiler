@@ -59,7 +59,7 @@ dart_library.library('unittest/unittest', null, /* Imports */[
     } catch (e) {
       let trace = dart.stackTrace(e);
       if (reason == null) {
-        reason = `${typeof e == 'string' ? e : dart.dsend(e, 'toString')} at ${trace}`;
+        reason = `${typeof e == 'string' ? e : dart.dcall(e.toString)} at ${trace}`;
       }
     }
 
@@ -83,7 +83,7 @@ dart_library.library('unittest/unittest', null, /* Imports */[
     }
     if (reason != null)
       dart.dsend(dart.dsend(description, 'add', reason), 'add', '\n');
-    return dart.as(dart.dsend(description, 'toString'), core.String);
+    return dart.as(dart.dcall(description.toString), core.String);
   }
   dart.fn(_defaultFailFormatter, core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]);
   // Exports:
