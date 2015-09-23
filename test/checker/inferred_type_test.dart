@@ -150,74 +150,6 @@ void main() {
   });
 
   testChecker(
-      'do not infer from variables if flag is off',
-      {
-        '/main.dart': '''
-          var x = 2;
-          var y = x;
-
-          test1() {
-            x = /*severe:StaticTypeError*/"hi";
-            y = "hi";
-          }
-    '''
-      },
-      inferTransitively: false);
-
-  testChecker(
-      'do not infer from variables if flag is off 2',
-      {
-        '/main.dart': '''
-          class A {
-            static var x = 2;
-            static var y = A.x;
-          }
-
-          test1() {
-            A.x = /*severe:StaticTypeError*/"hi";
-            A.y = "hi";
-          }
-    '''
-      },
-      inferTransitively: false);
-
-  testChecker(
-      'do not infer from variables in non-cycle imports if flag is off',
-      {
-        '/a.dart': '''
-          var x = 2;
-      ''',
-        '/main.dart': '''
-          import 'a.dart';
-          var y = x;
-
-          test1() {
-            x = /*severe:StaticTypeError*/"hi";
-            y = "hi";
-          }
-    '''
-      },
-      inferTransitively: false);
-
-  testChecker(
-      'do not infer from variables in non-cycle imports if flag is off 2',
-      {
-        '/a.dart': '''
-          class A { static var x = 2; }
-      ''',
-        '/main.dart': '''
-          import 'a.dart';
-          class B { static var y = A.x; }
-
-          test1() {
-            A.x = /*severe:StaticTypeError*/"hi";
-            B.y = "hi";
-          }
-    '''
-      },
-      inferTransitively: false);
-
-  testChecker(
       'infer from variables in non-cycle imports with flag',
       {
         '/a.dart': '''
@@ -252,46 +184,6 @@ void main() {
     '''
       },
       inferTransitively: true);
-
-  testChecker(
-      'do not infer from variables in cycle libs when flag is off',
-      {
-        '/a.dart': '''
-          import 'main.dart';
-          var x = 2; // ok to infer
-      ''',
-        '/main.dart': '''
-          import 'a.dart';
-          var y = x; // not ok to infer yet
-
-          test1() {
-            int t = 3;
-            t = x;
-            t = /*info:DynamicCast*/y;
-          }
-    '''
-      },
-      inferTransitively: false);
-
-  testChecker(
-      'do not infer from variables in cycle libs when flag is off 2',
-      {
-        '/a.dart': '''
-          import 'main.dart';
-          class A { static var x = 2; }
-      ''',
-        '/main.dart': '''
-          import 'a.dart';
-          class B { static var y = A.x; }
-
-          test1() {
-            int t = 3;
-            t = A.x;
-            t = /*info:DynamicCast*/B.y;
-          }
-    '''
-      },
-      inferTransitively: false);
 
   testChecker(
       'infer from variables in cycle libs when flag is on',
@@ -729,26 +621,6 @@ void main() {
 
   group('infer type on overridden fields', () {
     testChecker(
-        '1',
-        {
-          '/main.dart': '''
-        class A {
-          int x = 2;
-        }
-
-        class B extends A {
-          /*severe:InvalidMethodOverride*/get x => 3;
-        }
-
-        foo() {
-          String y = /*info:DynamicCast*/new B().x;
-          int z = /*info:DynamicCast*/new B().x;
-        }
-    '''
-        },
-        inferFromOverrides: false);
-
-    testChecker(
         '2',
         {
           '/main.dart': '''
@@ -767,26 +639,6 @@ void main() {
     '''
         },
         inferFromOverrides: true);
-
-    testChecker(
-        '3',
-        {
-          '/main.dart': '''
-        class A {
-          int x = 2;
-        }
-
-        class B implements A {
-          /*severe:InvalidMethodOverride*/get x => 3;
-        }
-
-        foo() {
-          String y = /*info:DynamicCast*/new B().x;
-          int z = /*info:DynamicCast*/new B().x;
-        }
-    '''
-        },
-        inferFromOverrides: false);
 
     testChecker(
         '4',
@@ -831,26 +683,6 @@ void main() {
           },
           inferFromOverrides: infer);
     }
-
-    testChecker(
-        '2',
-        {
-          '/main.dart': '''
-        class A<T> {
-          T x;
-        }
-
-        class B implements A<int> {
-          /*severe:InvalidMethodOverride*/get x => 3;
-        }
-
-        foo() {
-          String y = /*info:DynamicCast*/new B().x;
-          int z = /*info:DynamicCast*/new B().x;
-        }
-    '''
-        },
-        inferFromOverrides: false);
 
     testChecker(
         '3',
@@ -961,7 +793,7 @@ void main() {
         '/a.dart': '''
           import 'main.dart';
         abstract class I<E> {
-          A<E> m(a, String f(v, T e));
+          A<E> m(a, String f(v, int e));
         }
       ''',
         '/main.dart': '''
@@ -981,7 +813,7 @@ void main() {
           const B();
           int get y => 0;
 
-          m(a, f(v, T e)) {}
+          m(a, f(v, int e)) {}
         }
 
         foo () {
@@ -1036,12 +868,12 @@ void main() {
         }
 
         class C1 extends A implements B {
-          /*severe:InvalidMethodOverride*/get a => null;
+          /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
         }
 
-        // Here we infer from B, which is more precise.
+        // Still ambiguous
         class C2 extends B implements A {
-          get a => null;
+          /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
         }
     '''
       },
@@ -1076,7 +908,7 @@ void main() {
         }
 
         class C2 extends A implements B {
-          /*severe:InvalidMethodOverride*/get a => null;
+          /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
         }
     '''
       },
