@@ -1,6 +1,4 @@
 // Messages from compiling misc.dart
-severe: [InvalidMethodOverride] Invalid override. The type of Base.== ((dynamic) → dynamic) is not a subtype of Object.== ((dynamic) → bool). (test/codegen/misc.dart, line 18, col 3)
-severe: [InvalidMethodOverride] Invalid override. The type of Derived.== ((dynamic) → dynamic) is not a subtype of Object.== ((dynamic) → bool). (test/codegen/misc.dart, line 24, col 3)
 info: [DynamicInvoke] obj.x requires dynamic invoke (test/codegen/misc.dart, line 19, col 27)
 info: [DynamicInvoke] obj.y requires dynamic invoke (test/codegen/misc.dart, line 19, col 41)
 info: [DynamicInvoke] obj.z requires dynamic invoke (test/codegen/misc.dart, line 25, col 30)

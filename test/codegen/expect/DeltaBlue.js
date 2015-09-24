@@ -28,7 +28,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.name = name;
     }
     nextWeaker() {
-      return dart.const(dart.list([dart.as(STRONG_PREFERRED, Strength), dart.as(PREFERRED, Strength), dart.as(STRONG_DEFAULT, Strength), dart.as(NORMAL, Strength), dart.as(WEAK_DEFAULT, Strength), dart.as(WEAKEST, Strength)], Strength))[dartx.get](this.value);
+      return dart.const(dart.list([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST], Strength))[dartx.get](this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
@@ -353,7 +353,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       c.markUnsatisfied();
       c.removeFromGraph();
       let unsatisfied = this.removePropagateFrom(out);
-      let strength = dart.as(REQUIRED, Strength);
+      let strength = REQUIRED;
       do {
         for (let i = 0; dart.notNull(i) < dart.notNull(unsatisfied[dartx.length]); i = dart.notNull(i) + 1) {
           let u = unsatisfied[dartx.get](i);
@@ -404,7 +404,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     removePropagateFrom(out) {
       out.determinedBy = null;
-      out.walkStrength = dart.as(WEAKEST, Strength);
+      out.walkStrength = WEAKEST;
       out.stay = true;
       let unsatisfied = dart.list([], Constraint);
       let todo = dart.list([out], Variable);
@@ -476,15 +476,15 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     for (let i = 0; dart.notNull(i) <= dart.notNull(n); i = dart.notNull(i) + 1) {
       let v = new Variable("v", 0);
       if (prev != null)
-        new EqualityConstraint(prev, v, dart.as(REQUIRED, Strength));
+        new EqualityConstraint(prev, v, REQUIRED);
       if (i == 0)
         first = v;
       if (i == n)
         last = v;
       prev = v;
     }
-    new StayConstraint(last, dart.as(STRONG_DEFAULT, Strength));
-    let edit = new EditConstraint(first, dart.as(PREFERRED, Strength));
+    new StayConstraint(last, STRONG_DEFAULT);
+    let edit = new EditConstraint(first, PREFERRED);
     let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], Constraint));
     for (let i = 0; dart.notNull(i) < 100; i = dart.notNull(i) + 1) {
       first.value = i;
@@ -506,8 +506,8 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       src = new Variable("src", i);
       dst = new Variable("dst", i);
       dests[dartx.add](dst);
-      new StayConstraint(src, dart.as(NORMAL, Strength));
-      new ScaleConstraint(src, scale, offset, dst, dart.as(REQUIRED, Strength));
+      new StayConstraint(src, NORMAL);
+      new ScaleConstraint(src, scale, offset, dst, REQUIRED);
     }
     change(src, 17);
     if (dst.value != 1170)
@@ -528,7 +528,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   }
   dart.fn(projectionTest, dart.void, [core.int]);
   function change(v, newValue) {
-    let edit = new EditConstraint(v, dart.as(PREFERRED, Strength));
+    let edit = new EditConstraint(v, PREFERRED);
     let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], EditConstraint));
     for (let i = 0; dart.notNull(i) < 10; i = dart.notNull(i) + 1) {
       v.value = newValue;

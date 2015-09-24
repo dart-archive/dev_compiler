@@ -171,15 +171,15 @@ dart_library.library('constructors', null, /* Imports */[
       }
       bar() {
         let q = Q$().foo();
-        return dart.as(dart.dload(q, 'x'), core.String);
+        return dart.as(q.x, core.String);
       }
       bar2() {
         let q = new (Q$())("world");
-        return dart.as(dart.dload(q, 'x'), core.String);
+        return dart.as(q.x, core.String);
       }
       static baz() {
         let q = new (Q$(core.int))(42);
-        return dart.as(dart.dsend(dart.dsend(q, 'bar'), '+', dart.dsend(q, 'bar2')), core.String);
+        return dart.notNull(q.bar()) + dart.notNull(q.bar2());
       }
     }
     dart.setSignature(Q, {

@@ -50,7 +50,7 @@ dart_library.library('async_helper/async_helper', null, /* Imports */[
     if (exports._asyncLevel == 0) {
       let callback = exports._onAsyncEnd;
       exports._onAsyncEnd = null;
-      dart.dcall(callback);
+      callback();
       core.print('unittest-suite-success');
     }
   }

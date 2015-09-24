@@ -84,14 +84,14 @@ dart_library.library('fieldtest', null, /* Imports */[
   Generic.bar = 'hello';
   class StaticFieldOrder1 extends core.Object {}
   StaticFieldOrder1.d = 4;
-  StaticFieldOrder1.c = dart.dsend(StaticFieldOrder1.d, '+', 2);
-  StaticFieldOrder1.b = dart.dsend(StaticFieldOrder1.c, '+', 3);
-  StaticFieldOrder1.a = dart.dsend(StaticFieldOrder1.b, '+', 1);
+  StaticFieldOrder1.c = dart.notNull(StaticFieldOrder1.d) + 2;
+  StaticFieldOrder1.b = dart.notNull(StaticFieldOrder1.c) + 3;
+  StaticFieldOrder1.a = dart.notNull(StaticFieldOrder1.b) + 1;
   class StaticFieldOrder2 extends core.Object {}
   StaticFieldOrder2.d = 4;
-  StaticFieldOrder2.c = dart.dsend(StaticFieldOrder2.d, '+', 2);
-  StaticFieldOrder2.b = dart.dsend(StaticFieldOrder2.c, '+', 3);
-  StaticFieldOrder2.a = dart.dsend(StaticFieldOrder2.b, '+', 1);
+  StaticFieldOrder2.c = dart.notNull(StaticFieldOrder2.d) + 2;
+  StaticFieldOrder2.b = dart.notNull(StaticFieldOrder2.c) + 3;
+  StaticFieldOrder2.a = dart.notNull(StaticFieldOrder2.b) + 1;
   class MyEnum extends core.Object {
     MyEnum(index) {
       this.index = index;
@@ -112,9 +112,9 @@ dart_library.library('fieldtest', null, /* Imports */[
   MyEnum.values = dart.const(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
   function main() {
     let a = new A();
-    foo(dart.as(a, A));
+    foo(a);
     bar(a);
-    core.print(baz(dart.as(a, A)));
+    core.print(baz(a));
     core.print(new (Generic$(core.String))().foo(' world'));
     core.print(MyEnum.values);
   }

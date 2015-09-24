@@ -219,23 +219,23 @@ dart_library.library('expect/expect', null, /* Imports */[
       if (reason === void 0)
         reason = null;
       let missingSet = core.Set.from(expected);
-      dart.dsend(missingSet, 'removeAll', actual);
+      missingSet.removeAll(actual);
       let extraSet = core.Set.from(actual);
-      dart.dsend(extraSet, 'removeAll', expected);
-      if (dart.notNull(dart.as(dart.dload(extraSet, 'isEmpty'), core.bool)) && dart.notNull(dart.as(dart.dload(missingSet, 'isEmpty'), core.bool)))
+      extraSet.removeAll(expected);
+      if (dart.notNull(extraSet.isEmpty) && dart.notNull(missingSet.isEmpty))
         return;
       let msg = Expect._getMessage(reason);
       let sb = new core.StringBuffer(`Expect.setEquals(${msg}) fails`);
-      if (!dart.notNull(dart.as(dart.dload(missingSet, 'isEmpty'), core.bool))) {
+      if (!dart.notNull(missingSet.isEmpty)) {
         sb.write('\nExpected collection does not contain: ');
       }
-      for (let val of dart.as(missingSet, core.Iterable)) {
+      for (let val of missingSet) {
         sb.write(`${val} `);
       }
-      if (!dart.notNull(dart.as(dart.dload(extraSet, 'isEmpty'), core.bool))) {
+      if (!dart.notNull(extraSet.isEmpty)) {
         sb.write('\nExpected collection should not contain: ');
       }
-      for (let val of dart.as(extraSet, core.Iterable)) {
+      for (let val of extraSet) {
         sb.write(`${val} `);
       }
       Expect._fail(dart.toString(sb));

@@ -8,10 +8,10 @@ dart_library.library('domtest', null, /* Imports */[
   let dartx = dart.dartx;
   function testNativeIndexers() {
     let nodes = dom.document.querySelector('body').childNodes;
-    for (let i = 0; dart.notNull(i) < dart.notNull(dart.as(dart.dload(nodes, 'length'), core.num)); i = dart.notNull(i) + 1) {
-      let old = dart.dindex(nodes, i);
-      dart.dsetindex(nodes, i, dom.document.createElement('div'));
-      core.print(dart.equals(dart.dindex(nodes, i), old));
+    for (let i = 0; dart.notNull(i) < dart.notNull(nodes.length); i = dart.notNull(i) + 1) {
+      let old = nodes[i];
+      nodes[i] = dom.document.createElement('div');
+      core.print(dart.equals(nodes[i], old));
     }
   }
   dart.fn(testNativeIndexers);
