@@ -687,8 +687,11 @@ class CodeChecker extends RecursiveAstVisitor {
       // typing rules may have inferred a more precise type for the variable
       // based on the initializer.
     } else {
-      var dartType = getType(type);
+      // FIXME(vsm): Re- enable this.
+      // var dartType = getType(type);
       for (VariableDeclaration variable in node.variables) {
+        // FIXME(vsm): Instead of this:
+        var dartType = variable.element.type;
         var initializer = variable.initializer;
         if (initializer != null) {
           checkAssignment(initializer, dartType);
