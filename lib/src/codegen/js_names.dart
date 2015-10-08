@@ -22,6 +22,8 @@ class TemporaryId extends Identifier {
 /// be qualified until [setQualified] is called.
 ///
 /// This expression is transparent to visiting after [setQualified].
+///
+/// TODO(ochafik): Remove in favour of [PlaceholderExpression].
 class MaybeQualifiedId extends Expression {
   Expression _expr;
 

@@ -857,6 +857,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           makeVars.map((m) => m(arguments)).toList());
     };
   }
+
+  Instantiator visitTypeRef(TypeRef node) =>
+    TODO('visitTypeRef');
+  Instantiator visitPlaceholderExpression(PlaceholderExpression node) =>
+    TODO('visitPlaceholderExpression');
 }
 
 /**

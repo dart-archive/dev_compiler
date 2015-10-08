@@ -8,6 +8,7 @@ import '../closure/closure_annotation.dart';
 
 import 'precedence.dart';
 import 'characters.dart' as charCodes;
+import 'js_types.dart';
 
 part 'nodes.dart';
 part 'builder.dart';

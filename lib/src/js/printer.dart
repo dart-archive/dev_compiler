@@ -6,6 +6,7 @@ part of js_ast;
 
 
 class JavaScriptPrintingOptions {
+  final bool outputTypeAnnotations;
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
@@ -24,6 +25,7 @@ class JavaScriptPrintingOptions {
        this.preferSemicolonToNewlineInMinifiedOutput: false,
        this.allowKeywordsInProperties: false,
        this.allowSingleLineIfStatements: false,
+       this.outputTypeAnnotations: false,
        this.arrowFnBindThisWorkaround: false});
 }
 
@@ -1326,6 +1328,23 @@ class Printer implements NodeVisitor {
   void visitAwait(Await node) {
     out("await ");
     visit(node.expression);
+  }
+
+  @override
+  visitPlaceholderExpression(PlaceholderExpression node) {
+    var data = node.data;
+    if (data is Node) {
+      visit(data);
+    } else {
+      // Note: in debug we could still visit data.
+      throw new ArgumentError("Cannot pretty print non-JS-node data: $data");
+    }
+  }
+
+  @override
+  visitTypeRef(TypeRef node) {
+    throw new ArgumentError(
+        "Cannot pretty print type ref $node: it must be converted to JS nodes.");
   }
 }
 
