@@ -4,6 +4,147 @@
 
 part of dart.core;
 
+const _NULL_KEY = "__dart_jsMap_null";
+const _PROTOTYPE_KEY = "__dart_jsMap_prototype";
+
+final _GLOBAL =
+    JS('', '(typeof window === "undefined" ? global : window)');
+
+final _Object_keys = JS('', '#["Object"].keys', _GLOBAL);
+final _String = JS('', '#.String', _GLOBAL);
+final _Number = JS('', '#.Number', _GLOBAL);
+
+class JsMap<K, V> implements Map<K, V> {
+  //static final JsObject _Object = context['Object'];
+  var _jsMap = JS('', 'new Map()');
+
+  final _keyCaster;
+
+  JsMap(this._keyCaster);
+
+  get _jsKeys => JS('', '#(#)', _Object_keys, _jsMap);
+
+  List<K> get _keysList {
+    var jsMap = _jsMap;
+    var jsKeys = _jsKeys;
+    var result = <K>[];
+    for (var i = 0, n = JS('int', '#.length', jsKeys); i < n; i++) {
+      result.add(JS('K', '#[#]', jsKeys, i));
+    }
+    return result;
+  }
+
+  _mangleKey(key) {
+    // assert(key is num || key is String);
+    if (key == null) {
+      return _NULL_KEY;
+    } else if (key == 'prototype') {
+      return _PROTOTYPE_KEY;
+    } else {
+      return key;
+    }
+  }
+
+  _demangleKey(key) {
+    if (key == _PROTOTYPE_KEY) {
+      return 'prototype';
+    } else if (key == _NULL_KEY) {
+      return null;
+    } else {
+      return JS('', '#(#)', _keyCaster, key);
+    }
+  }
+
+  @override
+  V operator [](Object key) {
+    return JS('V', '#[#]', _jsMap, _mangleKey(key));
+  }
+
+  @override
+  void operator []=(K key, V value) {
+    JS('', '#[#] = #', _jsMap, _mangleKey(key), value);
+  }
+
+  @override
+  void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
+  }
+
+  @override
+  void clear() {
+    _jsMap = JS('', 'new Map()');
+  }
+
+  @override
+  bool containsKey(Object key) {
+    return JS('bool', '# in #', _mangleKey(key), _jsMap);
+  }
+
+  @override
+  bool containsValue(Object value) {
+    for (var key in _keysList) {
+      var v = JS('V', '#[#]', _jsMap, key);
+      if (value == v) return true;
+    }
+    return false;
+  }
+
+  @override
+  void forEach(void f(K key, V value)) {
+    for (var key in _keysList) {
+      V value = JS('V', '#[#]', _jsMap, key);
+      f(_demangleKey(key), value);
+    }
+  }
+
+  @override
+  bool get isEmpty => JS('bool', '#.length == 0', _jsKeys);
+
+  @override
+  bool get isNotEmpty => !isEmpty;
+
+  // TODO: implement keys
+  @override
+  Iterable<K> get keys {
+    var result = <K>[];
+    for (var key in _keysList) {
+      result.add(_demangleKey(key));
+    }
+    return result;
+  }
+
+  // TODO: implement length
+  @override
+  int get length => _keysList.length;
+
+  @override
+  V putIfAbsent(K key, V ifAbsent()) {
+    var prop = _mangleKey(key);
+    return JS('V', '# in # ? #[#] : (#[#] = #())',
+        prop, _jsMap, _jsMap, prop, _jsMap, prop, ifAbsent);
+  }
+
+  @override
+  V remove(Object key) {
+    var prop = _mangleKey(key);
+    V value = JS('V', '#[#]', _jsMap, prop);
+    JS('', 'delete #[#]', _jsMap, prop);
+    return value;
+  }
+
+  // TODO: implement values
+  @override
+  Iterable<V> get values {
+    var result = <V>[];
+    for (var key in _keysList) {
+      result.add(JS('V', '#[#]', _jsMap, key));
+    }
+    return result;
+  }
+}
+
 /**
  * An collection of key-value pairs, from which you retrieve a value
  * using its associated key.
@@ -35,7 +176,16 @@ abstract class Map<K, V> {
    * `operator==` and `hashCode`, and it allows null as a key.
    * It iterates in key insertion order.
    */
-  factory Map() = LinkedHashMap<K, V>;
+  //factory Map() = LinkedHashMap<K, V>;
+  factory Map() {
+    if (JS('', 'K && (K.name === "int" || K.name === "num" || K.name === "double")')) {
+      return new JsMap<K, V>(_Number);
+    } else if (JS('', 'K && (K.name === "String")')) {
+      return new JsMap<K, V>(_String);
+    } else {
+      return new LinkedHashMap<K, V>();
+    }
+  }
 
   /**
    * Creates a [LinkedHashMap] instance that contains all key-value pairs of

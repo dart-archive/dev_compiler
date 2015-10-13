@@ -157,6 +157,7 @@ import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
 import "dart:convert" show UTF8, LATIN1, Encoding;
 import "dart:math" show Random;  // Used by List.shuffle.
+import 'dart:_foreign_helper' show JS;
 
 part "annotations.dart";
 part "bool.dart";

@@ -3216,10 +3216,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // TODO(jmesserly): we can likely make these faster.
     JS.Expression emitMap() {
       var entries = node.entries;
+      if (entries.isEmpty && node.typeArguments == null) {
+        return js.call('dart.map()');
+      }
       var mapArguments = null;
-      if (entries.isEmpty) {
-        mapArguments = [];
-      } else if (entries.every((e) => e.key is StringLiteral)) {
+      if (entries.isNotEmpty && entries.every((e) => e.key is StringLiteral)) {
         // Use JS object literal notation if possible, otherwise use an array.
         // We could do this any time all keys are non-nullable String type.
         // For now, support StringLiteral as the common non-nullable String case.
@@ -3236,8 +3237,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         }
         mapArguments = new JS.ArrayInitializer(values);
       }
-      // TODO(jmesserly): add generic types args.
-      return js.call('dart.map(#)', [mapArguments]);
+      var args = [mapArguments];
+      if (node.typeArguments == null) {
+        return js.call('dart.map(#)', args);
+      } else {
+        args.addAll(node.typeArguments.arguments.map((a) => _emitTypeName(a.type)));
+        return js.call('dart.map(#, #, #)', args);
+      }
+
     }
     if (node.constKeyword != null) return _emitConst(emitMap);
     return emitMap();
