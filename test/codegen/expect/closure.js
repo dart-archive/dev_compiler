@@ -7,8 +7,8 @@ dart_library.library('closure', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   /** @typedef {function({i: (?number|undefined)}=)} */
-  let Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
-  let Foo$ = dart.generic(function(T) {
+  exports.Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
+  exports.Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
       /**
        * @param {?number} i
@@ -111,23 +111,29 @@ dart_library.library('closure', null, /* Imports */[
     });
     return Foo;
   });
-  let Foo = Foo$();
+  exports.Foo = Foo$();
   /** @final {string} */
   Foo.some_static_constant = "abc";
   /** @final {string} */
   Foo.some_static_final = "abc";
   /** @type {string} */
   Foo.some_static_var = "abc";
-  class Bar extends core.Object {}
-  class Baz extends dart.mixin(Foo$(core.int), Bar) {
+  exports.Bar = class Bar extends core.Object {};
+  let Baz$super = dart.mixin(Foo$(core.int), Bar);
+  exports.Baz = class Baz extends Baz$super {
     /** @param {?number} i */
     Baz(i) {
       super.Foo(i, 123);
     }
-  }
+  };
   dart.setSignature(Baz, {
     constructors: () => ({Baz: [Baz, [core.int]]})
   });
+  let _Bam$ = dart.generic(function(M) {
+    class _Bam extends core.Object {}
+    return _Bam;
+  });
+  let _Bam = _Bam$();
   /** @param {?} args */
   function main(args) {
   }
@@ -139,11 +145,6 @@ dart_library.library('closure', null, /* Imports */[
   /** @type {string} */
   exports.some_top_level_var = "abc";
   // Exports:
-  exports.Callback = Callback;
-  exports.Foo$ = Foo$;
-  exports.Foo = Foo;
-  exports.Bar = Bar;
-  exports.Baz = Baz;
   exports.main = main;
   exports.some_top_level_constant = some_top_level_constant;
 });

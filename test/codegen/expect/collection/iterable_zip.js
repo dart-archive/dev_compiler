@@ -1,9 +1,9 @@
 dart_library.library('collection/iterable_zip', null, /* Imports */[
   "dart/_runtime",
-  'dart/collection',
-  'dart/core'
+  'dart/core',
+  'dart/collection'
 ], /* Lazy imports */[
-], function(exports, dart, collection, core) {
+], function(exports, dart, core, collection) {
   'use strict';
   let dartx = dart.dartx;
   let _iterables = Symbol('_iterables');
