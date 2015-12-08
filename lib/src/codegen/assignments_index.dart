@@ -111,14 +111,9 @@ class _LocalAssignmentsVisitor extends GeneralizingAstVisitor
 
 const Map<TokenType, TokenType> _opByAssignmentOp = const {
   TokenType.AMPERSAND_EQ: TokenType.AMPERSAND,
-  TokenType.BANG_EQ: TokenType.BANG,
   TokenType.BAR_EQ: TokenType.BAR,
   TokenType.CARET_EQ: TokenType.CARET,
-  TokenType.EQ_EQ: TokenType.EQ,
-  TokenType.GT_EQ: TokenType.GT,
   TokenType.GT_GT_EQ: TokenType.GT_GT,
-  TokenType.INDEX_EQ: TokenType.INDEX,
-  TokenType.LT_EQ: TokenType.LT,
   TokenType.LT_LT_EQ: TokenType.LT_LT,
   TokenType.MINUS_EQ: TokenType.MINUS,
   TokenType.PERCENT_EQ: TokenType.PERCENT,
