@@ -355,7 +355,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       let unsatisfied = this.removePropagateFrom(out);
       let strength = REQUIRED;
       do {
-        for (let i = 0; dart.notNull(i) < dart.notNull(unsatisfied[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(unsatisfied[dartx.length]); i++) {
           let u = unsatisfied[dartx.get](i);
           if (dart.equals(u.strength, strength))
             this.incrementalAdd(u);
@@ -382,7 +382,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     extractPlanFromConstraints(constraints) {
       let sources = dart.list([], Constraint);
-      for (let i = 0; dart.notNull(i) < dart.notNull(constraints[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(constraints[dartx.length]); i++) {
         let c = constraints[dartx.get](i);
         if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied()))
           sources[dartx.add](c);
@@ -410,13 +410,13 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       let todo = dart.list([out], Variable);
       while (dart.notNull(todo[dartx.length]) > 0) {
         let v = todo[dartx.removeLast]();
-        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(v.constraints[dartx.length]); i++) {
           let c = v.constraints[dartx.get](i);
           if (!dart.notNull(c.isSatisfied()))
             unsatisfied[dartx.add](c);
         }
         let determining = v.determinedBy;
-        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(v.constraints[dartx.length]); i++) {
           let next = v.constraints[dartx.get](i);
           if (!dart.equals(next, determining) && dart.notNull(next.isSatisfied())) {
             next.recalculate();
@@ -428,7 +428,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     addConstraintsConsumingTo(v, coll) {
       let determining = v.determinedBy;
-      for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(v.constraints[dartx.length]); i++) {
         let c = v.constraints[dartx.get](i);
         if (!dart.equals(c, determining) && dart.notNull(c.isSatisfied()))
           coll[dartx.add](c);
@@ -458,7 +458,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       return this.list[dartx.length];
     }
     execute() {
-      for (let i = 0; dart.notNull(i) < dart.notNull(this.list[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(this.list[dartx.length]); i++) {
         this.list[dartx.get](i).execute();
       }
     }
@@ -473,7 +473,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   function chainTest(n) {
     exports.planner = new Planner();
     let prev = null, first = null, last = null;
-    for (let i = 0; dart.notNull(i) <= dart.notNull(n); i = dart.notNull(i) + 1) {
+    for (let i = 0; i <= dart.notNull(n); i++) {
       let v = new Variable("v", 0);
       if (prev != null)
         new EqualityConstraint(prev, v, REQUIRED);
@@ -486,7 +486,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     new StayConstraint(last, STRONG_DEFAULT);
     let edit = new EditConstraint(first, PREFERRED);
     let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], Constraint));
-    for (let i = 0; dart.notNull(i) < 100; i = dart.notNull(i) + 1) {
+    for (let i = 0; i < 100; i++) {
       first.value = i;
       plan.execute();
       if (last.value != i) {
@@ -502,7 +502,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     let offset = new Variable("offset", 1000);
     let src = null, dst = null;
     let dests = dart.list([], Variable);
-    for (let i = 0; dart.notNull(i) < dart.notNull(n); i = dart.notNull(i) + 1) {
+    for (let i = 0; i < dart.notNull(n); i++) {
       src = new Variable("src", i);
       dst = new Variable("dst", i);
       dests[dartx.add](dst);
@@ -516,13 +516,13 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     if (src.value != 5)
       core.print("Projection 2 failed");
     change(scale, 5);
-    for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
-      if (dests[dartx.get](i).value != dart.notNull(i) * 5 + 1000)
+    for (let i = 0; i < dart.notNull(n) - 1; i++) {
+      if (dests[dartx.get](i).value != i * 5 + 1000)
         core.print("Projection 3 failed");
     }
     change(offset, 2000);
-    for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
-      if (dests[dartx.get](i).value != dart.notNull(i) * 5 + 2000)
+    for (let i = 0; i < dart.notNull(n) - 1; i++) {
+      if (dests[dartx.get](i).value != i * 5 + 2000)
         core.print("Projection 4 failed");
     }
   }
@@ -530,7 +530,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
     let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], EditConstraint));
-    for (let i = 0; dart.notNull(i) < 10; i = dart.notNull(i) + 1) {
+    for (let i = 0; i < 10; i++) {
       v.value = newValue;
       plan.execute();
     }

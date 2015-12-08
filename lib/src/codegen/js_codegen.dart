@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
 import 'package:analyzer/src/task/dart.dart' show PublicNamespaceBuilder;
 import 'package:analyzer/src/task/strong/rules.dart';
+import 'package:collection/equality.dart';
 
 import 'ast_builder.dart' show AstBuilder;
 import 'reify_coercions.dart' show CoercionReifier, Tuple2;
@@ -29,6 +30,7 @@ import '../info.dart';
 import '../options.dart' show CodegenOptions;
 import '../utils.dart';
 
+import 'assignments_index.dart';
 import 'code_generator.dart';
 import 'js_field_storage.dart';
 import 'js_interop.dart';
@@ -38,7 +40,6 @@ import 'js_module_item_order.dart';
 import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
 import 'side_effect_analysis.dart';
-import 'package:collection/equality.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -112,6 +113,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   Map<String, DartType> _objectMembers;
 
+  /// Index of assignments of [LocalVariableElement]s defined in
+  /// [currentLibrary].
+  AssignmentsIndex _localAssignments;
+
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
@@ -126,6 +131,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     _isDartUtils = currentLibrary.source.uri.toString() == 'dart:_utils';
 
     _objectMembers = getObjectMemberMap(types);
+
+    _localAssignments = indexLocalAssignments(([
+      currentLibrary.definingCompilationUnit
+    ]..addAll(currentLibrary.parts)).map((unit) => unit.computeNode()));
   }
 
   TypeProvider get types => rules.provider;
@@ -2376,7 +2385,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
 
-  bool _isNonNullableExpression(Expression expr) {
+  bool _isNonNullableExpression(Expression expr,
+      [bool overridePredicate(Expression expr)]) {
+    if (overridePredicate != null && overridePredicate(expr)) return true;
+
     // TODO(vsm): Revisit whether we really need this when we get
     // better non-nullability in the type system.
     // TODO(jmesserly): we do recursive calls in a few places. This could
@@ -2389,12 +2401,36 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (expr is ThisExpression) return true;
     if (expr is SuperExpression) return true;
     if (expr is ParenthesizedExpression) {
-      return _isNonNullableExpression(expr.expression);
+      return _isNonNullableExpression(expr.expression, overridePredicate);
     }
     if (expr is SimpleIdentifier) {
       // Type literals are not null.
       Element e = expr.staticElement;
       if (e is ClassElement || e is FunctionTypeAliasElement) return true;
+
+      if (e is LocalVariableElement) {
+        final decl = _localAssignments.getDeclaration(e);
+        if (decl?.initializer == null) return false;
+        if (!_isNonNullableExpression(decl.initializer, overridePredicate)) {
+          return false;
+        }
+
+        /// When assigning a value to `x` that may refer to it, assume it's not
+        /// null (for instance `x = x` does not make `x` nullable).
+        /// This reentrant predicate should help even more when we introduce
+        /// some flow analysis.
+        bool subPredicate(Expression x) {
+          if (overridePredicate != null && overridePredicate(x)) return true;
+          return x is SimpleIdentifier && x.staticElement == e;
+        }
+
+        for (final value in _localAssignments.getAssignedValues(e)) {
+          if (!_isNonNullableExpression(value, subPredicate)) {
+            return false;
+          }
+        }
+        return true;
+      }
     }
     DartType type = null;
     if (expr is BinaryExpression) {
@@ -2405,7 +2441,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         case TokenType.BAR_BAR:
           return true;
         case TokenType.QUESTION_QUESTION:
-          return _isNonNullableExpression(expr.rightOperand);
+          return _isNonNullableExpression(expr.rightOperand, overridePredicate);
       }
       type = getStaticType(expr.leftOperand);
     } else if (expr is PrefixExpression) {
@@ -2437,6 +2473,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
             return true;
           }
         }
+      } else if (expr.target == null && expr.methodName == "identical") {
+        return true;
       }
     }
     return false;
