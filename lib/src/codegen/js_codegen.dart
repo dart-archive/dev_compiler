@@ -2400,6 +2400,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (expr is IsExpression) return true;
     if (expr is ThisExpression) return true;
     if (expr is SuperExpression) return true;
+    if (expr is ConditionalExpression) {
+      return _isNonNullableExpression(expr.thenExpression, overridePredicate) &&
+          _isNonNullableExpression(expr.elseExpression, overridePredicate);
+    }
     if (expr is ParenthesizedExpression) {
       return _isNonNullableExpression(expr.expression, overridePredicate);
     }

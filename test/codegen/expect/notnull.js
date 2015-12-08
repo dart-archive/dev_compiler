@@ -24,7 +24,7 @@ dart_library.library('notnull', null, /* Imports */[
     core.print(i + 1);
     let j = 1;
     j = i < 10 ? 1 : 2;
-    core.print(dart.notNull(j) + 1);
+    core.print(j + 1);
   }
   dart.fn(intAssignments, dart.void, []);
   function doubleAssignments() {

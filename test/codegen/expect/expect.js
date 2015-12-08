@@ -197,7 +197,7 @@ dart_library.library('expect', null, /* Imports */[
       }
       let leftSnippet = expected[dartx.substring](left < 10 ? 0 : left - 10, left);
       let rightSnippetLength = right < 10 ? right : 10;
-      let rightSnippet = expected[dartx.substring](dart.notNull(eLen) - right, dart.notNull(eLen) - right + dart.notNull(rightSnippetLength));
+      let rightSnippet = expected[dartx.substring](dart.notNull(eLen) - right, dart.notNull(eLen) - right + rightSnippetLength);
       let eSnippet = expected[dartx.substring](left, dart.notNull(eLen) - right);
       let aSnippet = actual[dartx.substring](left, dart.notNull(aLen) - right);
       if (dart.notNull(eSnippet[dartx.length]) > 43) {
