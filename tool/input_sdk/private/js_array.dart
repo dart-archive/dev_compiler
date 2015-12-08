@@ -120,7 +120,7 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   void forEach(void f(E element)) {
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = 0; i < length; i++) {
       f(JS('', '#[#]', this, i));
       if (length != this.length) {
@@ -274,6 +274,7 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   bool contains(Object other) {
+    int length = this.length + 0;
     for (int i = 0; i < length; i++) {
       if (this[i] == other) return true;
     }

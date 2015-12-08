@@ -58,7 +58,7 @@ abstract class ListMixin<E> implements List<E> {
   E elementAt(int index) => this[index];
 
   void forEach(void action(E element)) {
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = 0; i < length; i++) {
       action(this[i]);
       if (length != this.length) {
@@ -88,7 +88,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   bool contains(Object element) {
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) return true;
       if (length != this.length) {
@@ -99,7 +99,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   bool every(bool test(E element)) {
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = 0; i < length; i++) {
       if (!test(this[i])) return false;
       if (length != this.length) {
@@ -110,7 +110,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   bool any(bool test(E element)) {
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = 0; i < length; i++) {
       if (test(this[i])) return true;
       if (length != this.length) {
@@ -121,7 +121,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   E firstWhere(bool test(E element), { E orElse() }) {
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = 0; i < length; i++) {
       E element = this[i];
       if (test(element)) return element;
@@ -134,7 +134,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   E lastWhere(bool test(E element), { E orElse() }) {
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = length - 1; i >= 0; i--) {
       E element = this[i];
       if (test(element)) return element;
@@ -147,7 +147,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   E singleWhere(bool test(E element)) {
-    int length = this.length;
+    int length = this.length + 0;
     E match = null;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
@@ -181,7 +181,7 @@ abstract class ListMixin<E> implements List<E> {
       new ExpandIterable<E, dynamic>(this, f);
 
   E reduce(E combine(E previousValue, E element)) {
-    int length = this.length;
+    int length = this.length + 0;
     if (length == 0) throw IterableElementError.noElement();
     E value = this[0];
     for (int i = 1; i < length; i++) {
@@ -195,7 +195,7 @@ abstract class ListMixin<E> implements List<E> {
 
   fold(var initialValue, combine(var previousValue, E element)) {
     var value = initialValue;
-    int length = this.length;
+    int length = this.length + 0;
     for (int i = 0; i < length; i++) {
       value = combine(value, this[i]);
       if (length != this.length) {
@@ -218,6 +218,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   List<E> toList({ bool growable: true }) {
+    int length = this.length + 0;
     List<E> result;
     if (growable) {
       result = new List<E>()..length = length;
@@ -231,6 +232,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   Set<E> toSet() {
+    int length = this.length + 0;
     Set<E> result = new Set<E>();
     for (int i = 0; i < length; i++) {
       result.add(this[i]);
@@ -272,7 +274,7 @@ abstract class ListMixin<E> implements List<E> {
                       bool test(var element),
                       bool retainMatching) {
     List retained = [];
-    int length = source.length;
+    int length = source.length + 0;
     for (int i = 0; i < length; i++) {
       var element = source[i];
       if (test(element) == retainMatching) {
@@ -307,7 +309,7 @@ abstract class ListMixin<E> implements List<E> {
 
   void shuffle([Random random]) {
     if (random == null) random = new Random();
-    int length = this.length;
+    int length = this.length + 0;
     while (length > 1) {
       int pos = random.nextInt(length);
       length -= 1;

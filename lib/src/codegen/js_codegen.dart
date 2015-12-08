@@ -2530,6 +2530,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     if (binaryOperationIsPrimitive(leftType, rightType) ||
         leftType == _types.stringType && op.type == TokenType.PLUS) {
+      // special case for not-null coercion: `x + 0` becomes `dart.notNull(x)`.
+      // this pattern is used to speed up collection loops in the SDK, by
+      // coercing length to not-null outside the loop.
+      if (_isNumberInJS(leftType) && op.type == TokenType.PLUS) {
+        if (right is IntegerLiteral && right.value == 0 ||
+            right is DoubleLiteral && right.value == 0.0) {
+          return notNull(left);
+        }
+      }
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
       // TODO(jmesserly): it would be nice to just inline the method from core,
