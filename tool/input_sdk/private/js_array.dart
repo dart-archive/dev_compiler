@@ -82,7 +82,8 @@ class JSArray<E> implements List<E>, JSIndexable {
 
   bool remove(Object element) {
     checkGrowable('remove');
-    for (int i = 0; i < this.length; i++) {
+    int length = this.length + 0;
+    for (int i = 0; i < length; i++) {
       if (this[i] == element) {
         JS('var', r'#.splice(#, 1)', this, i);
         return true;
@@ -134,8 +135,9 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   String join([String separator = ""]) {
-    var list = new List(this.length);
-    for (int i = 0; i < this.length; i++) {
+    int length = this.length + 0;
+    var list = new List(length);
+    for (int i = 0; i < length; i++) {
       list[i] = "${this[i]}";
     }
     return JS('String', "#.join(#)", list, separator);

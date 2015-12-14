@@ -89,7 +89,7 @@ abstract class ListMixin<E> implements List<E> {
 
   bool contains(Object element) {
     int length = this.length + 0;
-    for (int i = 0; i < this.length; i++) {
+    for (int i = 0; i < length; i++) {
       if (this[i] == element) return true;
       if (length != this.length) {
         throw new ConcurrentModificationError(this);
@@ -252,10 +252,11 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   bool remove(Object element) {
-    for (int i = 0; i < this.length; i++) {
+    int length = this.length + 0;
+    for (int i = 0; i < length; i++) {
       if (this[i] == element) {
-        this.setRange(i, this.length - 1, this, i + 1);
-        this.length -= 1;
+        this.setRange(i, length - 1, this, i + 1);
+        this.length = length = length - 1;
         return true;
       }
     }
