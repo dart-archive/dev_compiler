@@ -208,7 +208,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var imports = <JS.Expression>[];
     var moduleStatements = <JS.Statement>[];
     if (needsDartRuntime) {
-      imports.add(js.string('dart/_runtime'));
+      imports.add(js.string('dart/_runtime', "'"));
 
       var dartxImport =
           js.statement("let # = #.dartx;", [_dartxVar, _runtimeLibVar]);
