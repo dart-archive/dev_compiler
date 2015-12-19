@@ -1,5 +1,5 @@
 dart_library.library('collection/src/queue_list', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core',
   'dart/collection'
 ], /* Lazy imports */[
