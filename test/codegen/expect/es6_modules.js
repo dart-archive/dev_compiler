@@ -23,8 +23,23 @@ function _f() {
 }
 dart.fn(_f);
 const constant = "abc";
-exports.lazy = "abc";
+exports.finalConstant = "abc";
 exports.mutable = "abc";
+dart.defineLazyProperties(exports, {
+  get lazy() {
+    return dart.as(dart.fn(() => {
+      core.print('lazy');
+      return "abc";
+    })(), core.String);
+  },
+  get lazyMutable() {
+    return dart.as(dart.fn(() => {
+      core.print('lazyMutable');
+      return "abc";
+    })(), core.String);
+  },
+  set lazyMutable(_) {}
+});
 // Exports:
 exports.Callback = Callback;
 exports.A = A;

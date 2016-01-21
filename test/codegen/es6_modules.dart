@@ -13,5 +13,13 @@ f() {}
 _f() {}
 
 const String constant = "abc";
-final String lazy = "abc";
+final String finalConstant = "abc";
+final String lazy = (() {
+  print('lazy');
+  return "abc";
+})();
 String mutable = "abc";
+String lazyMutable = (() {
+  print('lazyMutable');
+  return "abc";
+})();
