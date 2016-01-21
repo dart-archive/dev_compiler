@@ -17,7 +17,8 @@ abstract class ModuleBuilder {
 
   ModuleBuilder._(this._jsPath, this._jsModuleValue, this._exportsVar);
 
-  factory ModuleBuilder(String jsPath, String _jsModuleValue, JS.Identifier _exportsVar, ModuleFormat format) {
+  factory ModuleBuilder(String jsPath, String _jsModuleValue,
+      JS.Identifier _exportsVar, ModuleFormat format) {
     switch (format) {
       case ModuleFormat.dart:
         return new DartModuleBuilder(jsPath, _jsModuleValue, _exportsVar);
@@ -31,6 +32,7 @@ abstract class ModuleBuilder {
   void addExport(String name) {
     _exports.add(name);
   }
+
   void addImport(String name, JS.Identifier libVar, {bool isLazy: false}) {
     _imports.add(new _ModuleImport(name, libVar, isLazy));
   }
@@ -47,7 +49,6 @@ class _ModuleImport {
 
 /// Generates modules for with DDC's `dart_library.js` loading mechanism.
 class DartModuleBuilder extends ModuleBuilder {
-
   DartModuleBuilder(jsPath, _jsModuleValue, _exportsVar)
       : super._(jsPath, _jsModuleValue, _exportsVar);
 
@@ -74,7 +75,8 @@ class DartModuleBuilder extends ModuleBuilder {
       moduleStatements.add(js.comment('Exports:'));
       // TODO(jmesserly): make these immutable in JS?
       for (var name in _exports) {
-        moduleStatements.add(js.statement('#.# = #;', [_exportsVar, name, name]));
+        moduleStatements
+            .add(js.statement('#.# = #;', [_exportsVar, name, name]));
       }
     }
 
@@ -98,7 +100,6 @@ class DartModuleBuilder extends ModuleBuilder {
 ///
 /// TODO(ochafik): Break strong dep cycles to accommodate the Closure Compiler.
 class ES6ModuleBuilder extends ModuleBuilder {
-
   ES6ModuleBuilder(jsPath, _jsModuleValue, _exportsVar)
       : super._(jsPath, _jsModuleValue, _exportsVar);
 
@@ -115,8 +116,7 @@ class ES6ModuleBuilder extends ModuleBuilder {
     for (var i in _imports) {
       // TODO(ochafik): laziness, late binding, etc, to support Closure...
       moduleStatements.add(new JS.ImportDeclaration(
-          defaultBinding: i.libVar,
-          from: js.string(i.name)));
+          defaultBinding: i.libVar, from: js.string(i.name)));
     }
 
     moduleStatements.addAll(_flattenBlocks(moduleItems));
@@ -125,9 +125,11 @@ class ES6ModuleBuilder extends ModuleBuilder {
       moduleStatements.add(js.comment('Exports:'));
       // TODO(jmesserly): make these immutable in JS?
       for (var name in _exports) {
-        moduleStatements.add(js.statement('#.# = #;', [_exportsVar, name, name]));
+        moduleStatements
+            .add(js.statement('#.# = #;', [_exportsVar, name, name]));
       }
-      moduleStatements.add(new JS.ExportDeclaration(_exportsVar, isDefault: true));
+      moduleStatements
+          .add(new JS.ExportDeclaration(_exportsVar, isDefault: true));
     }
     // TODO(ochafik): What to do of _jsModuleValue?
     return moduleStatements;
@@ -135,4 +137,4 @@ class ES6ModuleBuilder extends ModuleBuilder {
 }
 
 Iterable<JS.ModuleItem> _flattenBlocks(List<JS.ModuleItem> stats) =>
-    stats.expand((item) => item is JS.Block ?  item.statements : [item]);
+    stats.expand((item) => item is JS.Block ? item.statements : [item]);

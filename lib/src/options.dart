@@ -56,9 +56,7 @@ class SourceResolverOptions {
       this.useImplicitHtml: false});
 }
 
-enum ModuleFormat {
-  es6, dart
-}
+enum ModuleFormat { es6, dart }
 
 ModuleFormat parseModuleFormat(String s) =>
     ModuleFormat.values.firstWhere((v) => s == '$v'.split('.')[1]);
