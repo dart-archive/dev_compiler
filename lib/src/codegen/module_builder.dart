@@ -8,11 +8,6 @@ import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
 import '../options.dart' show ModuleFormat;
 
-final _builderCtors = {
-  ModuleFormat.es6: new ES6ModuleBuilder#,
-  ModuleFormat.dart: new DartModuleBuilder#
-};
-
 abstract class ModuleBuilder {
   final String _jsPath;
   final String _jsModuleValue;
@@ -23,9 +18,14 @@ abstract class ModuleBuilder {
   ModuleBuilder._(this._jsPath, this._jsModuleValue, this._exportsVar);
 
   factory ModuleBuilder(String jsPath, String _jsModuleValue, JS.Identifier _exportsVar, ModuleFormat format) {
-    var ctor = _builderCtors[format];
-    if (ctor == null) throw new ArgumentError("Unsupported format: $format");
-    return ctor(jsPath, _jsModuleValue, _exportsVar);
+    switch (format) {
+      case ModuleFormat.dart:
+        return new DartModuleBuilder(jsPath, _jsModuleValue, _exportsVar);
+      case ModuleFormat.es6:
+        return new ES6ModuleBuilder(jsPath, _jsModuleValue, _exportsVar);
+      default:
+        throw new ArgumentError("Unsupported format: $format");
+    }
   }
 
   void addExport(String name) {
