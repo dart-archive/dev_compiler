@@ -56,6 +56,13 @@ class SourceResolverOptions {
       this.useImplicitHtml: false});
 }
 
+enum ModuleFormat {
+  es6, dart
+}
+
+ModuleFormat parseModuleFormat(String s) =>
+    ModuleFormat.values.firstWhere((v) => s == '$v'.split('.')[1]);
+
 // TODO(jmesserly): refactor all codegen options here.
 class CodegenOptions {
   /// Whether to emit the source map files.
@@ -79,7 +86,7 @@ class CodegenOptions {
 
   /// Which module format to support.
   /// Currently 'es6' and 'dart' are supported.
-  final String moduleFormat;
+  final ModuleFormat moduleFormat;
 
   const CodegenOptions(
       {this.emitSourceMaps: true,
@@ -88,7 +95,7 @@ class CodegenOptions {
       this.destructureNamedParams: _DESTRUCTURE_NAMED_PARAMS_DEFAULT,
       this.outputDir,
       this.arrowFnBindThisWorkaround: false,
-      this.moduleFormat: 'dart'});
+      this.moduleFormat: ModuleFormat.dart});
 }
 
 /// Options for devrun.
@@ -158,7 +165,7 @@ class CompilerOptions {
   /// to this directory.
   final String inputBaseDir;
 
-  CompilerOptions(
+  const CompilerOptions(
       {this.sourceOptions: const SourceResolverOptions(),
       this.codegenOptions: const CodegenOptions(),
       this.runnerOptions: const RunnerOptions(),
@@ -239,7 +246,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           destructureNamedParams: args['destructure-named-params'],
           outputDir: outputDir,
           arrowFnBindThisWorkaround: args['arrow-fn-bind-this'],
-          moduleFormat: args['modules']),
+          moduleFormat: parseModuleFormat(args['modules'])),
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
           dartSdkPath: sdkPath,
@@ -309,7 +316,7 @@ final ArgParser argParser = new ArgParser()
       allowed: ['es6', 'dart'],
       allowedHelp: {
         'es6': 'es6 modules',
-        'custom-dart': 'a custom format used by dartdevc, similar to AMD'
+        'dart': 'a custom format used by dartdevc, similar to AMD'
       },
       defaultsTo: 'dart')
 
