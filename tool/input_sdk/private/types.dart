@@ -7,7 +7,6 @@ part of dart._runtime;
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _mixins = JS('', 'Symbol("mixins")');
-@JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 final metadata = JS('', 'Symbol("metadata")');
 
@@ -58,7 +57,6 @@ final Void = JS('', '''
   }
 ''');
 
-@JSExportName('void')
 final voidR = JS('', 'new $Void()');
 
 final Bottom = JS('', '''

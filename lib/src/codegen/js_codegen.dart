@@ -267,7 +267,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
 
     // When we compile _runtime.js, we need to source export_ from _utils.js:
-    _moduleItems.add(js.statement('dart.export(#);', [args]));
+    _moduleItems.add(js.statement('dart.export_(#);', [args]));
   }
 
   JS.Identifier _initSymbol(JS.Identifier id) {
@@ -484,14 +484,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // Create static fields for each enum value
     for (var i = 0; i < fields.length; ++i) {
-      result.add(js.statement('#.# = dart.const(new #(#));',
+      result.add(js.statement('#.# = dart.const_(new #(#));',
           [id, fields[i].name, id, js.number(i)]));
     }
 
     // Create static values list
     var values = new JS.ArrayInitializer(new List<JS.Expression>.from(
         fields.map((f) => js.call('#.#', [id, f.name]))));
-    result.add(js.statement('#.values = dart.const(dart.list(#, #));',
+    result.add(js.statement('#.values = dart.const_(dart.list(#, #));',
         [id, values, _emitTypeName(type)]));
 
     if (isPublic(type.name)) _addExport(type.name);
@@ -712,7 +712,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // Interfaces
     if (classElem.interfaces.isNotEmpty) {
-      body.add(js.statement('#[dart.implements] = () => #;', [
+      body.add(js.statement('#[dart.implements_] = () => #;', [
         name,
         new JS.ArrayInitializer(new List<JS.Expression>.from(
             classElem.interfaces.map(_emitTypeName)))
@@ -1495,7 +1495,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var T = _emitTypeName(_getExpectedReturnType(body));
     return js.call('dart.#(#)', [
-      kind,
+      kind == 'async' ? 'async_' : kind,
       [gen, T]..addAll(params)
     ]);
   }
@@ -1678,7 +1678,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       {bool lowerTypedef: false, bool lowerGeneric: false}) {
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {
-      return js.call('dart.void');
+      return js.call('dart.voidR');
     } else if (type.isDynamic) {
       return js.call('dart.dynamic');
     } else if (type.isBottom) {
@@ -2535,7 +2535,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   JS.Expression _emitConst(JS.Expression expr()) {
     // TODO(jmesserly): emit the constants at top level if possible.
     // This wasn't quite working, so disabled for now.
-    return js.call('dart.const(#)', expr());
+    return js.call('dart.const_(#)', expr());
   }
 
   /// Returns a new expression, which can be be used safely *once* on the
@@ -2910,9 +2910,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   visitThrowExpression(ThrowExpression node) {
     var expr = _visit(node.expression);
     if (node.parent is ExpressionStatement) {
-      return js.statement('dart.throw(#);', expr);
+      return js.statement('dart.throw_(#);', expr);
     } else {
-      return js.call('dart.throw(#)', expr);
+      return js.call('dart.throw_(#)', expr);
     }
   }
 
@@ -3269,7 +3269,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       _unimplementedCall('Unimplemented ${node.runtimeType}: $node');
 
   JS.Expression _unimplementedCall(String comment) {
-    return js.call('dart.throw(#)', [js.escapedString(comment)]);
+    return js.call('dart.throw_(#)', [js.escapedString(comment)]);
   }
 
   @override

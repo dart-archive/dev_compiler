@@ -268,7 +268,6 @@ assert_(condition) => JS('', '''(() => {
 })()''');
 
 final _stack = JS('', 'new WeakMap()');
-@JSExportName('throw')
 throw_(obj) => JS('', '''(() => {
   if ($obj != null && (typeof $obj == 'object' || typeof $obj == 'function')) {
     // TODO(jmesserly): couldn't we store the most recent stack in a single
@@ -350,7 +349,6 @@ final constants = JS('', 'new Map()');
 /// - `obj` is an objects or array, not a primitive.
 /// - nested values of the object are themselves already canonicalized.
 ///
-@JSExportName('const')
 const_(obj) => JS('', '''(() => {
   let objectKey = [$realRuntimeType($obj)];
   // TODO(jmesserly): there's no guarantee in JS that names/symbols are

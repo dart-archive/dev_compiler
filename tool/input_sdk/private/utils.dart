@@ -102,7 +102,6 @@ copyProperties(to, from) => JS('', '''(() => {
 })()''');
 
 /// Exports from one Dart module to another.
-@JSExportName('export')
 export_(to, from, show, hide) => JS('', '''(() => {
   if ($show == void 0 || $show.length == 0) {
     $show = $getOwnNamesAndSymbols($from);

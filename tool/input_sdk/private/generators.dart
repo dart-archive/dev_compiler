@@ -19,7 +19,6 @@ syncStar(gen, E, @rest args) => JS('', '''(() => {
   return new SyncIterable_E($gen, $args);
 })()''');
 
-@JSExportName('async')
 async_(gen, T, @rest args) => JS('', '''(() => {
   let iter;
   function onValue(res) {
