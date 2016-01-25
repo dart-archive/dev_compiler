@@ -351,9 +351,7 @@ setType(obj, type) => JS('', '''(() => {
 
 /// Sets the element type of a list literal.
 list(obj, elementType) =>
-    // TODO(ochafik): Fix this (DO NOT SUBMIT)
-    JS('', '$obj');
-    // JS('', '$setType($obj, ${getGenericClass(JSArray)}($elementType))');
+    JS('', '$setType($obj, ${getGenericClass(JSArray)}($elementType))');
 
 setBaseClass(derived, base) => JS('', '''(() => {
   // Link the extension to the type it's extending as a base class.

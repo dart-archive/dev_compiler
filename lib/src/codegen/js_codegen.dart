@@ -108,6 +108,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   String _jsModuleValue;
 
   bool _isDartRuntime;
+  bool _isDartCore;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
@@ -121,6 +122,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var interceptors = context.computeLibraryElement(src);
     _jsArray = interceptors.getType('JSArray');
     _isDartRuntime = currentLibrary.source.uri.toString() == 'dart:_runtime';
+    _isDartCore = false;//currentLibrary.source.uri.toString() == 'dart:core';
   }
 
   TypeProvider get types => _types;
@@ -199,7 +201,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     _imports.forEach((LibraryElement lib, JS.TemporaryId temp) {
       moduleBuilder.addImport(compiler.getModuleName(lib.source.uri), temp,
-          isLazy: _isDartRuntime || !_loader.libraryIsLoaded(lib));
+          isLazy: _isDartRuntime || _isDartCore || !_loader.libraryIsLoaded(lib));
     });
 
     // TODO(jmesserly): scriptTag support.
@@ -417,15 +419,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
-
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, isJsPeerInterface);
     if (jsPeer != null) {
       jsPeerName =
           getConstantField(jsPeer, 'name', types.stringType)?.toStringValue();
     }
+
+    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
+        jsPeerName == null ? _classHeritage(classElem) : null,
+        _emitClassMethods(node, ctors, fields));
 
     var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
         node.metadata, jsPeerName);
@@ -3570,9 +3573,13 @@ class JSGenerator extends CodeGenerator {
     var serverUri = flags.serverMode
         ? Uri.parse('http://${flags.host}:${flags.port}/')
         : null;
-    return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
-        emitSourceMaps: options.emitSourceMaps,
-        arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
+    try {
+      return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
+          emitSourceMaps: options.emitSourceMaps,
+          arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
+    } catch (e, s) {
+      throw new StateError('Exception while compiling ${unit.library}: $e\n$s');
+    }
   }
 }
 
