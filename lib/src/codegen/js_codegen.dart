@@ -80,7 +80,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<LibraryElement, JS.TemporaryId>();
-  final _exports = new Set<String>();
+  final _exports = <String, String>{};
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
   final _privateNames = new HashMap<String, JS.TemporaryId>();
@@ -530,7 +530,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (genericDef != null) {
       var dynType = fillDynamicTypeArgs(type, types);
       var genericInst = _emitTypeName(dynType, lowerGeneric: true);
-      return js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
+      return js.statement('{ #; const # = #; }', [genericDef, name, genericInst]);
     }
     return body;
   }
@@ -539,7 +539,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var name = type.name;
     var genericName = '$name\$';
     var typeParams = _boundTypeParametersOf(type).map((p) => p.name);
-    if (isPublic(name)) _exports.add(genericName);
+    if (isPublic(name)) _addExport(genericName);
     return js.statement('const # = dart.generic(function(#) { #; return #; });',
         [genericName, typeParams, body, name]);
   }
@@ -1680,7 +1680,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (type.isVoid) {
       return js.call('dart.voidR');
     } else if (type.isDynamic) {
-      return js.call('dart.dynamic');
+      return js.call('dart.dynamicR');
     } else if (type.isBottom) {
       return js.call('dart.bottom');
     }
@@ -1703,7 +1703,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
             type.element.enclosingElement is FunctionTypeAliasElement);
 
     if (_isGenericTypeParameter(type)) {
-      return js.call('dart.dynamic');
+      return js.call('dart.dynamicR');
     }
 
     if (type is TypeParameterType) {
@@ -2136,8 +2136,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
-  _addExport(String name) {
-    if (!_exports.add(name)) throw 'Duplicate top level name found: $name';
+  _addExport(String name, [String exportName]) {
+    if (_exports.containsKey(name)) throw 'Duplicate top level name found: $name';
+    _exports[name] = exportName ?? name;
   }
 
   @override
@@ -2199,8 +2200,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (isJSTopLevel) eagerInit = true;
 
     var fieldName = field.name.name;
+    var exportName = fieldName;
     if (element is TopLevelVariableElement) {
-      fieldName = _getJSExportName(element) ?? fieldName;
+      exportName = _getJSExportName(element) ?? fieldName;
     }
     if ((field.isConst && eagerInit && element is TopLevelVariableElement) ||
         isJSTopLevel) {
@@ -2208,7 +2210,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       // but add them to the module's exports. However, make sure we generate
       // anything they depend on first.
 
-      if (isPublic(fieldName)) _addExport(fieldName);
+      if (isPublic(fieldName)) _addExport(fieldName, exportName);
       var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
       return annotateVariable(
           js.statement(

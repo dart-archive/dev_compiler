@@ -48,7 +48,7 @@ final Dynamic = JS('', '''
     toString() { return "dynamic"; }
   }
 ''');
-@JSExportName('dynamic')
+
 final dynamicR = JS('', 'new $Dynamic()');
 
 final Void = JS('', '''
