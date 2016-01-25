@@ -158,22 +158,16 @@ class NodeModuleBuilder extends ModuleBuilder {
   JS.Program build(Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[
       js.statement("'use strict';"),
-      js.statement("console.log('Loading module ' + #);", [js.string(_jsPath)])
+      // js.statement("console.log('Loading module ' + #);", [js.string(_jsPath)])
     ];
 
-    var deferLazyImports = true;
-
     require(i) {
-      moduleStatements.add(js.statement("console.log('  ${i.isLazy ? 'Lazy ' : ''}Require ' + # + ' from ' + #);", [js.string(i.name), js.string(_jsPath)]));
-      moduleStatements.add(js.statement((i.isLazy ? '' : 'var ') + '# = require(#);', [i.libVar, js.string(i.name)]));
-      moduleStatements.add(js.statement("if (!#) throw new Error('Require failed: ' + #);", [i.libVar, js.string(i.name)]));
+      // moduleStatements.add(js.statement("console.log('  ${i.isLazy ? 'Lazy ' : ''}Require ' + # + ' from ' + #);", [js.string(i.name), js.string(_jsPath)]));
+      moduleStatements.add(js.statement('let # = require(#);', [i.libVar, js.string(i.name)]));
     }
+
     for (var i in _imports) {
-      if (i.isLazy && deferLazyImports) {
-        moduleStatements.add(js.statement('var # = {};', [i.libVar]));
-      } else {
-        require(i);
-      }
+      if (!i.isLazy) require(i);
     }
 
     moduleItems = _flattenBlocks(moduleItems);
@@ -183,6 +177,7 @@ class NodeModuleBuilder extends ModuleBuilder {
       return res;
     }
 
+    // moduleStatements.addAll(moduleItems);
     moduleStatements.addAll(moduleItems.where(isDecl));
 
     if (_exports.isNotEmpty) {
@@ -193,17 +188,16 @@ class NodeModuleBuilder extends ModuleBuilder {
             .add(js.statement('#.# = #;', [_exportsVar, exportName, name]));
       });
     }
+    // moduleStatements.add(js.statement("console.log('  Done exporting module ' + #);", [js.string(_jsPath)]));
 
+    for (var i in _imports) {
+      if (i.isLazy) require(i);
+    }
     moduleStatements.addAll(moduleItems.where((i) => !isDecl(i)));
 
-    if (deferLazyImports) {
-      for (var i in _imports) {
-        if (i.isLazy) {
-          require(i);
-        }
-      }
-    }
-    moduleStatements.add(js.statement("console.log('  Done loading module ' + #);", [js.string(_jsPath)]));
+    // moduleStatements.add(js.statement("console.log('  Done loading module ' + #);", [js.string(_jsPath)]));
+
+    // if (isDartRuntime) for (var lib in corelibOrder) moduleStatements.add(js.statement("require(#);", [js.string(lib)]));
 
     // TODO(ochafik): What to do of _jsModuleValue?
     return new JS.Program(moduleStatements);
