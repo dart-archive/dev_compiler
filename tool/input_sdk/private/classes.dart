@@ -284,10 +284,11 @@ registerExtension(jsType, dartExtType) => JS('', '''(() => {
 
   // TODO(ochafik): Fix this (DO NOT SUBMIT)
   //let dartObjProto = require('dart/core').Object.prototype; // \$Object.prototype;
-  //while (extProto !== dartObjProto && extProto !== jsProto) {
+  let dartObjProto = $Object.prototype;
+  while (extProto !== dartObjProto && extProto !== jsProto) {
     $copyTheseProperties(jsProto, extProto, $getOwnPropertySymbols(extProto));
     extProto = extProto.__proto__;
-  //}
+  }
   let originalSigFn = $getOwnPropertyDescriptor($dartExtType, $_methodSig).get;
   $assert_(originalSigFn);
   $defineMemoizedGetter($jsType, $_methodSig, originalSigFn);

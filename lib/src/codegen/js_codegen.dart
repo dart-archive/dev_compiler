@@ -25,7 +25,7 @@ import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
-import '../compiler.dart' show AbstractCompiler;
+import '../compiler.dart' show AbstractCompiler, corelibUriOrder;
 import '../info.dart';
 import '../options.dart' show CodegenOptions;
 import '../utils.dart';
@@ -108,7 +108,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   String _jsModuleValue;
 
   bool _isDartRuntime;
-  bool _isDartCore;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
@@ -122,7 +121,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var interceptors = context.computeLibraryElement(src);
     _jsArray = interceptors.getType('JSArray');
     _isDartRuntime = currentLibrary.source.uri.toString() == 'dart:_runtime';
-    _isDartCore = false;//currentLibrary.source.uri.toString() == 'dart:core';
   }
 
   TypeProvider get types => _types;
@@ -181,16 +179,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       id.setQualified(!_loader.isLoaded(element));
     }
 
-    var moduleBuilder = new ModuleBuilder(
-        compiler.getModuleName(currentLibrary.source.uri),
-        _jsModuleValue,
-        _exportsVar,
-        options.moduleFormat);
-
+    var moduleBuilder = new ModuleBuilder(options.moduleFormat);
     _exports.forEach(moduleBuilder.addExport);
 
     var items = <JS.ModuleItem>[];
     if (!_isDartRuntime) {
+      if (currentLibrary.source.isInSystemLibrary) {
+        for (var lib in corelibUriOrder.reversed) {
+          if (lib.startsWith("dart:html")) continue;
+          moduleBuilder.addImport(lib.replaceAll(':', '/'), null);
+        }
+      }
       moduleBuilder.addImport('dart/_runtime', _runtimeLibVar);
 
       var dartxImport =
@@ -200,8 +199,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     items.addAll(_moduleItems);
 
     _imports.forEach((LibraryElement lib, JS.TemporaryId temp) {
-      moduleBuilder.addImport(compiler.getModuleName(lib.source.uri), temp,
-          isLazy: _isDartRuntime || _isDartCore || !_loader.libraryIsLoaded(lib));
+      var moduleName = compiler.getModuleName(lib.source.uri);
+      moduleBuilder.addImport(moduleName, temp,
+          isLazy: _isDartRuntime || !_loader.libraryIsLoaded(lib));
     });
 
     // TODO(jmesserly): scriptTag support.
@@ -210,7 +210,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // var jsBin = compiler.options.runnerOptions.v8Binary;
     // String scriptTag = null;
     // if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
-    return moduleBuilder.build(items);
+    return moduleBuilder.build(
+        compiler.getModuleName(currentLibrary.source.uri),
+        _jsModuleValue,
+        _exportsVar,
+        items);
   }
 
   void _emitModuleItem(AstNode node) {
@@ -268,7 +272,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       args.add(new JS.ArrayInitializer(hiddenNames));
     }
 
-    // When we compile _runtime.js, we need to source export_ from _utils.js:
     _moduleItems.add(js.statement('dart.export_(#);', [args]));
   }
 
@@ -427,8 +430,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
 
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        jsPeerName == null ? _classHeritage(classElem) : null,
-        _emitClassMethods(node, ctors, fields));
+        _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
 
     var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
         node.metadata, jsPeerName);

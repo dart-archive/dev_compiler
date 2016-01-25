@@ -10,13 +10,10 @@ import '../options.dart' show ModuleFormat;
 
 /// Helper that builds JS modules in a given [ModuleFormat].
 abstract class ModuleBuilder {
-  final String _jsPath;
-  final String _jsModuleValue;
-  final JS.Identifier _exportsVar;
   final _exports = <String, String>{};
   final _imports = <_ModuleImport>[];
 
-  ModuleBuilder._(this._jsPath, this._jsModuleValue, this._exportsVar);
+  ModuleBuilder._();
 
   /// Returns a [format]-specific [ModuleBuilder].
   /// - [jsPath] is the path of the module being built.
@@ -25,15 +22,14 @@ abstract class ModuleBuilder {
   ///   library directive). It is null in any other case.
   /// - [exportsVar] is the name of the object on which items are exported. Lazy
   ///   variables and constants are assumed to be declared on this instance.
-  factory ModuleBuilder(String jsPath, String jsModuleValue,
-      JS.Identifier exportsVar, ModuleFormat format) {
+  factory ModuleBuilder(ModuleFormat format) {
     switch (format) {
       case ModuleFormat.legacy:
-        return new LegacyModuleBuilder(jsPath, jsModuleValue, exportsVar);
+        return new LegacyModuleBuilder();
       case ModuleFormat.es6:
-        return new ES6ModuleBuilder(jsPath, jsModuleValue, exportsVar);
+        return new ES6ModuleBuilder();
       case ModuleFormat.node:
-        return new NodeModuleBuilder(jsPath, jsModuleValue, exportsVar);
+        return new NodeModuleBuilder();
     }
   }
 
@@ -50,7 +46,9 @@ abstract class ModuleBuilder {
   }
 
   /// Builds a program out of menu items.
-  JS.Program build(Iterable<JS.ModuleItem> moduleItems);
+  JS.Program build(String jsPath, String jsModuleValue,
+      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems);
+
 }
 
 class _ModuleImport {
@@ -65,14 +63,14 @@ class _ModuleImport {
 
 /// Generates modules for with DDC's `dart_library.js` loading mechanism.
 class LegacyModuleBuilder extends ModuleBuilder {
-  LegacyModuleBuilder(jsPath, _jsModuleValue, _exportsVar)
-      : super._(jsPath, _jsModuleValue, _exportsVar);
+  LegacyModuleBuilder() : super._();
 
-  JS.Program build(Iterable<JS.ModuleItem> moduleItems) {
+  JS.Program build(String jsPath, String jsModuleValue,
+      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
-    var params = [_exportsVar];
+    var params = [exportsVar];
     var lazyParams = [];
 
     var imports = <JS.Expression>[];
@@ -80,6 +78,7 @@ class LegacyModuleBuilder extends ModuleBuilder {
     var moduleStatements = <JS.Statement>[];
 
     for (var i in _imports) {
+      if (i.libVar == null) continue;
       (i.isLazy ? lazyImports : imports).add(js.string(i.name, "'"));
       (i.isLazy ? lazyParams : params).add(i.libVar);
     }
@@ -92,7 +91,7 @@ class LegacyModuleBuilder extends ModuleBuilder {
       // TODO(jmesserly): make these immutable in JS?
       _exports.forEach((name, exportName) {
         moduleStatements
-            .add(js.statement('#.# = #;', [_exportsVar, exportName, name]));
+            .add(js.statement('#.# = #;', [exportsVar, exportName, name]));
       });
     }
 
@@ -100,8 +99,8 @@ class LegacyModuleBuilder extends ModuleBuilder {
         js.call("function(#) { 'use strict'; #; }", [params, moduleStatements]);
 
     var moduleDef = js.statement("dart_library.library(#, #, #, #, #)", [
-      js.string(_jsPath, "'"),
-      _jsModuleValue ?? new JS.LiteralNull(),
+      js.string(jsPath, "'"),
+      jsModuleValue ?? new JS.LiteralNull(),
       js.commentExpression(
           "Imports", new JS.ArrayInitializer(imports, multiline: true)),
       js.commentExpression("Lazy imports",
@@ -115,19 +114,19 @@ class LegacyModuleBuilder extends ModuleBuilder {
 /// Generates ES6 modules.
 // TODO(ochafik): Break strong dep cycles to accommodate the Closure Compiler.
 class ES6ModuleBuilder extends ModuleBuilder {
-  ES6ModuleBuilder(jsPath, _jsModuleValue, _exportsVar)
-      : super._(jsPath, _jsModuleValue, _exportsVar);
+  ES6ModuleBuilder() : super._();
 
-  JS.Program build(Iterable<JS.ModuleItem> moduleItems) {
+  JS.Program build(String jsPath, String jsModuleValue,
+      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[
-      // Lazy declarations may reference exports.
-      js.statement("const # = {};", [_exportsVar])
+      js.statement("const # = {};", [exportsVar])
     ];
 
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
     for (var i in _imports) {
+      if (i.libVar == null) continue;
       // TODO(ochafik): laziness, late binding, etc, to support Closure...
       moduleStatements.add(new JS.ImportDeclaration(
           defaultBinding: i.libVar, from: js.string(i.name)));
@@ -140,66 +139,93 @@ class ES6ModuleBuilder extends ModuleBuilder {
       // TODO(jmesserly): make these immutable in JS?
       _exports.forEach((name, exportName) {
         moduleStatements
-            .add(js.statement('#.# = #;', [_exportsVar, exportName, name]));
+            .add(js.statement('#.# = #;', [exportsVar, exportName, name]));
       });
       moduleStatements
-          .add(new JS.ExportDeclaration(_exportsVar, isDefault: true));
+          .add(new JS.ExportDeclaration(exportsVar, isDefault: true));
     }
-    // TODO(ochafik): What to do of _jsModuleValue?
+    // TODO(ochafik): What to do of jsModuleValue?
     return new JS.Program(moduleStatements);
   }
 }
 
 /// Generates node modules.
 class NodeModuleBuilder extends ModuleBuilder {
-  NodeModuleBuilder(jsPath, _jsModuleValue, _exportsVar)
-      : super._(jsPath, _jsModuleValue, _exportsVar);
+  NodeModuleBuilder() : super._();
 
-  JS.Program build(Iterable<JS.ModuleItem> moduleItems) {
+  JS.Program build(String jsPath, String jsModuleValue,
+      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[
       js.statement("'use strict';"),
-      // js.statement("console.log('Loading module ' + #);", [js.string(_jsPath)])
+      // js.statement("console.log('Loading ' + #);", [js.string(jsPath)])
     ];
 
     require(i) {
-      // moduleStatements.add(js.statement("console.log('  ${i.isLazy ? 'Lazy ' : ''}Require ' + # + ' from ' + #);", [js.string(i.name), js.string(_jsPath)]));
-      moduleStatements.add(js.statement('let # = require(#);', [i.libVar, js.string(i.name)]));
-    }
-
-    for (var i in _imports) {
-      if (!i.isLazy) require(i);
+      // moduleStatements.add(js.statement("console.log('  ${i.isLazy ? 'Lazy ' : ''}Requiring ' + # + ' from ' + #);", [js.string(i.name), js.string(jsPath)]));
+      if (i.libVar == null) {
+        moduleStatements.add(js.statement('require(#);', [js.string(i.name)]));
+      } else {
+        moduleStatements.add(js.statement('let # = require(#);', [i.libVar, js.string(i.name)]));
+      }
     }
 
     moduleItems = _flattenBlocks(moduleItems);
-    isDecl(JS.ModuleItem i) {
-      var res = i is JS.ClassDeclaration || i is JS.FunctionDeclaration ||
-          i is JS.ExpressionStatement && i.expression is JS.VariableDeclarationList;
-      return res;
+
+    var prioritaryExportItems = <JS.ModuleItem>[];
+    var normalItems = <JS.ModuleItem>[];
+
+    var exported = new Set<String>();
+    emitExport(String name, List<JS.ModuleItem> items) {
+      if (exported.add(name)) {
+        items.add(js.statement('#.# = #;', [exportsVar, _exports[name], name]));
+      }
     }
 
-    // moduleStatements.addAll(moduleItems);
-    moduleStatements.addAll(moduleItems.where(isDecl));
+    getPrioritaryExportName(JS.ModuleItem item) {
+      if (jsPath == 'dart/core') {
+        if (item is JS.ClassDeclaration) {
+          var name = item.classExpr.name.name;
+          switch (name) {
+            case 'Object':
+            case 'Match':
+              return name;
+          }
+        }
+      }
+      return null;
+    }
+
+    for (var item in moduleItems) {
+      var prioritaryExportName = getPrioritaryExportName(item);
+      if (prioritaryExportName != null) {
+        prioritaryExportItems.add(item);
+        emitExport(prioritaryExportName, prioritaryExportItems);
+      } else {
+        normalItems.add(item);
+      }
+    }
+
+    moduleStatements.addAll(prioritaryExportItems);
+
+    for (var i in _imports) {
+      // if (!i.isLazy)
+      require(i);
+    }
+
+    moduleStatements.addAll(normalItems);
 
     if (_exports.isNotEmpty) {
       moduleStatements.add(js.comment('Exports:'));
-      // TODO(jmesserly): make these immutable in JS?
-      _exports.forEach((name, exportName) {
-        moduleStatements
-            .add(js.statement('#.# = #;', [_exportsVar, exportName, name]));
-      });
+      _exports.keys.forEach((name) => emitExport(name, moduleStatements));
     }
-    // moduleStatements.add(js.statement("console.log('  Done exporting module ' + #);", [js.string(_jsPath)]));
-
-    for (var i in _imports) {
-      if (i.isLazy) require(i);
-    }
-    moduleStatements.addAll(moduleItems.where((i) => !isDecl(i)));
-
-    // moduleStatements.add(js.statement("console.log('  Done loading module ' + #);", [js.string(_jsPath)]));
+    // moduleStatements.addAll(moduleItems.where((i) => !isDecl(i)));
+    // moduleStatements.addAll(normalItems);
+    // moduleStatements.add(js.statement("console.log('  Done loading ' + #);", [js.string(jsPath)]));
 
     // if (isDartRuntime) for (var lib in corelibOrder) moduleStatements.add(js.statement("require(#);", [js.string(lib)]));
 
-    // TODO(ochafik): What to do of _jsModuleValue?
+    // TODO(ochafik): What to do of jsModuleValue?
+    // moduleStatements.forEach(stderr.writeln);
     return new JS.Program(moduleStatements);
   }
 }
