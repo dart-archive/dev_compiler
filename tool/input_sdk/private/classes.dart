@@ -282,11 +282,12 @@ registerExtension(jsType, dartExtType) => JS('', '''(() => {
   $assert_(jsProto[$_extensionType] === void 0);
   jsProto[$_extensionType] = extProto;
 
-  let dartObjProto = $Object.prototype;
-  while (extProto !== dartObjProto && extProto !== jsProto) {
+  // TODO(ochafik): Fix this (DO NOT SUBMIT)
+  //let dartObjProto = require('dart/core').Object.prototype; // \$Object.prototype;
+  //while (extProto !== dartObjProto && extProto !== jsProto) {
     $copyTheseProperties(jsProto, extProto, $getOwnPropertySymbols(extProto));
     extProto = extProto.__proto__;
-  }
+  //}
   let originalSigFn = $getOwnPropertyDescriptor($dartExtType, $_methodSig).get;
   $assert_(originalSigFn);
   $defineMemoizedGetter($jsType, $_methodSig, originalSigFn);
@@ -350,7 +351,9 @@ setType(obj, type) => JS('', '''(() => {
 
 /// Sets the element type of a list literal.
 list(obj, elementType) =>
-    JS('', '$setType($obj, ${getGenericClass(JSArray)}($elementType))');
+    // TODO(ochafik): Fix this (DO NOT SUBMIT)
+    JS('', '$obj');
+    // JS('', '$setType($obj, ${getGenericClass(JSArray)}($elementType))');
 
 setBaseClass(derived, base) => JS('', '''(() => {
   // Link the extension to the type it's extending as a base class.
