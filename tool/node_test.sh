@@ -23,12 +23,3 @@ function run() {
 echo "Now compiling hello_dart_test"
 compile test/codegen/language/hello_dart_test.dart
 run hello_dart_test
-
-
-
-#  ./tool/build_sdk.sh --modules=node && \
-#    bin/dartdevc.dart -o lib/runtime/ --modules=node test/codegen/DeltaBlue.dart && \
-#    bin/dartdevc.dart -o lib/runtime/ --modules=node test/codegen/language/hello_dart_test.dart
-
-#    NODE_PATH=lib/runtime node --harmony lib/runtime/DeltaBlue.js
-#    NODE_PATH=lib/runtime node --harmony lib/runtime/hello_dart_test.js
