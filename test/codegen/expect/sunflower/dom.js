@@ -12,7 +12,7 @@ dart_library.library('sunflower/dom', window, /* Imports */[
   dart.setSignature(Overload, {
     constructors: () => ({Overload: [Overload, []]})
   });
-  const overload = dart.const_(new Overload());
+  const overload = dart.const(new Overload());
   class CustomEvent extends core.Object {}
   dart.setSignature(CustomEvent, {
     constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamic, bubbles: dart.dynamic, cancelable: dart.dynamic}]})

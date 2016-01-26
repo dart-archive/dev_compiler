@@ -23,7 +23,7 @@ dart_library.library('js/js', null, /* Imports */[
   dart.setSignature(_Anonymous, {
     constructors: () => ({_Anonymous: [_Anonymous, []]})
   });
-  const anonymous = dart.const_(new _Anonymous());
+  const anonymous = dart.const(new _Anonymous());
   // Exports:
   exports.JS = JS;
   exports.anonymous = anonymous;

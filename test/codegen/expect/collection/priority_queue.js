@@ -38,7 +38,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         }
       }
       clear() {
-        this[_queue] = dart.const_(dart.list([], E));
+        this[_queue] = dart.const(dart.list([], E));
         this[_length] = 0;
       }
       contains(object) {
@@ -76,7 +76,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       removeAll() {
         let result = this[_queue];
         let length = this[_length];
-        this[_queue] = dart.const_(dart.list([], E));
+        this[_queue] = dart.const(dart.list([], E));
         this[_length] = 0;
         return result[dartx.take](length);
       }

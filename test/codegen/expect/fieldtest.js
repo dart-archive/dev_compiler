@@ -105,11 +105,11 @@ dart_library.library('fieldtest', null, /* Imports */[
       }[this.index];
     }
   };
-  MyEnum.Val1 = dart.const_(new MyEnum(0));
-  MyEnum.Val2 = dart.const_(new MyEnum(1));
-  MyEnum.Val3 = dart.const_(new MyEnum(2));
-  MyEnum.Val4 = dart.const_(new MyEnum(3));
-  MyEnum.values = dart.const_(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
+  MyEnum.Val1 = dart.const(new MyEnum(0));
+  MyEnum.Val2 = dart.const(new MyEnum(1));
+  MyEnum.Val3 = dart.const(new MyEnum(2));
+  MyEnum.Val4 = dart.const(new MyEnum(3));
+  MyEnum.values = dart.const(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
   function main() {
     let a = new A();
     foo(a);
