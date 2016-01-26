@@ -20,6 +20,12 @@ function run() {
         -e "require('dart/_isolate_helper').startRootIsolate(require('$1').main, []);"
 }
 
+# TODO(ochafik): Add full language tests (in separate Travis env/matrix config).
+
 echo "Now compiling hello_dart_test"
 compile test/codegen/language/hello_dart_test.dart
 run hello_dart_test
+
+echo "Now compiling DeltaBlue"
+compile test/codegen/DeltaBlue.dart
+run DeltaBlue
