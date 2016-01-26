@@ -1306,7 +1306,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           .toStatement());
     }
 
-    if (isPublic(name)) _addExport(name, _getJSExportName(node.element) ?? name);
+    if (isPublic(name)) {
+      _addExport(name, _getJSExportName(node.element) ?? name);
+    }
     return _statement(body);
   }
 
