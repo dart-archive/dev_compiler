@@ -350,6 +350,7 @@ final constants = JS('', 'new Map()');
 /// - `obj` is an objects or array, not a primitive.
 /// - nested values of the object are themselves already canonicalized.
 ///
+@JSExportName('const')
 const_(obj) => JS('', '''(() => {
   let objectKey = [$realRuntimeType($obj)];
   // TODO(jmesserly): there's no guarantee in JS that names/symbols are

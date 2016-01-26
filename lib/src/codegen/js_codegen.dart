@@ -186,6 +186,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (!_isDartRuntime) {
       if (currentLibrary.source.isInSystemLibrary) {
         // Force the import order of runtime libs.
+        // TODO(ochafik): Reduce this to a minimum.
         for (var lib in corelibUriOrder.reversed) {
           moduleBuilder.addImport(lib.replaceAll(':', '/'), null);
         }
@@ -488,14 +489,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // Create static fields for each enum value
     for (var i = 0; i < fields.length; ++i) {
-      result.add(js.statement('#.# = dart.const_(new #(#));',
+      result.add(js.statement('#.# = dart.const(new #(#));',
           [id, fields[i].name, id, js.number(i)]));
     }
 
     // Create static values list
     var values = new JS.ArrayInitializer(new List<JS.Expression>.from(
         fields.map((f) => js.call('#.#', [id, f.name]))));
-    result.add(js.statement('#.values = dart.const_(dart.list(#, #));',
+    result.add(js.statement('#.values = dart.const(dart.list(#, #));',
         [id, values, _emitTypeName(type)]));
 
     if (isPublic(type.name)) _addExport(type.name);
@@ -2550,7 +2551,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   JS.Expression _emitConst(JS.Expression expr()) {
     // TODO(jmesserly): emit the constants at top level if possible.
     // This wasn't quite working, so disabled for now.
-    return js.call('dart.const_(#)', expr());
+    return js.call('dart.const(#)', expr());
   }
 
   /// Returns a new expression, which can be be used safely *once* on the
