@@ -50,7 +50,6 @@ abstract class ModuleBuilder {
   /// Builds a program out of menu items.
   JS.Program build(String jsPath, String jsModuleValue,
       JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems);
-
 }
 
 class _ModuleImport {
@@ -209,8 +208,8 @@ class NodeModuleBuilder extends ModuleBuilder {
       if (i.libVar == null) {
         moduleStatements.add(js.statement('require(#);', [js.string(i.name)]));
       } else {
-        moduleStatements.add(js.statement(
-            'let # = require(#);', [i.libVar, js.string(i.name)]));
+        moduleStatements.add(
+            js.statement('let # = require(#);', [i.libVar, js.string(i.name)]));
       }
     }
 
@@ -232,4 +231,5 @@ class NodeModuleBuilder extends ModuleBuilder {
 // are generated from [JSCodegenVisitor], instead of composing them with
 // [_statements]).
 Iterable<JS.ModuleItem> _flattenBlocks(List<JS.ModuleItem> stats) =>
-    stats.expand((item) => item is JS.Block ? _flattenBlocks(item.statements) : [item]);
+    stats.expand(
+        (item) => item is JS.Block ? _flattenBlocks(item.statements) : [item]);

@@ -534,7 +534,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (genericDef != null) {
       var dynType = fillDynamicTypeArgs(type, types);
       var genericInst = _emitTypeName(dynType, lowerGeneric: true);
-      return js.statement('{ #; const # = #; }', [genericDef, name, genericInst]);
+      return js
+          .statement('{ #; const # = #; }', [genericDef, name, genericInst]);
     }
     return body;
   }
@@ -2141,7 +2142,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   _addExport(String name, [String exportName]) {
-    if (_exports.containsKey(name)) throw 'Duplicate top level name found: $name';
+    if (_exports.containsKey(name))
+      throw 'Duplicate top level name found: $name';
     _exports[name] = exportName ?? name;
   }
 

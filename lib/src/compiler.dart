@@ -519,7 +519,8 @@ const corelibOrder = const [
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
 ];
-final corelibUriOrder = corelibOrder.map((lib) => lib.replaceAll('dart.', 'dart:')).toList();
+final corelibUriOrder =
+    corelibOrder.map((lib) => lib.replaceAll('dart.', 'dart:')).toList();
 
 /// Runtime files added to all applications when running the compiler in the
 /// command line.
