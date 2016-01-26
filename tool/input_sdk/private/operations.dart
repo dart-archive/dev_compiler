@@ -268,6 +268,7 @@ assert_(condition) => JS('', '''(() => {
 })()''');
 
 final _stack = JS('', 'new WeakMap()');
+@JSExportName('throw')
 throw_(obj) => JS('', '''(() => {
   if ($obj != null && (typeof $obj == 'object' || typeof $obj == 'function')) {
     // TODO(jmesserly): couldn't we store the most recent stack in a single

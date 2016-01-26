@@ -315,7 +315,8 @@ final ArgParser argParser = new ArgParser()
       allowedHelp: {
         getEnumName(ModuleFormat.es6): 'es6 modules',
         getEnumName(ModuleFormat.legacy):
-            'a custom format used by dartdevc, similar to AMD'
+            'a custom format used by dartdevc, similar to AMD',
+        getEnumName(ModuleFormat.node): 'node.js modules'
       },
       defaultsTo: getEnumName(ModuleFormat.legacy))
 
