@@ -513,8 +513,8 @@ const corelibOrder = const [
   'dart._js_mirrors',
   'dart.js',
   'dart._metadata',
-  'dart.dom.html_common',
-  'dart.dom.html',
+  'dart.html_common',
+  'dart.html',
   'dart._debugger'
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.

@@ -185,8 +185,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var items = <JS.ModuleItem>[];
     if (!_isDartRuntime) {
       if (currentLibrary.source.isInSystemLibrary) {
+        // Force the import order of runtime libs.
         for (var lib in corelibUriOrder.reversed) {
-          if (lib.startsWith("dart:html")) continue;
           moduleBuilder.addImport(lib.replaceAll(':', '/'), null);
         }
       }

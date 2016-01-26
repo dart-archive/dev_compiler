@@ -39,8 +39,10 @@ abstract class ModuleBuilder {
   }
 
   /// Adds an import from a module named [name] and locally aliased as [libVar].
-  /// When [isLazy] is true, the import should be lazy (i.e. there is some
+  /// When [isLazy] is `true`, the import should be lazy (i.e. there is some
   /// cyclic dependency of imports).
+  /// When [libVar] is `null`, the import is there just to force the import
+  /// order.
   void addImport(String name, JS.Identifier libVar, {bool isLazy: false}) {
     _imports.add(new _ModuleImport(name, libVar, isLazy));
   }
@@ -126,10 +128,14 @@ class ES6ModuleBuilder extends ModuleBuilder {
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
     for (var i in _imports) {
-      if (i.libVar == null) continue;
       // TODO(ochafik): laziness, late binding, etc, to support Closure...
-      moduleStatements.add(new JS.ImportDeclaration(
-          defaultBinding: i.libVar, from: js.string(i.name)));
+      if (i.libVar == null) {
+        moduleStatements.add(new JS.ImportDeclaration(
+            namedImports: [], from: js.string(i.name)));
+      } else {
+        moduleStatements.add(new JS.ImportDeclaration(
+            defaultBinding: i.libVar, from: js.string(i.name)));
+      }
     }
 
     moduleStatements.addAll(_flattenBlocks(moduleItems));
