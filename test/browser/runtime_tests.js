@@ -22,7 +22,7 @@ suite('generic', () => {
         new RegExp('NoSuchMethodError.*\nReceiver: 42', 'm'),
         'Calls with non-function receiver should throw a NoSuchMethodError' +
         ' with correct target');
-    
+
     // TODO(jmesserly): we should show the name "print" in there somewhere.
     assert.throws(() => dart.dcall(core.print, 1, 2, 3),
         new RegExp('NoSuchMethodError.*\n' +
@@ -33,7 +33,7 @@ suite('generic', () => {
 
   test('can throw number', () => {
     try {
-      dart.throw(42);
+      dart.throw_(42);
     } catch (e) {
       assert.equal(e, 42);
     }
@@ -45,7 +45,7 @@ suite('generic', () => {
     let obj = {};
     assert.equal(SomeType(obj).x, obj);
     assert.equal(SomeType(obj).x, obj);
-    assert.equal(SomeType().x, dart.dynamic);
+    assert.equal(SomeType().x, dart.dynamicR);
   });
 
   test('undefined/null are not allowed', () => {
@@ -125,7 +125,7 @@ suite('instanceOf', () => {
 
   let Object = core.Object;
   let String = core.String;
-  let dynamic = dart.dynamic;
+  let dynamic = dart.dynamicR;
   let List = core.List;
   let Map = core.Map;
   let Map$ = core.Map$;
@@ -254,7 +254,7 @@ suite('instanceOf', () => {
     checkType(null, Map, false);
     checkType(void 0, core.Null);
     checkType(void 0, core.Object);
-    checkType(void 0, dart.dynamic);
+    checkType(void 0, dart.dynamicR);
   });
 
   test('String', () => {
@@ -271,9 +271,9 @@ suite('instanceOf', () => {
     let m1 = new (Map$(String, String))();
     let m2 = new (Map$(Object, Object))();
     let m3 = new Map();
-    let m4 = new (collection.HashMap$(dart.dynamic, dart.dynamic))();
+    let m4 = new (collection.HashMap$(dart.dynamicR, dart.dynamicR))();
     let m5 = new collection.LinkedHashMap();
-    let m6 = new (Map$(String, dart.dynamic))();
+    let m6 = new (Map$(String, dart.dynamicR))();
 
 
     expect(isGroundType(Map), true);
@@ -368,7 +368,7 @@ suite('instanceOf', () => {
     let cctype = runtimeType(cc);
     // We don't allow constructing bad types.
     // This was AA<String> in Dart (wrong number of type args).
-    let aabad = new (AA$(dart.dynamic, dart.dynamic))();
+    let aabad = new (AA$(dart.dynamicR, dart.dynamicR))();
     let aabadtype = runtimeType(aabad);
 
     expect(isGroundType(aatype), false);
@@ -394,7 +394,7 @@ suite('instanceOf', () => {
     checkType(aabad, aarawtype);
     checkType(aabad, AA);
     checkType(aaraw, aabadtype);
-    checkType(aaraw, AA$(dart.dynamic, dart.dynamic));
+    checkType(aaraw, AA$(dart.dynamicR, dart.dynamicR));
     checkType(aaraw, aadynamictype);
     checkType(aaraw, AA$(dynamic, dynamic));
     checkType(aadynamic, aarawtype);
@@ -595,8 +595,8 @@ suite('instanceOf', () => {
     // All dynamic
     function dd2d(x, y) {return x};
     dart.fn(dd2d);
-    checkType(dd2d, dart.functionType(dart.dynamic,
-                                      [dart.dynamic, dart.dynamic]));
+    checkType(dd2d, dart.functionType(dart.dynamicR,
+                                      [dart.dynamicR, dart.dynamicR]));
 
     // Set the type eagerly
     function ii2i(x, y) {return x};
@@ -653,29 +653,29 @@ suite('instanceOf', () => {
     // Tear off of a method directly on the object
     let smap = new (c.SplayTreeMap$(core.int, core.String))();
     checkType(dart.bind(smap, 'forEach'),
-        dart.functionType(dart.void,
-            [dart.functionType(dart.void, [core.int, core.String])]));
+        dart.functionType(dart.voidR,
+            [dart.functionType(dart.voidR, [core.int, core.String])]));
     checkType(dart.bind(smap, 'forEach'),
-        dart.functionType(dart.void,
-            [dart.functionType(dart.void,
+        dart.functionType(dart.voidR,
+            [dart.functionType(dart.voidR,
                 [core.String, core.String])]), false, true);
 
     // Tear off of a mixed in method
     let mapB = new (c.MapBase$(core.int, core.int))();
     checkType(dart.bind(mapB, 'forEach'),
-        dart.functionType(dart.void, [
-            dart.functionType(dart.void, [core.int, core.int])]));
+        dart.functionType(dart.voidR, [
+            dart.functionType(dart.voidR, [core.int, core.int])]));
     checkType(dart.bind(mapB, 'forEach'),
-        dart.functionType(dart.void, [
-            dart.functionType(dart.void, [core.int, core.String])]),
+        dart.functionType(dart.voidR, [
+            dart.functionType(dart.voidR, [core.int, core.String])]),
               false, true);
 
     // Tear off of a method with a symbol name
     let listB = new (c.ListBase$(core.int))();
     checkType(dart.bind(listB, dartx.add),
-              dart.functionType(dart.void, [core.int]));
+              dart.functionType(dart.voidR, [core.int]));
     checkType(dart.bind(listB, dartx.add),
-              dart.functionType(dart.void, [core.String]), false, true);
+              dart.functionType(dart.voidR, [core.String]), false, true);
 
     // Tear off of a static method
     checkType(c.ListBase.listToString,
