@@ -13,7 +13,7 @@ dart_library.library('functions', null, /* Imports */[
     const A2B = dart.typedef('A2B', () => dart.functionType(B, [A]));
     return A2B;
   });
-  let A2B = A2B$();
+  const A2B = A2B$();
   function id(f) {
     return f;
   }
@@ -22,7 +22,7 @@ dart_library.library('functions', null, /* Imports */[
   function main() {
     core.print(bootstrap()[dartx.get](0));
   }
-  dart.fn(main, dart.void, []);
+  dart.fn(main, dart.voidR, []);
   // Exports:
   exports.bootstrap = bootstrap;
   exports.A2B$ = A2B$;

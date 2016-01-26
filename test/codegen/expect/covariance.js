@@ -16,19 +16,19 @@ dart_library.library('covariance', null, /* Imports */[
         this[_t] = t;
       }
       forEach(fn) {
-        dart.as(fn, dart.functionType(dart.void, [T]));
+        dart.as(fn, dart.functionType(dart.voidR, [T]));
         fn(this[_t]);
       }
     }
     dart.setSignature(Foo, {
       methods: () => ({
-        add: [dart.dynamic, [T]],
-        forEach: [dart.dynamic, [dart.functionType(dart.void, [T])]]
+        add: [dart.dynamicR, [T]],
+        forEach: [dart.dynamicR, [dart.functionType(dart.voidR, [T])]]
       })
     });
     return Foo;
   });
-  let Foo = Foo$();
+  const Foo = Foo$();
   class Bar extends Foo$(core.int) {
     Bar() {
       super.Foo();
@@ -39,7 +39,7 @@ dart_library.library('covariance', null, /* Imports */[
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({add: [dart.dynamic, [core.int]]})
+    methods: () => ({add: [dart.dynamicR, [core.int]]})
   });
   function main() {
     let foo = new Bar();

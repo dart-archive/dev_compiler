@@ -46,7 +46,7 @@ dart_library.library('collection/iterable_zip', null, /* Imports */[
       return this[_current];
     }
   }
-  _IteratorZip[dart.implements] = () => [core.Iterator$(core.List)];
+  _IteratorZip[dart.implements_] = () => [core.Iterator$(core.List)];
   dart.setSignature(_IteratorZip, {
     constructors: () => ({_IteratorZip: [_IteratorZip, [core.List]]}),
     methods: () => ({moveNext: [core.bool, []]})

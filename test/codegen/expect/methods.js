@@ -59,8 +59,8 @@ dart_library.library('methods', null, /* Imports */[
       zz: [core.int, [], [core.int]],
       w: [core.int, [core.int], {b: core.num}],
       ww: [core.int, [core.int], {b: core.int}],
-      clashWithObjectProperty: [dart.dynamic, [], {constructor: dart.dynamic}],
-      clashWithJsReservedName: [dart.dynamic, [], {function: dart.dynamic}]
+      clashWithObjectProperty: [dart.dynamicR, [], {constructor: dart.dynamicR}],
+      clashWithJsReservedName: [dart.dynamicR, [], {function: dart.dynamicR}]
     })
   });
   class Bar extends core.Object {
@@ -69,7 +69,7 @@ dart_library.library('methods', null, /* Imports */[
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({call: [dart.dynamic, [dart.dynamic]]})
+    methods: () => ({call: [dart.dynamicR, [dart.dynamicR]]})
   });
   class Foo extends core.Object {
     Foo() {
@@ -84,7 +84,7 @@ dart_library.library('methods', null, /* Imports */[
     let aa = new A();
     let h = dart.dload(aa, 'x');
     let ts = dart.fn(dart.toString.bind(a), core.String, []);
-    let nsm = dart.fn(dart.noSuchMethod.bind(a), dart.dynamic, [core.Invocation]);
+    let nsm = dart.fn(dart.noSuchMethod.bind(a), dart.dynamicR, [core.Invocation]);
     let c = dart.bind("", dartx.padLeft);
     let r = dart.bind(3.0, dartx.floor);
   }

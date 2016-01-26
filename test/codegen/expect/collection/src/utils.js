@@ -17,7 +17,7 @@ dart_library.library('collection/src/utils', null, /* Imports */[
     });
     return Pair;
   });
-  let Pair = Pair$();
+  const Pair = Pair$();
   // Exports:
   exports.Pair$ = Pair$;
   exports.Pair = Pair;

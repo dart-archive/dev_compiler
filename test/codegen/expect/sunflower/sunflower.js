@@ -37,10 +37,10 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
     }
   });
   function main() {
-    exports.slider.addEventListener('change', dart.fn(e => draw(), dart.void, [dom.Event]));
+    exports.slider.addEventListener('change', dart.fn(e => draw(), dart.voidR, [dom.Event]));
     draw();
   }
-  dart.fn(main, dart.void, []);
+  dart.fn(main, dart.voidR, []);
   function draw() {
     exports.seeds = core.int.parse(exports.slider.value);
     exports.context.clearRect(0, 0, MAX_D, MAX_D);
@@ -53,7 +53,7 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
     }
     exports.notes.textContent = `${exports.seeds} seeds`;
   }
-  dart.fn(draw, dart.void, []);
+  dart.fn(draw, dart.voidR, []);
   class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
     SunflowerSeed(x, y, radius, color) {
       if (color === void 0) color = null;

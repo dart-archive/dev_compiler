@@ -8,26 +8,26 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
   class Expect extends core.Object {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {
-        dart.throw(`Values not equal: ${expected} vs ${actual}`);
+        dart.throw_(`Values not equal: ${expected} vs ${actual}`);
       }
     }
     static listEquals(expected, actual) {
       if (expected[dartx.length] != actual[dartx.length]) {
-        dart.throw(`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
+        dart.throw_(`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
       }
       for (let i = 0; dart.notNull(i) < dart.notNull(actual[dartx.length]); i = dart.notNull(i) + 1) {
         Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
       }
     }
     fail(message) {
-      dart.throw(message);
+      dart.throw_(message);
     }
   }
   dart.setSignature(Expect, {
-    methods: () => ({fail: [dart.dynamic, [dart.dynamic]]}),
+    methods: () => ({fail: [dart.dynamicR, [dart.dynamicR]]}),
     statics: () => ({
-      equals: [dart.void, [dart.dynamic, dart.dynamic]],
-      listEquals: [dart.void, [core.List, core.List]]
+      equals: [dart.voidR, [dart.dynamicR, dart.dynamicR]],
+      listEquals: [dart.voidR, [core.List, core.List]]
     }),
     names: ['equals', 'listEquals']
   });
@@ -78,13 +78,13 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
   dart.setSignature(BenchmarkBase, {
     constructors: () => ({BenchmarkBase: [BenchmarkBase, [core.String]]}),
     methods: () => ({
-      run: [dart.void, []],
-      warmup: [dart.void, []],
-      exercise: [dart.void, []],
-      setup: [dart.void, []],
-      teardown: [dart.void, []],
+      run: [dart.voidR, []],
+      warmup: [dart.voidR, []],
+      exercise: [dart.voidR, []],
+      setup: [dart.voidR, []],
+      teardown: [dart.voidR, []],
       measure: [core.double, []],
-      report: [dart.void, []]
+      report: [dart.voidR, []]
     }),
     statics: () => ({measureFor: [core.double, [core.Function, core.int]]}),
     names: ['measureFor']

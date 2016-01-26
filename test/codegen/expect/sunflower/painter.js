@@ -39,9 +39,9 @@ dart_library.library('sunflower/painter', null, /* Imports */[
       context.stroke();
     }
   }
-  CirclePainter[dart.implements] = () => [circle.Circle];
+  CirclePainter[dart.implements_] = () => [circle.Circle];
   dart.setSignature(CirclePainter, {
-    methods: () => ({draw: [dart.void, [dom.CanvasRenderingContext2D]]})
+    methods: () => ({draw: [dart.voidR, [dom.CanvasRenderingContext2D]]})
   });
   // Exports:
   exports.ORANGE = ORANGE;

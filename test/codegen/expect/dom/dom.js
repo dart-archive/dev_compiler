@@ -12,16 +12,16 @@ dart_library.library('dom/dom', window, /* Imports */[
   dart.setSignature(Overload, {
     constructors: () => ({Overload: [Overload, []]})
   });
-  const overload = dart.const(new Overload());
+  const overload = dart.const_(new Overload());
   class CustomEvent extends core.Object {}
   dart.setSignature(CustomEvent, {
-    constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamic, bubbles: dart.dynamic, cancelable: dart.dynamic}]})
+    constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamicR, bubbles: dart.dynamicR, cancelable: dart.dynamicR}]})
   });
   class HTMLCollection extends core.Object {}
   dart.setSignature(HTMLCollection, {
     methods: () => ({get: [Element, [core.num]]})
   });
-  const EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
+  const EventListener = dart.typedef('EventListener', () => dart.functionType(dart.voidR, [Event]));
   const InputElement = HTMLInputElement;
   const CanvasElement = HTMLCanvasElement;
   const DivElement = HTMLDivElement;

@@ -232,38 +232,38 @@ dart_library.library('expect/expect', null, /* Imports */[
       return reason == null ? "" : `, '${reason}'`;
     }
     static _fail(message) {
-      dart.throw(new ExpectException(message));
+      dart.throw_(new ExpectException(message));
     }
   }
   dart.setSignature(Expect, {
     statics: () => ({
       _truncateString: [core.String, [core.String, core.int, core.int, core.int]],
       _stringDifference: [core.String, [core.String, core.String]],
-      equals: [dart.void, [dart.dynamic, dart.dynamic], [core.String]],
-      isTrue: [dart.void, [dart.dynamic], [core.String]],
-      isFalse: [dart.void, [dart.dynamic], [core.String]],
-      isNull: [dart.void, [dart.dynamic], [core.String]],
-      isNotNull: [dart.void, [dart.dynamic], [core.String]],
-      identical: [dart.void, [dart.dynamic, dart.dynamic], [core.String]],
-      fail: [dart.void, [core.String]],
-      approxEquals: [dart.void, [core.num, core.num], [core.num, core.String]],
-      notEquals: [dart.void, [dart.dynamic, dart.dynamic], [core.String]],
-      listEquals: [dart.void, [core.List, core.List], [core.String]],
-      mapEquals: [dart.void, [core.Map, core.Map], [core.String]],
-      stringEquals: [dart.void, [core.String, core.String], [core.String]],
-      setEquals: [dart.void, [core.Iterable, core.Iterable], [core.String]],
-      throws: [dart.void, [dart.functionType(dart.void, [])], [_CheckExceptionFn, core.String]],
+      equals: [dart.voidR, [dart.dynamicR, dart.dynamicR], [core.String]],
+      isTrue: [dart.voidR, [dart.dynamicR], [core.String]],
+      isFalse: [dart.voidR, [dart.dynamicR], [core.String]],
+      isNull: [dart.voidR, [dart.dynamicR], [core.String]],
+      isNotNull: [dart.voidR, [dart.dynamicR], [core.String]],
+      identical: [dart.voidR, [dart.dynamicR, dart.dynamicR], [core.String]],
+      fail: [dart.voidR, [core.String]],
+      approxEquals: [dart.voidR, [core.num, core.num], [core.num, core.String]],
+      notEquals: [dart.voidR, [dart.dynamicR, dart.dynamicR], [core.String]],
+      listEquals: [dart.voidR, [core.List, core.List], [core.String]],
+      mapEquals: [dart.voidR, [core.Map, core.Map], [core.String]],
+      stringEquals: [dart.voidR, [core.String, core.String], [core.String]],
+      setEquals: [dart.voidR, [core.Iterable, core.Iterable], [core.String]],
+      throws: [dart.voidR, [dart.functionType(dart.voidR, [])], [_CheckExceptionFn, core.String]],
       _getMessage: [core.String, [core.String]],
-      _fail: [dart.void, [core.String]]
+      _fail: [dart.voidR, [core.String]]
     }),
     names: ['_truncateString', '_stringDifference', 'equals', 'isTrue', 'isFalse', 'isNull', 'isNotNull', 'identical', 'fail', 'approxEquals', 'notEquals', 'listEquals', 'mapEquals', 'stringEquals', 'setEquals', 'throws', '_getMessage', '_fail']
   });
   function _identical(a, b) {
     return core.identical(a, b);
   }
-  dart.fn(_identical, core.bool, [dart.dynamic, dart.dynamic]);
-  const _CheckExceptionFn = dart.typedef('_CheckExceptionFn', () => dart.functionType(core.bool, [dart.dynamic]));
-  const _Nullary = dart.typedef('_Nullary', () => dart.functionType(dart.dynamic, []));
+  dart.fn(_identical, core.bool, [dart.dynamicR, dart.dynamicR]);
+  const _CheckExceptionFn = dart.typedef('_CheckExceptionFn', () => dart.functionType(core.bool, [dart.dynamicR]));
+  const _Nullary = dart.typedef('_Nullary', () => dart.functionType(dart.dynamicR, []));
   class ExpectException extends core.Object {
     ExpectException(message) {
       this.message = message;
@@ -272,7 +272,7 @@ dart_library.library('expect/expect', null, /* Imports */[
       return this.message;
     }
   }
-  ExpectException[dart.implements] = () => [core.Exception];
+  ExpectException[dart.implements_] = () => [core.Exception];
   dart.setSignature(ExpectException, {
     constructors: () => ({ExpectException: [ExpectException, [core.String]]})
   });

@@ -28,7 +28,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.name = name;
     }
     nextWeaker() {
-      return dart.const(dart.list([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST], Strength))[dartx.get](this.value);
+      return dart.const_(dart.list([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST], Strength))[dartx.get](this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
@@ -54,13 +54,13 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }),
     names: ['stronger', 'weaker', 'weakest', 'strongest']
   });
-  const REQUIRED = dart.const(new Strength(0, "required"));
-  const STRONG_PREFERRED = dart.const(new Strength(1, "strongPreferred"));
-  const PREFERRED = dart.const(new Strength(2, "preferred"));
-  const STRONG_DEFAULT = dart.const(new Strength(3, "strongDefault"));
-  const NORMAL = dart.const(new Strength(4, "normal"));
-  const WEAK_DEFAULT = dart.const(new Strength(5, "weakDefault"));
-  const WEAKEST = dart.const(new Strength(6, "weakest"));
+  const REQUIRED = dart.const_(new Strength(0, "required"));
+  const STRONG_PREFERRED = dart.const_(new Strength(1, "strongPreferred"));
+  const PREFERRED = dart.const_(new Strength(2, "preferred"));
+  const STRONG_DEFAULT = dart.const_(new Strength(3, "strongDefault"));
+  const NORMAL = dart.const_(new Strength(4, "normal"));
+  const WEAK_DEFAULT = dart.const_(new Strength(5, "weakDefault"));
+  const WEAKEST = dart.const_(new Strength(6, "weakest"));
   class Constraint extends core.Object {
     Constraint(strength) {
       this.strength = strength;
@@ -97,9 +97,9 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   dart.setSignature(Constraint, {
     constructors: () => ({Constraint: [Constraint, [Strength]]}),
     methods: () => ({
-      addConstraint: [dart.void, []],
-      satisfy: [Constraint, [dart.dynamic]],
-      destroyConstraint: [dart.void, []],
+      addConstraint: [dart.voidR, []],
+      satisfy: [Constraint, [dart.dynamicR]],
+      destroyConstraint: [dart.voidR, []],
       isInput: [core.bool, []]
     })
   });
@@ -143,15 +143,15 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   dart.setSignature(UnaryConstraint, {
     constructors: () => ({UnaryConstraint: [UnaryConstraint, [Variable, Strength]]}),
     methods: () => ({
-      addToGraph: [dart.void, []],
-      chooseMethod: [dart.void, [core.int]],
+      addToGraph: [dart.voidR, []],
+      chooseMethod: [dart.voidR, [core.int]],
       isSatisfied: [core.bool, []],
-      markInputs: [dart.void, [core.int]],
+      markInputs: [dart.voidR, [core.int]],
       output: [Variable, []],
-      recalculate: [dart.void, []],
-      markUnsatisfied: [dart.void, []],
+      recalculate: [dart.voidR, []],
+      markUnsatisfied: [dart.voidR, []],
       inputsKnown: [core.bool, [core.int]],
-      removeFromGraph: [dart.void, []]
+      removeFromGraph: [dart.voidR, []]
     })
   });
   class StayConstraint extends UnaryConstraint {
@@ -162,7 +162,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   }
   dart.setSignature(StayConstraint, {
     constructors: () => ({StayConstraint: [StayConstraint, [Variable, Strength]]}),
-    methods: () => ({execute: [dart.void, []]})
+    methods: () => ({execute: [dart.voidR, []]})
   });
   class EditConstraint extends UnaryConstraint {
     EditConstraint(v, str) {
@@ -175,7 +175,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   }
   dart.setSignature(EditConstraint, {
     constructors: () => ({EditConstraint: [EditConstraint, [Variable, Strength]]}),
-    methods: () => ({execute: [dart.void, []]})
+    methods: () => ({execute: [dart.voidR, []]})
   });
   const NONE = 1;
   const FORWARD = 2;
@@ -240,16 +240,16 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   dart.setSignature(BinaryConstraint, {
     constructors: () => ({BinaryConstraint: [BinaryConstraint, [Variable, Variable, Strength]]}),
     methods: () => ({
-      chooseMethod: [dart.void, [core.int]],
-      addToGraph: [dart.void, []],
+      chooseMethod: [dart.voidR, [core.int]],
+      addToGraph: [dart.voidR, []],
       isSatisfied: [core.bool, []],
-      markInputs: [dart.void, [core.int]],
+      markInputs: [dart.voidR, [core.int]],
       input: [Variable, []],
       output: [Variable, []],
-      recalculate: [dart.void, []],
-      markUnsatisfied: [dart.void, []],
+      recalculate: [dart.voidR, []],
+      markUnsatisfied: [dart.voidR, []],
       inputsKnown: [core.bool, [core.int]],
-      removeFromGraph: [dart.void, []]
+      removeFromGraph: [dart.voidR, []]
     })
   });
   class ScaleConstraint extends BinaryConstraint {
@@ -288,7 +288,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   }
   dart.setSignature(ScaleConstraint, {
     constructors: () => ({ScaleConstraint: [ScaleConstraint, [Variable, Variable, Variable, Variable, Strength]]}),
-    methods: () => ({execute: [dart.void, []]})
+    methods: () => ({execute: [dart.voidR, []]})
   });
   class EqualityConstraint extends BinaryConstraint {
     EqualityConstraint(v1, v2, strength) {
@@ -300,7 +300,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   }
   dart.setSignature(EqualityConstraint, {
     constructors: () => ({EqualityConstraint: [EqualityConstraint, [Variable, Variable, Strength]]}),
-    methods: () => ({execute: [dart.void, []]})
+    methods: () => ({execute: [dart.voidR, []]})
   });
   class Variable extends core.Object {
     Variable(name, value) {
@@ -323,8 +323,8 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   dart.setSignature(Variable, {
     constructors: () => ({Variable: [Variable, [core.String, core.int]]}),
     methods: () => ({
-      addConstraint: [dart.void, [Constraint]],
-      removeConstraint: [dart.void, [Constraint]]
+      addConstraint: [dart.voidR, [Constraint]],
+      removeConstraint: [dart.voidR, [Constraint]]
     })
   });
   class Planner extends core.Object {
@@ -421,14 +421,14 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   }
   dart.setSignature(Planner, {
     methods: () => ({
-      incrementalAdd: [dart.void, [Constraint]],
-      incrementalRemove: [dart.void, [Constraint]],
+      incrementalAdd: [dart.voidR, [Constraint]],
+      incrementalRemove: [dart.voidR, [Constraint]],
       newMark: [core.int, []],
       makePlan: [Plan, [core.List$(Constraint)]],
       extractPlanFromConstraints: [Plan, [core.List$(Constraint)]],
       addPropagate: [core.bool, [Constraint, core.int]],
       removePropagateFrom: [core.List$(Constraint), [Variable]],
-      addConstraintsConsumingTo: [dart.void, [Variable, core.List$(Constraint)]]
+      addConstraintsConsumingTo: [dart.voidR, [Variable, core.List$(Constraint)]]
     })
   });
   class Plan extends core.Object {
@@ -449,9 +449,9 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   }
   dart.setSignature(Plan, {
     methods: () => ({
-      addConstraint: [dart.void, [Constraint]],
+      addConstraint: [dart.voidR, [Constraint]],
       size: [core.int, []],
-      execute: [dart.void, []]
+      execute: [dart.voidR, []]
     })
   });
   function chainTest(n) {
@@ -476,7 +476,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       }
     }
   }
-  dart.fn(chainTest, dart.void, [core.int]);
+  dart.fn(chainTest, dart.voidR, [core.int]);
   function projectionTest(n) {
     exports.planner = new Planner();
     let scale = new Variable("scale", 10);
@@ -503,7 +503,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       if (dests[dartx.get](i).value != dart.notNull(i) * 5 + 2000) core.print("Projection 4 failed");
     }
   }
-  dart.fn(projectionTest, dart.void, [core.int]);
+  dart.fn(projectionTest, dart.voidR, [core.int]);
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
     let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], EditConstraint));
@@ -513,7 +513,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     edit.destroyConstraint();
   }
-  dart.fn(change, dart.void, [Variable, core.int]);
+  dart.fn(change, dart.voidR, [Variable, core.int]);
   exports.planner = null;
   // Exports:
   exports.main = main;

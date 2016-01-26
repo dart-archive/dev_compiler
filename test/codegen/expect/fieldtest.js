@@ -20,7 +20,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     }
     return B;
   });
-  let B = B$();
+  const B = B$();
   function foo(a) {
     core.print(a.x);
     return a.x;
@@ -30,11 +30,11 @@ dart_library.library('fieldtest', null, /* Imports */[
     core.print(dart.dload(a, 'x'));
     return dart.as(dart.dload(a, 'x'), core.int);
   }
-  dart.fn(bar, core.int, [dart.dynamic]);
+  dart.fn(bar, core.int, [dart.dynamicR]);
   function baz(a) {
     return a.x;
   }
-  dart.fn(baz, dart.dynamic, [A]);
+  dart.fn(baz, dart.dynamicR, [A]);
   function compute() {
     return 123;
   }
@@ -76,11 +76,11 @@ dart_library.library('fieldtest', null, /* Imports */[
       }
     }
     dart.setSignature(Generic, {
-      methods: () => ({foo: [dart.dynamic, [T]]})
+      methods: () => ({foo: [dart.dynamicR, [T]]})
     });
     return Generic;
   });
-  let Generic = Generic$();
+  const Generic = Generic$();
   Generic.bar = 'hello';
   class StaticFieldOrder1 extends core.Object {}
   StaticFieldOrder1.d = 4;
@@ -105,11 +105,11 @@ dart_library.library('fieldtest', null, /* Imports */[
       }[this.index];
     }
   };
-  MyEnum.Val1 = dart.const(new MyEnum(0));
-  MyEnum.Val2 = dart.const(new MyEnum(1));
-  MyEnum.Val3 = dart.const(new MyEnum(2));
-  MyEnum.Val4 = dart.const(new MyEnum(3));
-  MyEnum.values = dart.const(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
+  MyEnum.Val1 = dart.const_(new MyEnum(0));
+  MyEnum.Val2 = dart.const_(new MyEnum(1));
+  MyEnum.Val3 = dart.const_(new MyEnum(2));
+  MyEnum.Val4 = dart.const_(new MyEnum(3));
+  MyEnum.values = dart.const_(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
   function main() {
     let a = new A();
     foo(a);
@@ -118,7 +118,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     core.print(new (Generic$(core.String))().foo(' world'));
     core.print(MyEnum.values);
   }
-  dart.fn(main, dart.void, []);
+  dart.fn(main, dart.voidR, []);
   // Exports:
   exports.A = A;
   exports.B$ = B$;

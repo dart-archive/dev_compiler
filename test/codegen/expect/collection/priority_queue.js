@@ -10,7 +10,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
     class PriorityQueue extends core.Object {}
     return PriorityQueue;
   });
-  let PriorityQueue = PriorityQueue$();
+  const PriorityQueue = PriorityQueue$();
   const _queue = Symbol('_queue');
   const _length = Symbol('_length');
   const _add = Symbol('_add');
@@ -38,7 +38,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         }
       }
       clear() {
-        this[_queue] = dart.const(dart.list([], E));
+        this[_queue] = dart.const_(dart.list([], E));
         this[_length] = 0;
       }
       contains(object) {
@@ -46,7 +46,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         return dart.notNull(this[_locate](object)) >= 0;
       }
       get first() {
-        if (this[_length] == 0) dart.throw(new core.StateError("No such element"));
+        if (this[_length] == 0) dart.throw_(new core.StateError("No such element"));
         return this[_queue][dartx.get](0);
       }
       get isEmpty() {
@@ -76,12 +76,12 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       removeAll() {
         let result = this[_queue];
         let length = this[_length];
-        this[_queue] = dart.const(dart.list([], E));
+        this[_queue] = dart.const_(dart.list([], E));
         this[_length] = 0;
         return result[dartx.take](length);
       }
       removeFirst() {
-        if (this[_length] == 0) dart.throw(new core.StateError("No such element"));
+        if (this[_length] == 0) dart.throw_(new core.StateError("No such element"));
         let result = this[_queue][dartx.get](0);
         let last = this[_removeLast]();
         if (dart.notNull(this[_length]) > 0) {
@@ -203,36 +203,36 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         this[_queue] = newQueue;
       }
     }
-    HeapPriorityQueue[dart.implements] = () => [PriorityQueue$(E)];
+    HeapPriorityQueue[dart.implements_] = () => [PriorityQueue$(E)];
     dart.setSignature(HeapPriorityQueue, {
       constructors: () => ({HeapPriorityQueue: [HeapPriorityQueue$(E), [], [dart.functionType(core.int, [E, E])]]}),
       methods: () => ({
-        add: [dart.void, [E]],
-        addAll: [dart.void, [core.Iterable$(E)]],
-        clear: [dart.void, []],
+        add: [dart.voidR, [E]],
+        addAll: [dart.voidR, [core.Iterable$(E)]],
+        clear: [dart.voidR, []],
         contains: [core.bool, [E]],
         remove: [core.bool, [E]],
         removeAll: [core.Iterable$(E), []],
         removeFirst: [E, []],
         toList: [core.List$(E), []],
         toSet: [core.Set$(E), []],
-        [_add]: [dart.void, [E]],
+        [_add]: [dart.voidR, [E]],
         [_locate]: [core.int, [E]],
         [_removeLast]: [E, []],
-        [_bubbleUp]: [dart.void, [E, core.int]],
-        [_bubbleDown]: [dart.void, [E, core.int]],
-        [_grow]: [dart.void, []]
+        [_bubbleUp]: [dart.voidR, [E, core.int]],
+        [_bubbleDown]: [dart.voidR, [E, core.int]],
+        [_grow]: [dart.voidR, []]
       })
     });
     return HeapPriorityQueue;
   });
-  let HeapPriorityQueue = HeapPriorityQueue$();
+  const HeapPriorityQueue = HeapPriorityQueue$();
   HeapPriorityQueue._INITIAL_CAPACITY = 7;
   const __CastType0$ = dart.generic(function(E) {
     const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [E, E]));
     return __CastType0;
   });
-  let __CastType0 = __CastType0$();
+  const __CastType0 = __CastType0$();
   // Exports:
   exports.PriorityQueue$ = PriorityQueue$;
   exports.PriorityQueue = PriorityQueue;

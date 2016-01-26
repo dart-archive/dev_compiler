@@ -120,7 +120,7 @@ dart_library.library('constructors', null, /* Imports */[
     }
   }
   dart.setSignature(L, {
-    constructors: () => ({L: [L, [dart.dynamic]]})
+    constructors: () => ({L: [L, [dart.dynamicR]]})
   });
   class M extends L {
     named(x) {
@@ -182,7 +182,7 @@ dart_library.library('constructors', null, /* Imports */[
       }
     }
     dart.setSignature(Q, {
-      constructors: () => ({Q: [Q$(T), [dart.dynamic]]}),
+      constructors: () => ({Q: [Q$(T), [dart.dynamicR]]}),
       methods: () => ({
         bar: [core.String, []],
         bar2: [core.String, []]
@@ -195,7 +195,7 @@ dart_library.library('constructors', null, /* Imports */[
     });
     return Q;
   });
-  let Q = Q$();
+  const Q = Q$();
   // Exports:
   exports.A = A;
   exports.B = B;

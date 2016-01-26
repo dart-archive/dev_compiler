@@ -1,21 +1,20 @@
-'use strict';
 const exports = {};
 import dart from "dart/_runtime";
 import core from "dart/core";
 let dartx = dart.dartx;
-const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
+const Callback = dart.typedef('Callback', () => dart.functionType(dart.voidR, [], {i: core.int}));
 class A extends core.Object {}
 class _A extends core.Object {}
 const B$ = dart.generic(function(T) {
   class B extends core.Object {}
   return B;
 });
-let B = B$();
+const B = B$();
 const _B$ = dart.generic(function(T) {
   class _B extends core.Object {}
   return _B;
 });
-let _B = _B$();
+const _B = _B$();
 function f() {
 }
 dart.fn(f);
