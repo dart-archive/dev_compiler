@@ -80,6 +80,7 @@ class LegacyModuleBuilder extends ModuleBuilder {
     var moduleStatements = <JS.Statement>[];
 
     for (var i in _imports) {
+      // No need to force the import order for the legacy library mechanism.
       if (i.libVar == null) continue;
       (i.isLazy ? lazyImports : imports).add(js.string(i.name, "'"));
       (i.isLazy ? lazyParams : params).add(i.libVar);
@@ -166,15 +167,6 @@ class NodeModuleBuilder extends ModuleBuilder {
       // js.statement("console.log('Loading ' + #);", [js.string(jsPath)])
     ];
 
-    require(i) {
-      // moduleStatements.add(js.statement("console.log('  ${i.isLazy ? 'Lazy ' : ''}Requiring ' + # + ' from ' + #);", [js.string(i.name), js.string(jsPath)]));
-      if (i.libVar == null) {
-        moduleStatements.add(js.statement('require(#);', [js.string(i.name)]));
-      } else {
-        moduleStatements.add(js.statement('let # = require(#);', [i.libVar, js.string(i.name)]));
-      }
-    }
-
     moduleItems = _flattenBlocks(moduleItems);
 
     var prioritaryExportItems = <JS.ModuleItem>[];
@@ -214,8 +206,12 @@ class NodeModuleBuilder extends ModuleBuilder {
     moduleStatements.addAll(prioritaryExportItems);
 
     for (var i in _imports) {
-      // if (!i.isLazy)
-      require(i);
+      if (i.libVar == null) {
+        moduleStatements.add(js.statement('require(#);', [js.string(i.name)]));
+      } else {
+        moduleStatements.add(js.statement(
+            'let # = require(#);', [i.libVar, js.string(i.name)]));
+      }
     }
 
     moduleStatements.addAll(normalItems);
@@ -224,14 +220,7 @@ class NodeModuleBuilder extends ModuleBuilder {
       moduleStatements.add(js.comment('Exports:'));
       _exports.keys.forEach((name) => emitExport(name, moduleStatements));
     }
-    // moduleStatements.addAll(moduleItems.where((i) => !isDecl(i)));
-    // moduleStatements.addAll(normalItems);
-    // moduleStatements.add(js.statement("console.log('  Done loading ' + #);", [js.string(jsPath)]));
-
-    // if (isDartRuntime) for (var lib in corelibOrder) moduleStatements.add(js.statement("require(#);", [js.string(lib)]));
-
     // TODO(ochafik): What to do of jsModuleValue?
-    // moduleStatements.forEach(stderr.writeln);
     return new JS.Program(moduleStatements);
   }
 }

@@ -199,8 +199,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     items.addAll(_moduleItems);
 
     _imports.forEach((LibraryElement lib, JS.TemporaryId temp) {
-      var moduleName = compiler.getModuleName(lib.source.uri);
-      moduleBuilder.addImport(moduleName, temp,
+      moduleBuilder.addImport(compiler.getModuleName(lib.source.uri), temp,
           isLazy: _isDartRuntime || !_loader.libraryIsLoaded(lib));
     });
 
@@ -422,15 +421,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
+    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
+        _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
+
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, isJsPeerInterface);
     if (jsPeer != null) {
       jsPeerName =
           getConstantField(jsPeer, 'name', types.stringType)?.toStringValue();
     }
-
-    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
 
     var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
         node.metadata, jsPeerName);
@@ -3575,13 +3574,9 @@ class JSGenerator extends CodeGenerator {
     var serverUri = flags.serverMode
         ? Uri.parse('http://${flags.host}:${flags.port}/')
         : null;
-    try {
-      return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
-          emitSourceMaps: options.emitSourceMaps,
-          arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
-    } catch (e, s) {
-      throw new StateError('Exception while compiling ${unit.library}: $e\n$s');
-    }
+    return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
+        emitSourceMaps: options.emitSourceMaps,
+        arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
   }
 }
 
