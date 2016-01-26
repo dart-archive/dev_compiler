@@ -44,11 +44,11 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return this[_base][dartx.firstWhere](test, {orElse: orElse});
       }
       fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamicR, [dart.dynamicR, E]));
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         return this[_base][dartx.fold](initialValue, combine);
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.voidR, [E]));
+        dart.as(f, dart.functionType(dart.void, [E]));
         return this[_base][dartx.forEach](f);
       }
       get isEmpty() {
@@ -80,7 +80,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return this[_base][dartx.length];
       }
       map(f) {
-        dart.as(f, dart.functionType(dart.dynamicR, [E]));
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
         return this[_base][dartx.map](f);
       }
       reduce(combine) {
@@ -123,7 +123,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return dart.toString(this[_base]);
       }
     }
-    _DelegatingIterableBase[dart.implements_] = () => [core.Iterable$(E)];
+    _DelegatingIterableBase[dart.implements] = () => [core.Iterable$(E)];
     dart.setSignature(_DelegatingIterableBase, {
       constructors: () => ({_DelegatingIterableBase: [_DelegatingIterableBase$(E), []]}),
       methods: () => ({
@@ -133,11 +133,11 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         every: [core.bool, [dart.functionType(core.bool, [E])]],
         expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
         firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        fold: [dart.dynamicR, [dart.dynamicR, dart.functionType(dart.dynamicR, [dart.dynamicR, E])]],
-        forEach: [dart.voidR, [dart.functionType(dart.voidR, [E])]],
+        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
         join: [core.String, [], [core.String]],
         lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        map: [core.Iterable, [dart.functionType(dart.dynamicR, [E])]],
+        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
         reduce: [E, [dart.functionType(E, [E, E])]],
         singleWhere: [E, [dart.functionType(core.bool, [E])]],
         skip: [core.Iterable$(E), [core.int]],
@@ -305,33 +305,33 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return this[_listBase][dartx.sublist](start, end);
       }
     }
-    DelegatingList[dart.implements_] = () => [core.List$(E)];
+    DelegatingList[dart.implements] = () => [core.List$(E)];
     dart.setSignature(DelegatingList, {
       constructors: () => ({DelegatingList: [DelegatingList$(E), [core.List$(E)]]}),
       methods: () => ({
         get: [E, [core.int]],
-        set: [dart.voidR, [core.int, E]],
-        add: [dart.voidR, [E]],
-        addAll: [dart.voidR, [core.Iterable$(E)]],
+        set: [dart.void, [core.int, E]],
+        add: [dart.void, [E]],
+        addAll: [dart.void, [core.Iterable$(E)]],
         asMap: [core.Map$(core.int, E), []],
-        clear: [dart.voidR, []],
-        fillRange: [dart.voidR, [core.int, core.int], [E]],
+        clear: [dart.void, []],
+        fillRange: [dart.void, [core.int, core.int], [E]],
         getRange: [core.Iterable$(E), [core.int, core.int]],
         indexOf: [core.int, [E], [core.int]],
-        insert: [dart.voidR, [core.int, E]],
-        insertAll: [dart.voidR, [core.int, core.Iterable$(E)]],
+        insert: [dart.void, [core.int, E]],
+        insertAll: [dart.void, [core.int, core.Iterable$(E)]],
         lastIndexOf: [core.int, [E], [core.int]],
         remove: [core.bool, [core.Object]],
         removeAt: [E, [core.int]],
         removeLast: [E, []],
-        removeRange: [dart.voidR, [core.int, core.int]],
-        removeWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        replaceRange: [dart.voidR, [core.int, core.int, core.Iterable$(E)]],
-        retainWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        setAll: [dart.voidR, [core.int, core.Iterable$(E)]],
-        setRange: [dart.voidR, [core.int, core.int, core.Iterable$(E)], [core.int]],
-        shuffle: [dart.voidR, [], [math.Random]],
-        sort: [dart.voidR, [], [dart.functionType(core.int, [E, E])]],
+        removeRange: [dart.void, [core.int, core.int]],
+        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        replaceRange: [dart.void, [core.int, core.int, core.Iterable$(E)]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        setAll: [dart.void, [core.int, core.Iterable$(E)]],
+        setRange: [dart.void, [core.int, core.int, core.Iterable$(E)], [core.int]],
+        shuffle: [dart.void, [], [math.Random]],
+        sort: [dart.void, [], [dart.functionType(core.int, [E, E])]],
         sublist: [core.List$(E), [core.int], [core.int]]
       })
     });
@@ -424,22 +424,22 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return new (DelegatingSet$(E))(this[_setBase].toSet());
       }
     }
-    DelegatingSet[dart.implements_] = () => [core.Set$(E)];
+    DelegatingSet[dart.implements] = () => [core.Set$(E)];
     dart.setSignature(DelegatingSet, {
       constructors: () => ({DelegatingSet: [DelegatingSet$(E), [core.Set$(E)]]}),
       methods: () => ({
         add: [core.bool, [E]],
-        addAll: [dart.voidR, [core.Iterable$(E)]],
-        clear: [dart.voidR, []],
+        addAll: [dart.void, [core.Iterable$(E)]],
+        clear: [dart.void, []],
         containsAll: [core.bool, [core.Iterable$(core.Object)]],
         difference: [core.Set$(E), [core.Set$(E)]],
         intersection: [core.Set$(E), [core.Set$(core.Object)]],
         lookup: [E, [core.Object]],
         remove: [core.bool, [core.Object]],
-        removeAll: [dart.voidR, [core.Iterable$(core.Object)]],
-        removeWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        retainAll: [dart.voidR, [core.Iterable$(core.Object)]],
-        retainWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
+        removeAll: [dart.void, [core.Iterable$(core.Object)]],
+        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        retainAll: [dart.void, [core.Iterable$(core.Object)]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
         union: [core.Set$(E), [core.Set$(E)]],
         toSet: [core.Set$(E), []]
       })
@@ -494,18 +494,18 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return this[_baseQueue].removeLast();
       }
     }
-    DelegatingQueue[dart.implements_] = () => [collection.Queue$(E)];
+    DelegatingQueue[dart.implements] = () => [collection.Queue$(E)];
     dart.setSignature(DelegatingQueue, {
       constructors: () => ({DelegatingQueue: [DelegatingQueue$(E), [collection.Queue$(E)]]}),
       methods: () => ({
-        add: [dart.voidR, [E]],
-        addAll: [dart.voidR, [core.Iterable$(E)]],
-        addFirst: [dart.voidR, [E]],
-        addLast: [dart.voidR, [E]],
-        clear: [dart.voidR, []],
+        add: [dart.void, [E]],
+        addAll: [dart.void, [core.Iterable$(E)]],
+        addFirst: [dart.void, [E]],
+        addLast: [dart.void, [E]],
+        clear: [dart.void, []],
         remove: [core.bool, [core.Object]],
-        removeWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        retainWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
+        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
         removeFirst: [E, []],
         removeLast: [E, []]
       })
@@ -541,7 +541,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return this[_base].containsValue(value);
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.voidR, [K, V]));
+        dart.as(f, dart.functionType(dart.void, [K, V]));
         this[_base].forEach(f);
       }
       get isEmpty() {
@@ -571,17 +571,17 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return dart.toString(this[_base]);
       }
     }
-    DelegatingMap[dart.implements_] = () => [core.Map$(K, V)];
+    DelegatingMap[dart.implements] = () => [core.Map$(K, V)];
     dart.setSignature(DelegatingMap, {
       constructors: () => ({DelegatingMap: [DelegatingMap$(K, V), [core.Map$(K, V)]]}),
       methods: () => ({
         get: [V, [core.Object]],
-        set: [dart.voidR, [K, V]],
-        addAll: [dart.voidR, [core.Map$(K, V)]],
-        clear: [dart.voidR, []],
+        set: [dart.void, [K, V]],
+        addAll: [dart.void, [core.Map$(K, V)]],
+        clear: [dart.void, []],
         containsKey: [core.bool, [core.Object]],
         containsValue: [core.bool, [core.Object]],
-        forEach: [dart.voidR, [dart.functionType(dart.voidR, [K, V])]],
+        forEach: [dart.void, [dart.functionType(dart.void, [K, V])]],
         putIfAbsent: [V, [K, dart.functionType(V, [])]],
         remove: [V, [core.Object]]
       })
@@ -626,7 +626,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
       }
       lookup(element) {
         dart.as(element, E);
-        return dart.throw_(new core.UnsupportedError("MapKeySet doesn't support lookup()."));
+        return dart.throw(new core.UnsupportedError("MapKeySet doesn't support lookup()."));
       }
       union(other) {
         dart.as(other, core.Set$(E));
@@ -638,7 +638,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
       }
     }
     dart.setSignature(MapKeySet, {
-      constructors: () => ({MapKeySet: [exports.MapKeySet$(E), [core.Map$(E, dart.dynamicR)]]}),
+      constructors: () => ({MapKeySet: [exports.MapKeySet$(E), [core.Map$(E, dart.dynamic)]]}),
       methods: () => ({
         containsAll: [core.bool, [core.Iterable$(core.Object)]],
         difference: [core.Set$(E), [core.Set$(E)]],
@@ -731,7 +731,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
           dart.as(key, K);
           dart.as(value, V);
           if (dart.notNull(test(value))) toRemove[dartx.add](key);
-        }, dart.voidR, [K, V]));
+        }, dart.void, [K, V]));
         toRemove[dartx.forEach](dart.bind(this[_baseMap], 'remove'));
       }
       retainAll(elements) {
@@ -747,7 +747,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
           dart.as(k, K);
           dart.as(v, V);
           if (!dart.notNull(valuesToRetain.contains(v))) keysToRemove[dartx.add](k);
-        }, dart.voidR, [K, V]));
+        }, dart.void, [K, V]));
         keysToRemove[dartx.forEach](dart.bind(this[_baseMap], 'remove'));
       }
       retainWhere(test) {
@@ -763,22 +763,22 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         })();
       }
     }
-    MapValueSet[dart.implements_] = () => [core.Set$(V)];
+    MapValueSet[dart.implements] = () => [core.Set$(V)];
     dart.setSignature(MapValueSet, {
       constructors: () => ({MapValueSet: [MapValueSet$(K, V), [core.Map$(K, V), dart.functionType(K, [V])]]}),
       methods: () => ({
         add: [core.bool, [V]],
-        addAll: [dart.voidR, [core.Iterable$(V)]],
-        clear: [dart.voidR, []],
+        addAll: [dart.void, [core.Iterable$(V)]],
+        clear: [dart.void, []],
         containsAll: [core.bool, [core.Iterable$(core.Object)]],
         difference: [core.Set$(V), [core.Set$(V)]],
         intersection: [core.Set$(V), [core.Set$(core.Object)]],
         lookup: [V, [core.Object]],
         remove: [core.bool, [core.Object]],
-        removeAll: [dart.voidR, [core.Iterable$(core.Object)]],
-        removeWhere: [dart.voidR, [dart.functionType(core.bool, [V])]],
-        retainAll: [dart.voidR, [core.Iterable$(core.Object)]],
-        retainWhere: [dart.voidR, [dart.functionType(core.bool, [V])]],
+        removeAll: [dart.void, [core.Iterable$(core.Object)]],
+        removeWhere: [dart.void, [dart.functionType(core.bool, [V])]],
+        retainAll: [dart.void, [core.Iterable$(core.Object)]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [V])]],
         union: [core.Set$(V), [core.Set$(V)]]
       })
     });

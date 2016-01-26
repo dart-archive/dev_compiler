@@ -52,8 +52,8 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return this[_base].values[dartx.any](dart.fn(pair => dart.equals(pair.last, value), core.bool, [utils.Pair$(K, V)]));
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.voidR, [K, V]));
-        this[_base].forEach(dart.fn((key, pair) => f(pair.first, pair.last), dart.voidR, [C, utils.Pair$(K, V)]));
+        dart.as(f, dart.functionType(dart.void, [K, V]));
+        this[_base].forEach(dart.fn((key, pair) => f(pair.first, pair.last), dart.void, [C, utils.Pair$(K, V)]));
       }
       get isEmpty() {
         return this[_base].isEmpty;
@@ -87,7 +87,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return (key == null || dart.is(key, K)) && (this[_isValidKeyFn] == null || dart.notNull(dart.as(dart.dcall(this[_isValidKeyFn], key), core.bool)));
       }
     }
-    CanonicalizedMap[dart.implements_] = () => [core.Map$(K, V)];
+    CanonicalizedMap[dart.implements] = () => [core.Map$(K, V)];
     dart.defineNamedConstructor(CanonicalizedMap, 'from');
     dart.setSignature(CanonicalizedMap, {
       constructors: () => ({
@@ -96,12 +96,12 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       }),
       methods: () => ({
         get: [V, [core.Object]],
-        set: [dart.voidR, [K, V]],
-        addAll: [dart.voidR, [core.Map$(K, V)]],
-        clear: [dart.voidR, []],
+        set: [dart.void, [K, V]],
+        addAll: [dart.void, [core.Map$(K, V)]],
+        clear: [dart.void, []],
         containsKey: [core.bool, [core.Object]],
         containsValue: [core.bool, [core.Object]],
-        forEach: [dart.voidR, [dart.functionType(dart.voidR, [K, V])]],
+        forEach: [dart.void, [dart.functionType(dart.void, [K, V])]],
         putIfAbsent: [V, [K, dart.functionType(V, [])]],
         remove: [V, [core.Object]],
         [_isValidKey]: [core.bool, [core.Object]]

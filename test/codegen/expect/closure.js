@@ -7,7 +7,7 @@ dart_library.library('closure', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   /** @typedef {function({i: (?number|undefined)}=)} */
-  const Callback = dart.typedef('Callback', () => dart.functionType(dart.voidR, [], {i: core.int}));
+  const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
   const Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
       /**
@@ -74,8 +74,8 @@ dart_library.library('closure', null, /* Imports */[
        * @param {Callback} cb
        */
       function_params(f, g, cb) {
-        dart.as(f, dart.functionType(core.int, [dart.dynamicR], [dart.dynamicR]));
-        dart.as(g, dart.functionType(dart.dynamicR, [dart.dynamicR], {y: core.String, z: dart.dynamicR}));
+        dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
+        dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
         cb({i: this.i});
       }
       /** @return {string} */
@@ -97,14 +97,14 @@ dart_library.library('closure', null, /* Imports */[
         build: [Foo$(T), []]
       }),
       methods: () => ({
-        untyped_method: [dart.dynamicR, [dart.dynamicR, dart.dynamicR]],
+        untyped_method: [dart.dynamic, [dart.dynamic, dart.dynamic]],
         pass: [T, [T]],
         typed_method: [core.String, [Foo$(), core.List, core.int, core.num, core.double, core.bool, core.String, js.JsArray, js.JsObject, js.JsFunction]],
-        optional_params: [dart.dynamicR, [dart.dynamicR], [dart.dynamicR, dart.dynamicR]],
-        nullary_method: [dart.dynamicR, []],
-        function_params: [dart.dynamicR, [dart.functionType(core.int, [dart.dynamicR], [dart.dynamicR]), dart.functionType(dart.dynamicR, [dart.dynamicR], {y: core.String, z: dart.dynamicR}), Callback]]
+        optional_params: [dart.dynamic, [dart.dynamic], [dart.dynamic, dart.dynamic]],
+        nullary_method: [dart.dynamic, []],
+        function_params: [dart.dynamic, [dart.functionType(core.int, [dart.dynamic], [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}), Callback]]
       }),
-      statics: () => ({named_params: [dart.dynamicR, [dart.dynamicR], {b: dart.dynamicR, c: dart.dynamicR}]}),
+      statics: () => ({named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: dart.dynamic}]}),
       names: ['named_params']
     });
     return Foo;
@@ -129,7 +129,7 @@ dart_library.library('closure', null, /* Imports */[
   /** @param {?} args */
   function main(args) {
   }
-  dart.fn(main, dart.voidR, [dart.dynamicR]);
+  dart.fn(main, dart.void, [dart.dynamic]);
   /** @final {string} */
   const some_top_level_constant = "abc";
   /** @final {string} */

@@ -14,7 +14,7 @@ dart_library.library('js/src/varargs', null, /* Imports */[
   });
   const rest = dart.const_(new _Rest());
   function spread(args) {
-    dart.throw_(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
+    dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
   }
   dart.fn(spread);
   // Exports:

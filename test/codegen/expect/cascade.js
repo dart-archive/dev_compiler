@@ -21,7 +21,7 @@ dart_library.library('cascade', null, /* Imports */[
     dart.dcall(_.x);
     core.print(a);
   }
-  dart.fn(test_closure_with_mutate, dart.voidR, []);
+  dart.fn(test_closure_with_mutate, dart.void, []);
   function test_closure_without_mutate() {
     let a = new A();
     a.x = dart.fn(() => {
@@ -31,7 +31,7 @@ dart_library.library('cascade', null, /* Imports */[
     dart.dcall(a.x);
     core.print(a);
   }
-  dart.fn(test_closure_without_mutate, dart.voidR, []);
+  dart.fn(test_closure_without_mutate, dart.void, []);
   function test_mutate_inside_cascade() {
     let a = null;
     let _ = new A();
@@ -40,7 +40,7 @@ dart_library.library('cascade', null, /* Imports */[
     a = _;
     core.print(a);
   }
-  dart.fn(test_mutate_inside_cascade, dart.voidR, []);
+  dart.fn(test_mutate_inside_cascade, dart.void, []);
   function test_mutate_outside_cascade() {
     let a = null, b = null;
     a = new A();
@@ -49,14 +49,14 @@ dart_library.library('cascade', null, /* Imports */[
     a = null;
     core.print(a);
   }
-  dart.fn(test_mutate_outside_cascade, dart.voidR, []);
+  dart.fn(test_mutate_outside_cascade, dart.void, []);
   function test_VariableDeclaration_single() {
     let a = [];
     a[dartx.length] = 2;
     a[dartx.add](42);
     core.print(a);
   }
-  dart.fn(test_VariableDeclaration_single, dart.voidR, []);
+  dart.fn(test_VariableDeclaration_single, dart.void, []);
   function test_VariableDeclaration_last() {
     let a = 42, b = (() => {
       let _ = [];
@@ -66,7 +66,7 @@ dart_library.library('cascade', null, /* Imports */[
     })();
     core.print(b);
   }
-  dart.fn(test_VariableDeclaration_last, dart.voidR, []);
+  dart.fn(test_VariableDeclaration_last, dart.void, []);
   function test_VariableDeclaration_first() {
     let a = (() => {
       let _ = [];
@@ -76,7 +76,7 @@ dart_library.library('cascade', null, /* Imports */[
     })(), b = 2;
     core.print(a);
   }
-  dart.fn(test_VariableDeclaration_first, dart.voidR, []);
+  dart.fn(test_VariableDeclaration_first, dart.void, []);
   function test_increment() {
     let a = new A();
     let y = ((() => {
@@ -85,7 +85,7 @@ dart_library.library('cascade', null, /* Imports */[
       return a;
     })());
   }
-  dart.fn(test_increment, dart.voidR, []);
+  dart.fn(test_increment, dart.void, []);
   const Base$ = dart.generic(function(T) {
     class Base extends core.Object {
       Base() {
@@ -107,7 +107,7 @@ dart_library.library('cascade', null, /* Imports */[
     }
   }
   dart.setSignature(Foo, {
-    methods: () => ({test_final_field_generic: [dart.voidR, [dart.dynamicR]]})
+    methods: () => ({test_final_field_generic: [dart.void, [dart.dynamic]]})
   });
   // Exports:
   exports.A = A;

@@ -281,6 +281,12 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
     case "static":
     case "yield":
       return strictMode;
+
+    // Node refuses these:
+    case "async":
+    case "dynamic":
+    case "void":
+      return true;
   }
   return false;
 }

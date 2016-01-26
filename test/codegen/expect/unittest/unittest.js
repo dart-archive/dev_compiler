@@ -8,14 +8,14 @@ dart_library.library('unittest/unittest', null, /* Imports */[
   'matcher/src/util',
   'matcher/src/description'
 ], /* Lazy imports */[
-], function(exports, dart, matcher, dom, core, async, interfaces, util, description$) {
+], function(exports, dart, matcher, dom, core, $async, interfaces, util, description$) {
   'use strict';
   let dartx = dart.dartx;
   dart.export_(exports, matcher);
   function group(name, body) {
     return dart.dsend(dom.window, 'suite', name, body);
   }
-  dart.fn(group, dart.voidR, [core.String, dart.functionType(dart.voidR, [])]);
+  dart.fn(group, dart.void, [core.String, dart.functionType(dart.void, [])]);
   function test(name, body, opts) {
     let skip = opts && 'skip' in opts ? opts.skip : null;
     if (skip != null) {
@@ -24,7 +24,7 @@ dart_library.library('unittest/unittest', null, /* Imports */[
     }
     dart.dsend(dom.window, 'test', name, dart.fn(done => {
       function _finishTest(f) {
-        if (dart.is(f, async.Future)) {
+        if (dart.is(f, $async.Future)) {
           dart.dsend(f, 'then', _finishTest);
         } else {
           dart.dcall(done);
@@ -34,7 +34,7 @@ dart_library.library('unittest/unittest', null, /* Imports */[
       _finishTest(body());
     }));
   }
-  dart.fn(test, dart.voidR, [core.String, dart.functionType(dart.dynamicR, [])], {skip: core.String});
+  dart.fn(test, dart.void, [core.String, dart.functionType(dart.dynamic, [])], {skip: core.String});
   class TestFailure extends core.Object {
     TestFailure(message) {
       this.message = message;
@@ -46,7 +46,7 @@ dart_library.library('unittest/unittest', null, /* Imports */[
   dart.setSignature(TestFailure, {
     constructors: () => ({TestFailure: [TestFailure, [core.String]]})
   });
-  const ErrorFormatter = dart.typedef('ErrorFormatter', () => dart.functionType(core.String, [dart.dynamicR, interfaces.Matcher, core.String, core.Map, core.bool]));
+  const ErrorFormatter = dart.typedef('ErrorFormatter', () => dart.functionType(core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]));
   function expect(actual, matcher, opts) {
     let reason = opts && 'reason' in opts ? opts.reason : null;
     let verbose = opts && 'verbose' in opts ? opts.verbose : false;
@@ -65,11 +65,11 @@ dart_library.library('unittest/unittest', null, /* Imports */[
     if (formatter == null) formatter = _defaultFailFormatter;
     fail(dart.dcall(formatter, actual, matcher, reason, matchState, verbose));
   }
-  dart.fn(expect, dart.voidR, [dart.dynamicR, dart.dynamicR], {reason: core.String, verbose: core.bool, formatter: ErrorFormatter});
+  dart.fn(expect, dart.void, [dart.dynamic, dart.dynamic], {reason: core.String, verbose: core.bool, formatter: ErrorFormatter});
   function fail(message) {
-    return dart.throw_(new TestFailure(message));
+    return dart.throw(new TestFailure(message));
   }
-  dart.fn(fail, dart.voidR, [core.String]);
+  dart.fn(fail, dart.void, [core.String]);
   function _defaultFailFormatter(actual, matcher, reason, matchState, verbose) {
     let description = new description$.StringDescription();
     description.add('Expected: ').addDescriptionOf(matcher).add('\n');
@@ -82,7 +82,7 @@ dart_library.library('unittest/unittest', null, /* Imports */[
     if (reason != null) description.add(reason).add('\n');
     return dart.toString(description);
   }
-  dart.fn(_defaultFailFormatter, core.String, [dart.dynamicR, interfaces.Matcher, core.String, core.Map, core.bool]);
+  dart.fn(_defaultFailFormatter, core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]);
   // Exports:
   exports.group = group;
   exports.test = test;

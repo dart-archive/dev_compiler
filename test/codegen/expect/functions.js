@@ -22,7 +22,7 @@ dart_library.library('functions', null, /* Imports */[
   function main() {
     core.print(bootstrap()[dartx.get](0));
   }
-  dart.fn(main, dart.voidR, []);
+  dart.fn(main, dart.void, []);
   // Exports:
   exports.bootstrap = bootstrap;
   exports.A2B$ = A2B$;

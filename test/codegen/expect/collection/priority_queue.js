@@ -46,7 +46,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         return dart.notNull(this[_locate](object)) >= 0;
       }
       get first() {
-        if (this[_length] == 0) dart.throw_(new core.StateError("No such element"));
+        if (this[_length] == 0) dart.throw(new core.StateError("No such element"));
         return this[_queue][dartx.get](0);
       }
       get isEmpty() {
@@ -81,7 +81,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         return result[dartx.take](length);
       }
       removeFirst() {
-        if (this[_length] == 0) dart.throw_(new core.StateError("No such element"));
+        if (this[_length] == 0) dart.throw(new core.StateError("No such element"));
         let result = this[_queue][dartx.get](0);
         let last = this[_removeLast]();
         if (dart.notNull(this[_length]) > 0) {
@@ -203,25 +203,25 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         this[_queue] = newQueue;
       }
     }
-    HeapPriorityQueue[dart.implements_] = () => [PriorityQueue$(E)];
+    HeapPriorityQueue[dart.implements] = () => [PriorityQueue$(E)];
     dart.setSignature(HeapPriorityQueue, {
       constructors: () => ({HeapPriorityQueue: [HeapPriorityQueue$(E), [], [dart.functionType(core.int, [E, E])]]}),
       methods: () => ({
-        add: [dart.voidR, [E]],
-        addAll: [dart.voidR, [core.Iterable$(E)]],
-        clear: [dart.voidR, []],
+        add: [dart.void, [E]],
+        addAll: [dart.void, [core.Iterable$(E)]],
+        clear: [dart.void, []],
         contains: [core.bool, [E]],
         remove: [core.bool, [E]],
         removeAll: [core.Iterable$(E), []],
         removeFirst: [E, []],
         toList: [core.List$(E), []],
         toSet: [core.Set$(E), []],
-        [_add]: [dart.voidR, [E]],
+        [_add]: [dart.void, [E]],
         [_locate]: [core.int, [E]],
         [_removeLast]: [E, []],
-        [_bubbleUp]: [dart.voidR, [E, core.int]],
-        [_bubbleDown]: [dart.voidR, [E, core.int]],
-        [_grow]: [dart.voidR, []]
+        [_bubbleUp]: [dart.void, [E, core.int]],
+        [_bubbleDown]: [dart.void, [E, core.int]],
+        [_grow]: [dart.void, []]
       })
     });
     return HeapPriorityQueue;

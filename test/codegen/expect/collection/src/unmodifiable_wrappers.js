@@ -11,7 +11,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
   const NonGrowableListMixin$ = dart.generic(function(E) {
     class NonGrowableListMixin extends core.Object {
       static _throw() {
-        dart.throw_(new core.UnsupportedError("Cannot change the length of a fixed-length list"));
+        dart.throw(new core.UnsupportedError("Cannot change the length of a fixed-length list"));
       }
       set length(newLength) {
         return NonGrowableListMixin$()._throw();
@@ -60,23 +60,23 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
         return NonGrowableListMixin$()._throw();
       }
     }
-    NonGrowableListMixin[dart.implements_] = () => [core.List$(E)];
+    NonGrowableListMixin[dart.implements] = () => [core.List$(E)];
     dart.setSignature(NonGrowableListMixin, {
       methods: () => ({
         add: [core.bool, [E]],
-        addAll: [dart.voidR, [core.Iterable$(E)]],
-        insert: [dart.voidR, [core.int, E]],
-        insertAll: [dart.voidR, [core.int, core.Iterable$(E)]],
+        addAll: [dart.void, [core.Iterable$(E)]],
+        insert: [dart.void, [core.int, E]],
+        insertAll: [dart.void, [core.int, core.Iterable$(E)]],
         remove: [core.bool, [core.Object]],
         removeAt: [E, [core.int]],
         removeLast: [E, []],
-        removeWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        retainWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        removeRange: [dart.voidR, [core.int, core.int]],
-        replaceRange: [dart.voidR, [core.int, core.int, core.Iterable$(E)]],
-        clear: [dart.voidR, []]
+        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        removeRange: [dart.void, [core.int, core.int]],
+        replaceRange: [dart.void, [core.int, core.int, core.Iterable$(E)]],
+        clear: [dart.void, []]
       }),
-      statics: () => ({_throw: [dart.dynamicR, []]}),
+      statics: () => ({_throw: [dart.dynamic, []]}),
       names: ['_throw']
     });
     dart.defineExtensionMembers(NonGrowableListMixin, [
@@ -113,7 +113,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
   const UnmodifiableSetMixin$ = dart.generic(function(E) {
     class UnmodifiableSetMixin extends core.Object {
       [_throw]() {
-        dart.throw_(new core.UnsupportedError("Cannot modify an unmodifiable Set"));
+        dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable Set"));
       }
       add(value) {
         dart.as(value, E);
@@ -144,18 +144,18 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
         return this[_throw]();
       }
     }
-    UnmodifiableSetMixin[dart.implements_] = () => [core.Set$(E)];
+    UnmodifiableSetMixin[dart.implements] = () => [core.Set$(E)];
     dart.setSignature(UnmodifiableSetMixin, {
       methods: () => ({
-        [_throw]: [dart.dynamicR, []],
+        [_throw]: [dart.dynamic, []],
         add: [core.bool, [E]],
-        addAll: [dart.voidR, [core.Iterable$(E)]],
+        addAll: [dart.void, [core.Iterable$(E)]],
         remove: [core.bool, [core.Object]],
-        removeAll: [dart.voidR, [core.Iterable]],
-        retainAll: [dart.voidR, [core.Iterable]],
-        removeWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        retainWhere: [dart.voidR, [dart.functionType(core.bool, [E])]],
-        clear: [dart.voidR, []]
+        removeAll: [dart.void, [core.Iterable]],
+        retainAll: [dart.void, [core.Iterable]],
+        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        clear: [dart.void, []]
       })
     });
     return UnmodifiableSetMixin;
@@ -176,7 +176,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
   const UnmodifiableMapMixin$ = dart.generic(function(K, V) {
     class UnmodifiableMapMixin extends core.Object {
       static _throw() {
-        dart.throw_(new core.UnsupportedError("Cannot modify an unmodifiable Map"));
+        dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable Map"));
       }
       set(key, value) {
         (() => {
@@ -202,16 +202,16 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
         return UnmodifiableMapMixin$()._throw();
       }
     }
-    UnmodifiableMapMixin[dart.implements_] = () => [core.Map$(K, V)];
+    UnmodifiableMapMixin[dart.implements] = () => [core.Map$(K, V)];
     dart.setSignature(UnmodifiableMapMixin, {
       methods: () => ({
-        set: [dart.voidR, [K, V]],
+        set: [dart.void, [K, V]],
         putIfAbsent: [V, [K, dart.functionType(V, [])]],
-        addAll: [dart.voidR, [core.Map$(K, V)]],
+        addAll: [dart.void, [core.Map$(K, V)]],
         remove: [V, [core.Object]],
-        clear: [dart.voidR, []]
+        clear: [dart.void, []]
       }),
-      statics: () => ({_throw: [dart.dynamicR, []]}),
+      statics: () => ({_throw: [dart.dynamic, []]}),
       names: ['_throw']
     });
     return UnmodifiableMapMixin;

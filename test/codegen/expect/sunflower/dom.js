@@ -15,13 +15,13 @@ dart_library.library('sunflower/dom', window, /* Imports */[
   const overload = dart.const_(new Overload());
   class CustomEvent extends core.Object {}
   dart.setSignature(CustomEvent, {
-    constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamicR, bubbles: dart.dynamicR, cancelable: dart.dynamicR}]})
+    constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamic, bubbles: dart.dynamic, cancelable: dart.dynamic}]})
   });
   class HTMLCollection extends core.Object {}
   dart.setSignature(HTMLCollection, {
     methods: () => ({get: [Element, [core.num]]})
   });
-  const EventListener = dart.typedef('EventListener', () => dart.functionType(dart.voidR, [Event]));
+  const EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
   const InputElement = HTMLInputElement;
   const CanvasElement = HTMLCanvasElement;
   const DivElement = HTMLDivElement;

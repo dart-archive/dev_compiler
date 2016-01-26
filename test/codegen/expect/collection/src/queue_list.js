@@ -88,14 +88,14 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
         if (this[_head] == this[_tail]) this[_grow]();
       }
       removeFirst() {
-        if (this[_head] == this[_tail]) dart.throw_(new core.StateError("No element"));
+        if (this[_head] == this[_tail]) dart.throw(new core.StateError("No element"));
         let result = this[_table][dartx.get](this[_head]);
         this[_table][dartx.set](this[_head], null);
         this[_head] = dart.notNull(this[_head]) + 1 & dart.notNull(this[_table][dartx.length]) - 1;
         return result;
       }
       removeLast() {
-        if (this[_head] == this[_tail]) dart.throw_(new core.StateError("No element"));
+        if (this[_head] == this[_tail]) dart.throw(new core.StateError("No element"));
         this[_tail] = dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table][dartx.length]) - 1;
         let result = this[_table][dartx.get](this[_tail]);
         this[_table][dartx.set](this[_tail], null);
@@ -105,7 +105,7 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
         return dart.notNull(this[_tail]) - dart.notNull(this[_head]) & dart.notNull(this[_table][dartx.length]) - 1;
       }
       set length(value) {
-        if (dart.notNull(value) < 0) dart.throw_(new core.RangeError(`Length ${value} may not be negative.`));
+        if (dart.notNull(value) < 0) dart.throw(new core.RangeError(`Length ${value} may not be negative.`));
         let delta = dart.notNull(value) - dart.notNull(this.length);
         if (dart.notNull(delta) >= 0) {
           if (dart.notNull(this[_table][dartx.length]) <= dart.notNull(value)) {
@@ -126,14 +126,14 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
       }
       get(index) {
         if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length)) {
-          dart.throw_(new core.RangeError(`Index ${index} must be in the range [0..${this.length}).`));
+          dart.throw(new core.RangeError(`Index ${index} must be in the range [0..${this.length}).`));
         }
         return this[_table][dartx.get](dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table][dartx.length]) - 1);
       }
       set(index, value) {
         dart.as(value, E);
         if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length)) {
-          dart.throw_(new core.RangeError(`Index ${index} must be in the range [0..${this.length}).`));
+          dart.throw(new core.RangeError(`Index ${index} must be in the range [0..${this.length}).`));
         }
         this[_table][dartx.set](dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table][dartx.length]) - 1, value);
         return value;
@@ -189,25 +189,25 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
         this[_head] = 0;
       }
     }
-    QueueList[dart.implements_] = () => [collection.Queue$(E)];
+    QueueList[dart.implements] = () => [collection.Queue$(E)];
     dart.setSignature(QueueList, {
       constructors: () => ({
         QueueList: [QueueList$(E), [], [core.int]],
         from: [QueueList$(E), [core.Iterable$(E)]]
       }),
       methods: () => ({
-        add: [dart.voidR, [E]],
-        addAll: [dart.voidR, [core.Iterable$(E)]],
-        addLast: [dart.voidR, [E]],
-        addFirst: [dart.voidR, [E]],
+        add: [dart.void, [E]],
+        addAll: [dart.void, [core.Iterable$(E)]],
+        addLast: [dart.void, [E]],
+        addFirst: [dart.void, [E]],
         removeFirst: [E, []],
         removeLast: [E, []],
         get: [E, [core.int]],
-        set: [dart.voidR, [core.int, E]],
-        [_add]: [dart.voidR, [E]],
-        [_grow]: [dart.voidR, []],
+        set: [dart.void, [core.int, E]],
+        [_add]: [dart.void, [E]],
+        [_grow]: [dart.void, []],
         [_writeToList]: [core.int, [core.List$(E)]],
-        [_preGrow]: [dart.voidR, [core.int]]
+        [_preGrow]: [dart.void, [core.int]]
       }),
       statics: () => ({
         _isPowerOf2: [core.bool, [core.int]],

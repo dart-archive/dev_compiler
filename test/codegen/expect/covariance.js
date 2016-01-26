@@ -16,14 +16,14 @@ dart_library.library('covariance', null, /* Imports */[
         this[_t] = t;
       }
       forEach(fn) {
-        dart.as(fn, dart.functionType(dart.voidR, [T]));
+        dart.as(fn, dart.functionType(dart.void, [T]));
         fn(this[_t]);
       }
     }
     dart.setSignature(Foo, {
       methods: () => ({
-        add: [dart.dynamicR, [T]],
-        forEach: [dart.dynamicR, [dart.functionType(dart.voidR, [T])]]
+        add: [dart.dynamic, [T]],
+        forEach: [dart.dynamic, [dart.functionType(dart.void, [T])]]
       })
     });
     return Foo;
@@ -39,7 +39,7 @@ dart_library.library('covariance', null, /* Imports */[
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({add: [dart.dynamicR, [core.int]]})
+    methods: () => ({add: [dart.dynamic, [core.int]]})
   });
   function main() {
     let foo = new Bar();
