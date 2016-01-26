@@ -3391,8 +3391,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       bool unary: false,
       bool isStatic: false,
       bool allowExtensions: true}) {
-    // Static members skip the rename steps.
-    if (isStatic) return _propertyName(name);
+    // Static members skip the rename steps, except for Function properties.
+    if (isStatic) {
+      if (name == 'length' || name == 'name') {
+        return js.call('dartx.#', _propertyName(name));
+      }
+      return _propertyName(name);
+    }
 
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(
