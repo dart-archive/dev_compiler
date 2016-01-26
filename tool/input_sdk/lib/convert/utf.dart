@@ -201,7 +201,7 @@ class _Utf8Encoder {
       // to deal with those.
       end--;
     }
-    int stringIndex;
+    int stringIndex = 0;
     for (stringIndex = start; stringIndex < end; stringIndex++) {
       int codeUnit = str.codeUnitAt(stringIndex);
       // ASCII has the same representation in UTF-8 and UTF-16.

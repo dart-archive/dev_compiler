@@ -380,10 +380,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
-        new JS.Identifier(element.name), _classHeritage(element), body));
+    var classExpr = new JS.ClassExpression(
+        new JS.Identifier(element.name), _classHeritage(element), body);
 
-    return _finishClassDef(element.type, classDecl);
+    return _finishClassDef(element.type, _emitClassDeclaration(classExpr));
   }
 
   JS.Statement _emitJsType(String dartClassName, DartObject jsName) {
@@ -675,6 +675,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
+  _isQualifiedPath(JS.Expression node) =>
+      node is JS.Identifier ||
+      node is JS.PropertyAccess &&
+          _isQualifiedPath(node.receiver) &&
+          node.selector is JS.LiteralString;
+
+  JS.Statement _emitClassDeclaration(JS.ClassExpression cls) {
+    var body = <JS.Statement>[];
+    if (options.closure &&
+        cls.heritage != null && !_isQualifiedPath(cls.heritage)) {
+      // Workaround for Closure: super classes must be qualified paths.
+      var superVar = new JS.Identifier(cls.name.name + r'$super');
+      body.add(js.statement('const # = #;', [superVar, cls.heritage]));
+      cls = new JS.ClassExpression(cls.name, superVar, cls.methods);
+    }
+    body.add(new JS.ClassDeclaration(cls));
+    return _statement(body);
+  }
+
   /// Emit class members that need to come after the class declaration, such
   /// as static fields. See [_emitClassMethods] for things that are emitted
   /// inside the ES6 `class { ... }` node.
@@ -702,7 +721,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    body.add(new JS.ClassDeclaration(cls));
+    body.add(_emitClassDeclaration(cls));
 
     // TODO(jmesserly): we should really just extend native Array.
     if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
@@ -1919,6 +1938,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       // Object methods require a helper for null checks.
       return js.call('dart.#(#, #)',
           [memberName, _visit(target), _visit(node.argumentList)]);
+    } else if (target is SuperExpression && options.closure) {
+      // Workaround for Closure: super[symbol]() is not supported.
+      // 'Only calls to super or to a method of super are supported.'
+      code = '#.#.apply(this, #)';
     } else {
       code = '#.#(#)';
     }
@@ -2225,11 +2248,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       // anything they depend on first.
 
       if (isPublic(fieldName)) _addExport(fieldName, exportName);
-      var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
-      return annotateVariable(
-          js.statement(
-              '$declKeyword # = #;', [new JS.Identifier(fieldName), jsInit]),
-          field.element);
+      var stat;
+      if (field.isFinal && _isJSInvocation(field.initializer) && jsInit is JS.ClassExpression) {
+        stat = new JS.ClassDeclaration(jsInit);
+      } else {
+        var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
+        stat = js.statement(
+            '$declKeyword # = #;', [new JS.Identifier(fieldName), jsInit]);
+      }
+      return annotateVariable(stat, field.element);
     }
 
     if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
@@ -2886,8 +2913,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           [_visit(target), memberName, _visitList(args)]);
     }
 
+    var code = '#.#(#)';
+    if (target is SuperExpression && options.closure) {
+      // Workaround for Closure: super[symbol]() is not supported.
+      // 'Only calls to super or to a method of super are supported.'
+      code = '#.#.apply(this, #)';
+    }
     // Generic dispatch to a statically known method.
-    return js.call('#.#(#)', [_visit(target), memberName, _visitList(args)]);
+    return js.call(code, [_visit(target), memberName, _visitList(args)]);
   }
 
   @override
@@ -3389,8 +3422,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       bool unary: false,
       bool isStatic: false,
       bool allowExtensions: true}) {
-    // Static members skip the rename steps.
-    if (isStatic) return _propertyName(name);
+    // Static members skip the rename steps, except for Function properties.
+    if (isStatic) {
+      if (name == 'length' || name == 'name') {
+        return js.call('dartx.#', _propertyName(name));
+      }
+      return _propertyName(name);
+    }
 
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(
@@ -3448,11 +3486,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return id == null ? type.name : '${id.name}.${type.name}';
   }
 
-  JS.Node annotate(JS.Node method, ExecutableElement e) =>
-      options.closure && e != null
-          ? method.withClosureAnnotation(
-              closureAnnotationFor(e, _namedArgTemp.name))
-          : method;
+  JS.Node annotate(JS.Node method, ExecutableElement e) {
+    if (!options.closure || e == null) return method;
+
+    if (e is PropertyAccessorElement) {
+      // Closure explodes when the getter does not have the same type as the
+      // setter, which happens for instance for _ContentCssRect.width (html.js).
+      // Don't output any type in these cases.
+      var getterType = e.correspondingGetter?.returnType;
+      var setterType = e.correspondingSetter?.parameters?.single?.type;
+      if (getterType != setterType) return method;
+      // stderr.writeln('OK: $getterType vs $setterType');
+    }
+    return method.withClosureAnnotation(
+        closureAnnotationFor(e, _namedArgTemp.name));
+  }
 
   JS.Node annotateDefaultConstructor(JS.Node method, ClassElement e) =>
       options.closure && e != null

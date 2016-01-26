@@ -4,6 +4,8 @@
 
 library dev_compiler.src.codegen.module_builder;
 
+import 'package:path/path.dart' show relative;
+
 import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
 import '../options.dart' show ModuleFormat;
@@ -28,6 +30,8 @@ abstract class ModuleBuilder {
         return new LegacyModuleBuilder();
       case ModuleFormat.es6:
         return new ES6ModuleBuilder();
+      case ModuleFormat.closure:
+        return new ES6ModuleBuilder(emitLazyImports: false);
       case ModuleFormat.node:
         return new NodeModuleBuilder();
     }
@@ -50,6 +54,16 @@ abstract class ModuleBuilder {
   /// Builds a program out of menu items.
   JS.Program build(String jsPath, String jsModuleValue,
       JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems);
+
+  /// Flattens blocks in [stats] to a single list of module items.
+  /// Note that in general, blocks should not be flattened, because it can
+  /// mess up with block-level scoping (let, const).
+  // TODO(ochafik): Remove this / find better pattern (adding statements as they
+  // are generated from [JSCodegenVisitor], instead of composing them with
+  // [_statements]).
+  Iterable<JS.ModuleItem> _flattenBlocks(List<JS.ModuleItem> stats) =>
+      stats.expand((item) => item is JS.Block
+          ? _flattenBlocks(item.statements) : [item]);
 }
 
 class _ModuleImport {
@@ -113,11 +127,19 @@ class LegacyModuleBuilder extends ModuleBuilder {
   }
 }
 
+String relativeModuleName(String moduleName, {String from}) {
+  var relativeName = relative('/' + moduleName, from: '/' + from + '/..');
+  return relativeName.startsWith('.') ? relativeName : './$relativeName';
+}
+
 /// Generates ES6 modules.
 // TODO(ochafik): Break strong dep cycles to accommodate the Closure Compiler.
 class ES6ModuleBuilder extends ModuleBuilder {
-  ES6ModuleBuilder() : super._();
+  final bool emitLazyImports;
 
+  ES6ModuleBuilder({this.emitLazyImports : true}) : super._();
+
+  int iNextAlias = 1;
   JS.Program build(String jsPath, String jsModuleValue,
       JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[
@@ -128,14 +150,12 @@ class ES6ModuleBuilder extends ModuleBuilder {
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
     for (var i in _imports) {
-      // TODO(ochafik): laziness, late binding, etc, to support Closure...
-      if (i.libVar == null) {
-        moduleStatements.add(new JS.ImportDeclaration(
-            namedImports: [], from: js.string(i.name)));
-      } else {
-        moduleStatements.add(new JS.ImportDeclaration(
-            defaultBinding: i.libVar, from: js.string(i.name)));
-      }
+      var moduleName = js.string(relativeModuleName(i.name, from: jsPath));
+      if (i.libVar == null) continue;
+      if (i.isLazy && !emitLazyImports) continue;
+      // moduleStatements.add(js.statement('#.imports = {};', [exportsVar]));
+      moduleStatements.add(new JS.ImportDeclaration(
+          defaultBinding: i.libVar, from: moduleName));
     }
 
     moduleStatements.addAll(_flattenBlocks(moduleItems));
@@ -205,11 +225,12 @@ class NodeModuleBuilder extends ModuleBuilder {
     moduleStatements.addAll(prioritaryExportItems);
 
     for (var i in _imports) {
+      var moduleName = js.string(relativeModuleName(i.name, from: jsPath));
       if (i.libVar == null) {
-        moduleStatements.add(js.statement('require(#);', [js.string(i.name)]));
+        moduleStatements.add(js.statement('require(#);', [moduleName]));
       } else {
         moduleStatements.add(
-            js.statement('let # = require(#);', [i.libVar, js.string(i.name)]));
+            js.statement('let # = require(#);', [i.libVar, moduleName]));
       }
     }
 
@@ -223,13 +244,3 @@ class NodeModuleBuilder extends ModuleBuilder {
     return new JS.Program(moduleStatements);
   }
 }
-
-/// Flattens blocks in [stats] to a single list of module items.
-/// Note that in general, blocks should not be flattened, because it can
-/// mess up with block-level scoping (let, const).
-// TODO(ochafik): Remove this / find better pattern (adding statements as they
-// are generated from [JSCodegenVisitor], instead of composing them with
-// [_statements]).
-Iterable<JS.ModuleItem> _flattenBlocks(List<JS.ModuleItem> stats) =>
-    stats.expand(
-        (item) => item is JS.Block ? _flattenBlocks(item.statements) : [item]);

@@ -58,7 +58,7 @@ class SourceResolverOptions {
       this.useImplicitHtml: false});
 }
 
-enum ModuleFormat { es6, legacy, node }
+enum ModuleFormat { es6, legacy, node, closure }
 ModuleFormat parseModuleFormat(String s) => parseEnum(s, ModuleFormat.values);
 
 // TODO(jmesserly): refactor all codegen options here.
