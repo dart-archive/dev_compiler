@@ -2,7 +2,7 @@ name: ddc_example_transformer_app
 version: 0.0.1
 dependencies:
   ddc_example_transformer_dep:
-    path: ../dep
+    path: ../hello_dep
 dev_dependencies:
   barback: any
   dev_compiler:

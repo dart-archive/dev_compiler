@@ -4,7 +4,7 @@ DIR=$(dirname "${BASH_SOURCE[0]}")
 
 # TODO(ochafik): Run pub serve + launch a browser on
 # http://localhost:8080/ddc_example_transformer_app/web/
-cd example/transformer/app
+cd example/transformer/hello_app
 pub get
 pub build
 
