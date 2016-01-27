@@ -6,26 +6,33 @@ import 'package:test/test.dart';
 import 'package:transformer_test/utils.dart';
 import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
 
-makePhases([Map config = const {}]) => [[
-  new DDCTransformer.asPlugin(new BarbackSettings(config, BarbackMode.RELEASE))
-]];
+makePhases([Map config = const {}]) => [
+      [
+        new DDCTransformer.asPlugin(
+            new BarbackSettings(config, BarbackMode.RELEASE))
+      ]
+    ];
 
-final Map<String, String> runtimeInput =
-    new Map.fromIterable(defaultRuntimeFiles,
-        key: (f) => 'dev_compiler|lib/runtime/$f',
-        value: (_) => '');
+final Map<String, String> runtimeInput = new Map.fromIterable(
+    defaultRuntimeFiles,
+    key: (f) => 'dev_compiler|lib/runtime/$f',
+    value: (_) => '');
 
 Map<String, String> createInput(Map<String, String> input) =>
     {}..addAll(input)..addAll(runtimeInput);
 
 void main(arguments) {
   group('$DDCTransformer', () {
-    testPhases(r'compiles simple code', makePhases(), createInput({
-      'foo|lib/Foo.dart': r'''
+    testPhases(
+        r'compiles simple code',
+        makePhases(),
+        createInput({
+          'foo|lib/Foo.dart': r'''
         class Foo {}
       '''
-    }), {
-      'foo|web/foo/Foo.js': r'''
+        }),
+        {
+          'foo|web/foo/Foo.js': r'''
 dart_library.library('foo/Foo', null, /* Imports */[
   'dart/_runtime',
   'dart/core'
@@ -38,20 +45,21 @@ dart_library.library('foo/Foo', null, /* Imports */[
   exports.Foo = Foo;
 });
 //# sourceMappingURL=Foo.js.map
-'''.trimLeft()
-    });
+'''
+              .trimLeft()
+        });
 
-    var args = [
-      '--destructure-named-params',
-      '--modules=es6',
-      '--closure'
-    ];
-    testPhases(r'honours arguments', makePhases({'args': args}), createInput({
-      'foo|lib/Foo.dart': r'''
+    var args = ['--destructure-named-params', '--modules=es6', '--closure'];
+    testPhases(
+        r'honours arguments',
+        makePhases({'args': args}),
+        createInput({
+          'foo|lib/Foo.dart': r'''
         int foo({String s : '?'}) {}
       '''
-    }), {
-      'foo|web/foo/Foo.js': r'''
+        }),
+        {
+          'foo|web/foo/Foo.js': r'''
 const exports = {};
 import dart from "../dart/_runtime";
 import core from "../dart/core";
@@ -67,19 +75,25 @@ dart.fn(foo, core.int, [], {s: core.String});
 exports.foo = foo;
 export default exports;
 //# sourceMappingURL=Foo.js.map
-'''.trimLeft()
-    });
+'''
+              .trimLeft()
+        });
 
-    testPhases('forwards errors', makePhases(), createInput({
-      'foo|lib/Foo.dart': r'''
+    testPhases(
+        'forwards errors',
+        makePhases(),
+        createInput({
+          'foo|lib/Foo.dart': r'''
         foo() {
           var x = 1;
           x = '2';
         }
       '''
-    }), {}, [
-      "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\'",
-      "error: Type check failed: '2' (String) is not of type int"
-    ]);
+        }),
+        {},
+        [
+          "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\'",
+          "error: Type check failed: '2' (String) is not of type int"
+        ]);
   });
 }

@@ -20,8 +20,9 @@ import 'js_names.dart' show TemporaryNamer;
 
 String writeJsLibrary(
     JS.Program jsTree, String outputPath, String inputDir, Uri serverUri,
-    {bool emitSourceMaps: false, bool arrowFnBindThisWorkaround: false,
-     FileSystem fileSystem}) {
+    {bool emitSourceMaps: false,
+    bool arrowFnBindThisWorkaround: false,
+    FileSystem fileSystem}) {
   var outFilename = path.basename(outputPath);
   var outDir = path.dirname(outputPath);
 

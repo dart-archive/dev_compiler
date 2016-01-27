@@ -102,12 +102,11 @@ class BatchCompiler extends AbstractCompiler {
 
   BatchCompiler(AnalysisContext context, CompilerOptions options,
       {AnalysisErrorListener reporter,
-       FileSystem fileSystem : const FileSystem()})
+      FileSystem fileSystem: const FileSystem()})
       : super(
             context,
             options,
-            new ErrorCollector(
-                reporter ?? AnalysisErrorListener.NULL_LISTENER),
+            new ErrorCollector(reporter ?? AnalysisErrorListener.NULL_LISTENER),
             fileSystem) {
     _inputBaseDir = options.inputBaseDir;
     if (outputDir != null) {
@@ -307,8 +306,7 @@ class BatchCompiler extends AbstractCompiler {
     }
 
     fileSystem.writeAsStringSync(
-        new File(getOutputPath(source.uri)),
-        document.outerHtml + '\n');
+        new File(getOutputPath(source.uri)), document.outerHtml + '\n');
   }
 
   html.DocumentFragment _linkLibraries(
@@ -362,7 +360,7 @@ abstract class AbstractCompiler {
 
   AbstractCompiler(this.context, this.options,
       [AnalysisErrorListener listener, this.fileSystem = const FileSystem()])
-          : reporter = listener ?? AnalysisErrorListener.NULL_LISTENER;
+      : reporter = listener ?? AnalysisErrorListener.NULL_LISTENER;
 
   String get outputDir => options.codegenOptions.outputDir;
 

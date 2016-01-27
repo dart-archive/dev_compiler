@@ -6,7 +6,13 @@ library dev_compiler.src.transformer.asset_universe;
 
 import 'dart:async';
 
-import 'package:analyzer/analyzer.dart' show AstNode, ExportDirective, ImportDirective, PartDirective, parseDirectives;
+import 'package:analyzer/analyzer.dart'
+    show
+        AstNode,
+        ExportDirective,
+        ImportDirective,
+        PartDirective,
+        parseDirectives;
 import 'package:barback/barback.dart' show Asset, AssetId, TransformLogger;
 
 import 'asset_source.dart';

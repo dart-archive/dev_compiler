@@ -49,17 +49,15 @@ class DDCTransformer extends AggregateTransformer {
     var context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(ochafik): Provide more control over these options?
     context.analysisOptions = new AnalysisOptionsImpl()
-        ..cacheSize = 256 // # of sources to cache ASTs for.
-        ..preserveComments = true
-        ..analyzeFunctionBodies = true
-        ..strongMode = true;
+      ..cacheSize = 256 // # of sources to cache ASTs for.
+      ..preserveComments = true
+      ..analyzeFunctionBodies = true
+      ..strongMode = true;
     context.sourceFactory = createSourceFactory(universe.getAssetSource);
 
     // Virtual file system that writes into the transformer's outputs.
     var fileSystem = new _TransformerFileSystem(
-        transform.logger,
-        transform.package,
-        transform.addOutput,
+        transform.logger, transform.package, transform.addOutput,
         // Seed the runtime files into our file system:
         inputs: await _readRuntimeFiles(transform.getInput));
 
@@ -68,10 +66,14 @@ class DDCTransformer extends AggregateTransformer {
         // Note that the output directory needs not exist, and the runtime
         // directory is a special value that corresponds to the seeding of
         // runtimeFiles above.
-        parseOptions([]..addAll(ddcArgs)..addAll([
-          '-o', fileSystem.outputDir.path,
-          '--runtime-dir', _fakeRuntimeDir
-        ])),
+        parseOptions([]
+          ..addAll(ddcArgs)
+          ..addAll([
+            '-o',
+            fileSystem.outputDir.path,
+            '--runtime-dir',
+            _fakeRuntimeDir
+          ])),
         reporter: new TransformAnalysisErrorListener(transform.logger),
         fileSystem: fileSystem);
 
@@ -86,7 +88,8 @@ class DDCTransformer extends AggregateTransformer {
       Future<Asset> getInput(AssetId id)) async {
     var runtimeFiles = <String, String>{};
     for (var file in defaultRuntimeFiles) {
-      var asset = await getInput(new AssetId('dev_compiler', 'lib/runtime/$file'));
+      var asset =
+          await getInput(new AssetId('dev_compiler', 'lib/runtime/$file'));
       runtimeFiles[path.join(_fakeRuntimeDir, file)] =
           await asset.readAsString();
     }
@@ -111,12 +114,12 @@ class _TransformerFileSystem implements FileSystem {
   final Map<String, String> inputs;
   final TransformLogger _logger;
   _TransformerFileSystem(this._logger, this._package, this._addOutput,
-      {this.inputs, this.outputPrefix : 'web/'});
+      {this.inputs, this.outputPrefix: 'web/'});
 
   @override
   void writeAsStringSync(File file, String contents) {
-    var id = new AssetId(
-        _package, outputPrefix + path.relative(file.path, from: outputDir.path));
+    var id = new AssetId(_package,
+        outputPrefix + path.relative(file.path, from: outputDir.path));
     _logger.fine('Adding output $id');
     _addOutput(new Asset.fromString(id, contents));
   }

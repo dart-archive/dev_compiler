@@ -7,7 +7,8 @@ library dev_compiler.src.transformer.uri_resolver;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart' show Source, SourceFactory;
 import 'package:barback/barback.dart' show AssetId;
-import 'package:code_transformers/resolver.dart' show DartUriResolverProxy, DirectoryBasedDartSdkProxy;
+import 'package:code_transformers/resolver.dart'
+    show DartUriResolverProxy, DirectoryBasedDartSdkProxy;
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:path/path.dart' as path;
 
@@ -43,7 +44,8 @@ AssetId resolveAssetId(Uri uri, {AssetId fromAssetId}) {
     return new AssetId(fromAssetId.package,
         path.normalize(path.join(path.dirname(fromAssetId.path), uri.path)));
   } else {
-    throw new ArgumentError('Unexpected uri: $uri (uri.scheme = ${uri.scheme})');
+    throw new ArgumentError(
+        'Unexpected uri: $uri (uri.scheme = ${uri.scheme})');
   }
 }
 

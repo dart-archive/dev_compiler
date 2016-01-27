@@ -316,8 +316,8 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri, String runtimeDir) {
   if (resourceUri.scheme != 'file') return null;
 
   var entryDir = path.dirname(entryUri.path);
-  var filepath = (//path.normalize(
-    path.join(entryDir, resourceUri.path));
+  var filepath = ( //path.normalize(
+      path.join(entryDir, resourceUri.path));
   if (path.isWithin(runtimeDir, filepath)) {
     filepath = path.relative(filepath, from: runtimeDir);
     return path.join('dev_compiler', 'runtime', filepath);
@@ -457,7 +457,6 @@ class FileSystem {
   void _mkParentSync(File file) {
     var dir = new Directory(path.dirname(file.path));
     if (!dir.existsSync()) dir.createSync(recursive: true);
-
   }
 
   void copySync(File source, File destination) {
