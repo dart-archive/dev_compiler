@@ -1,0 +1,12 @@
+name: ddc-example
+version: 0.0.1
+dependencies:
+dev_dependencies:
+  dev_compiler: any
+dependency_overrides:
+  dev_compiler: {path: ../..}
+transformers:
+- dev_compiler:
+    args: [--closure]
+- $dart2js:
+    $exclude: '**'

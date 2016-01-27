@@ -316,7 +316,8 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri, String runtimeDir) {
   if (resourceUri.scheme != 'file') return null;
 
   var entryDir = path.dirname(entryUri.path);
-  var filepath = path.normalize(path.join(entryDir, resourceUri.path));
+  var filepath = (//path.normalize(
+    path.join(entryDir, resourceUri.path));
   if (path.isWithin(runtimeDir, filepath)) {
     filepath = path.relative(filepath, from: runtimeDir);
     return path.join('dev_compiler', 'runtime', filepath);
@@ -448,4 +449,24 @@ getEnumName(v) {
     throw new ArgumentError('Invalid enum value: $v');
   }
   return parts[1];
+}
+
+class FileSystem {
+  const FileSystem();
+
+  void _mkParentSync(File file) {
+    var dir = new Directory(path.dirname(file.path));
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+
+  }
+
+  void copySync(File source, File destination) {
+    _mkParentSync(destination);
+    source.copySync(destination.path);
+  }
+
+  void writeAsStringSync(File file, String contents) {
+    _mkParentSync(file);
+    file.writeAsStringSync(contents);
+  }
 }

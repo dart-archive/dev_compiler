@@ -3588,6 +3588,7 @@ class JSGenerator extends CodeGenerator {
         : null;
     return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
         emitSourceMaps: options.emitSourceMaps,
+        fileSystem: compiler.fileSystem,
         arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
   }
 }

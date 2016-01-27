@@ -14,16 +14,16 @@ import 'package:source_maps/source_maps.dart' show SourceMapSpan;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
 import '../js/js_ast.dart' as JS;
-import '../utils.dart' show computeHash, locationForOffset;
+import '../utils.dart' show FileSystem, computeHash, locationForOffset;
 
 import 'js_names.dart' show TemporaryNamer;
 
 String writeJsLibrary(
     JS.Program jsTree, String outputPath, String inputDir, Uri serverUri,
-    {bool emitSourceMaps: false, bool arrowFnBindThisWorkaround: false}) {
+    {bool emitSourceMaps: false, bool arrowFnBindThisWorkaround: false,
+     FileSystem fileSystem}) {
   var outFilename = path.basename(outputPath);
   var outDir = path.dirname(outputPath);
-  new Directory(outDir).createSync(recursive: true);
 
   JS.JavaScriptPrintingContext context;
   if (emitSourceMaps) {
@@ -58,11 +58,12 @@ String writeJsLibrary(
     //   "names": ["state","print"]
     sourceMapText =
         sourceMapText.replaceAll('\n    ', '').replaceAll('\n  ]', ']');
-    new File('$outputPath.map').writeAsStringSync('$sourceMapText\n');
+    fileSystem.writeAsStringSync(
+        new File('$outputPath.map'), '$sourceMapText\n');
   } else {
     text = (context as JS.SimpleJavaScriptPrintingContext).getText();
   }
-  new File(outputPath).writeAsStringSync(text);
+  fileSystem.writeAsStringSync(new File(outputPath), text);
   if (jsTree.scriptTag != null) {
     // Mark executable.
     // TODO(jmesserly): should only do this if the input file was executable?
