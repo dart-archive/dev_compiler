@@ -1,10 +1,12 @@
-name: ddc-example
+name: ddc_example_transformer_app
 version: 0.0.1
 dependencies:
+  ddc_example_transformer_dep:
+    path: ../dep
 dev_dependencies:
-  dev_compiler: any
-dependency_overrides:
-  dev_compiler: {path: ../..}
+  barback: any
+  dev_compiler:
+    path: ../../..
 transformers:
 - dev_compiler:
     args:

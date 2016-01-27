@@ -6,3 +6,4 @@ $DIR/test.sh
 $DIR/browser_test.sh
 $DIR/analyze.sh
 $DIR/format.sh
+$DIR/transformer_test.sh
