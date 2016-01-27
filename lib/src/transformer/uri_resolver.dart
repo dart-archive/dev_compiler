@@ -16,7 +16,7 @@ import 'asset_source.dart';
 
 typedef AssetSource AssetSourceGetter(AssetId id);
 
-assetIdToUri(AssetId id) {
+String assetIdToUri(AssetId id) {
   var p = id.path;
   if (p.startsWith('lib/')) p = p.substring('lib/'.length);
   // Note: if the file is under web/, then we leave it as it is: resolveAssetId

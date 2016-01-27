@@ -25,10 +25,10 @@ const String _fakeRuntimeDir = "<runtime>";
 /// out of memory for large applications: please use DDC's command-line runner
 /// instead whenever possible.
 class DDCTransformer extends AggregateTransformer {
-  final List<String> ddcArgs;
+  final List<String> _ddcArgs;
 
   DDCTransformer.asPlugin(BarbackSettings settings)
-      : ddcArgs = settings.configuration['args'] ?? [];
+      : _ddcArgs = settings.configuration['args'] ?? [];
 
   @override
   apply(AggregateTransform transform) async {
@@ -67,7 +67,7 @@ class DDCTransformer extends AggregateTransformer {
         // directory is a special value that corresponds to the seeding of
         // runtimeFiles above.
         parseOptions([]
-          ..addAll(ddcArgs)
+          ..addAll(_ddcArgs)
           ..addAll([
             '-o',
             fileSystem.outputDir.path,
