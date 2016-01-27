@@ -4,7 +4,6 @@ dependencies:
   ddc_example_transformer_dep:
     path: ../hello_dep
 dev_dependencies:
-  barback: any
   dev_compiler:
     path: ../../..
 transformers:
