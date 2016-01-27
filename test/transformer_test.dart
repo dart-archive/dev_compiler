@@ -41,7 +41,11 @@ dart_library.library('foo/Foo', null, /* Imports */[
 '''.trimLeft()
     });
 
-    var args = ['--destructure-named-params', '--modules=es6', '--closure'];
+    var args = [
+      '--destructure-named-params',
+      '--modules=es6',
+      '--closure'
+    ];
     testPhases(r'honours arguments', makePhases({'args': args}), createInput({
       'foo|lib/Foo.dart': r'''
         int foo({String s : '?'}) {}
