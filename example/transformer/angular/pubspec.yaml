@@ -1,0 +1,20 @@
+name: ddc_example_transformer_angular
+version: 0.0.1
+dependencies:
+  angular2: 2.0.0-beta.1
+dependency_overrides:
+  # Because angular2 depends on old versions:
+  analyzer: ^0.27.1+2
+  code_transformers: ^0.4.0
+dev_dependencies:
+  dev_compiler:
+    path: ../../..
+transformers:
+- angular2:
+    entry_points: web/main.dart
+- dev_compiler:
+    args:
+      - --closure
+      - --destructure-named-params
+- $dart2js:
+    $exclude: '**'
