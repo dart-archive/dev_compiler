@@ -74,6 +74,7 @@ export default exports;
         }
       '''
     }), {}, [
+      "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\'",
       "error: Type check failed: '2' (String) is not of type int"
     ]);
   });
