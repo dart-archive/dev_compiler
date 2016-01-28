@@ -290,7 +290,7 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
 ///
 /// [closureCompiler] marks some names as invalid for the purpose of ES6->ES5
 /// lowering with the Closure Compiler.
-bool invalidStaticFieldName(String name, {bool closureCompiler : false}) {
+bool invalidStaticFieldName(String name, {bool closureCompiler: false}) {
   switch (name) {
     case "arguments":
     case "caller":
