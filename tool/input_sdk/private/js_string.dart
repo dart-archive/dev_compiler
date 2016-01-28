@@ -36,7 +36,8 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
     if (start + this.length > string.length) return null;
     // TODO(lrn): See if this can be optimized.
-    for (int i = 0; i < this.length; i++) {
+    int length = this.length + 0;
+    for (int i = 0; i < length; i++) {
       if (string.codeUnitAt(start + i) != this.codeUnitAt(i)) {
         return null;
       }

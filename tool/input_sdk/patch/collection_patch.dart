@@ -252,7 +252,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
       for (int i = 0; i < entries; i++) {
         var key = JS('String', '#[#]', names, i);
         var bucket = JS('var', '#[#]', rest, key);
-        int length = JS('int', '#.length', bucket);
+        int length = JS('int', '#.length', bucket) + 0;
         for (int i = 0; i < length; i += 2) {
           var key = JS('var', '#[#]', bucket, i);
           JS('void', '#[#] = #', result, index, key);
@@ -342,7 +342,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
 
   int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
-    int length = JS('int', '#.length', bucket);
+    int length = JS('int', '#.length', bucket) + 0;
     for (int i = 0; i < length; i += 2) {
       if (JS('var', '#[#]', bucket, i) == key) return i;
     }
@@ -373,7 +373,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
 
   int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
-    int length = JS('int', '#.length', bucket);
+    int length = JS('int', '#.length', bucket) + 0;
     for (int i = 0; i < length; i += 2) {
       if (identical(JS('var', '#[#]', bucket, i), key)) return i;
     }
@@ -417,7 +417,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
   int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
-    int length = JS('int', '#.length', bucket);
+    int length = JS('int', '#.length', bucket) + 0;
     for (int i = 0; i < length; i += 2) {
       if (_equals(JS('var', '#[#]', bucket, i), key)) return i;
     }

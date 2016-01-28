@@ -260,7 +260,7 @@ class ListMapView<E> implements Map<int, E> {
   bool containsKey(Object key) => key is int && key >= 0 && key < length;
 
   void forEach(void f(int key, E value)) {
-    int length = _values.length;
+    int length = _values.length + 0;
     for (int i = 0; i < length; i++) {
       f(i, _values[i]);
       if (length != _values.length) {

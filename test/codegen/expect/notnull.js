@@ -117,7 +117,7 @@ dart_library.library('notnull', null, /* Imports */[
     for (let i = 0, n = length(); i < dart.notNull(n); i++) {
       core.print(i + 1);
     }
-    for (let i = 0, n = dart.notNull(length()) + 0; i < n; i++) {
+    for (let i = 0, n = dart.notNull(length()); i < n; i++) {
       core.print(i + 1);
     }
   }
