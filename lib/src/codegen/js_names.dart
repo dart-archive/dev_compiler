@@ -293,12 +293,20 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
 
 /// Returns true for invalid static field names in strict mode.
 /// In particular, "caller" "callee" and "arguments" cannot be used.
-bool invalidStaticFieldName(String name) {
+///
+/// [closureCompiler] marks some names as invalid for the purpose of ES6->ES5
+/// lowering with the Closure Compiler.
+bool invalidStaticFieldName(String name, {bool closureCompiler : false}) {
   switch (name) {
     case "arguments":
     case "caller":
     case "callee":
       return true;
+    // Workarounds for Closure:
+    // (see https://github.com/google/closure-compiler/issues/1460)
+    case "name":
+    case "length":
+      return closureCompiler;
   }
   return false;
 }
