@@ -1,7 +1,6 @@
 library test;
 import 'dart:js';
 
-
 typedef void Callback({int i});
 
 class Foo<T> {
@@ -15,7 +14,7 @@ class Foo<T> {
   factory Foo.build() => new Foo(1, null);
 
   untyped_method(a, b) {}
-  
+
   T pass(T t) => t;
 
   String typed_method(
@@ -28,6 +27,11 @@ class Foo<T> {
   optional_params(a, [b, c]) {}
 
   static named_params(a, {b, c}) {}
+
+  // Avoid colliding with Function.name & Function.length, as Closure fails to
+  // lower these to ES6 (https://github.com/google/closure-compiler/issues/1460)
+  static name() => 'Foo.name()';
+  static length() => 'Foo.length()';
 
   nullary_method() {}
 
@@ -52,7 +56,10 @@ class Baz extends Foo<int> with Bar {
   Baz(int i) : super(i, 123);
 }
 
-void main(args) {}
+void main(args) {
+  print(Foo.name());
+  print(Foo.length());
+}
 
 const String some_top_level_constant = "abc";
 final String some_top_level_final = "abc";

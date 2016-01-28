@@ -86,6 +86,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final _moduleItems = <JS.Statement>[];
   final _temps = new HashMap<Element, JS.TemporaryId>();
   final _qualifiedIds = new List<Tuple2<Element, JS.MaybeQualifiedId>>();
+  final _topLevelExtensionNames = new Set<String>();
 
   /// The name for the library's exports inside itself.
   /// `exports` was chosen as the most similar to ES module patterns.
@@ -159,6 +160,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // Flush any unwritten fields/properties.
     _flushLibraryProperties(_moduleItems);
+    if (_topLevelExtensionNames.isNotEmpty) {
+      _moduleItems.add(_emitExtensionNamesDeclaration(
+          _topLevelExtensionNames.map(js.string).toList()));
+    }
 
     // Mark all qualified names as qualified or not, depending on if they need
     // to be loaded lazily or not.
@@ -658,6 +663,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
+  JS.Statement _emitExtensionNamesDeclaration(List<JS.Expression> names) =>
+      js.statement('dart.defineExtensionNames(#)',
+          [new JS.ArrayInitializer(names.toList(), multiline: true)]);
+
+  JS.Expression _emitExtensionName(String name) =>
+      js.call('dartx.#', _propertyName(name));
+
   /// Emit class members that need to come after the class declaration, such
   /// as static fields. See [_emitClassMethods] for things that are emitted
   /// inside the ES6 `class { ... }` node.
@@ -681,8 +693,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         }
       }
       if (dartxNames.isNotEmpty) {
-        body.add(js.statement('dart.defineExtensionNames(#)',
-            [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+        body.add(_emitExtensionNamesDeclaration(dartxNames));
       }
     }
 
@@ -3393,8 +3404,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       bool allowExtensions: true}) {
     // Static members skip the rename steps, except for Function properties.
     if (isStatic) {
-      if (name == 'length' || name == 'name') {
-        return js.call('dartx.#', _propertyName(name));
+      if (options.closure) {
+        // Avoid colliding with Function.name & Function.length, which may be
+        // desirable in general but is critical to workaround a Closure ES6->ES5
+        // bug (https://github.com/google/closure-compiler/issues/1460).
+        if (name == 'length' || name == 'name') {
+          _topLevelExtensionNames.add(name);
+          return _emitExtensionName(name);
+        }
       }
       return _propertyName(name);
     }
@@ -3424,7 +3441,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (allowExtensions &&
         _extensionTypes.contains(baseType.element) &&
         !_isObjectProperty(name)) {
-      return js.call('dartx.#', _propertyName(name));
+      return _emitExtensionName(name);
     }
 
     return _propertyName(name);
