@@ -3405,10 +3405,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // Static members skip the rename steps, except for Function properties.
     if (isStatic) {
       if (options.closure) {
-        // Avoid colliding with Function.name & Function.length, which may be
-        // desirable in general but is critical to workaround a Closure ES6->ES5
-        // bug (https://github.com/google/closure-compiler/issues/1460).
-        if (name == 'length' || name == 'name') {
+        // Avoid colliding with Function properties, which might be desirable
+        // in general but is critical to work around a Closure ES6->ES5 bug
+        // (https://github.com/google/closure-compiler/issues/1460).
+        if (invalidStaticFieldName(name, closureCompiler: true)) {
           _topLevelExtensionNames.add(name);
           return _emitExtensionName(name);
         }

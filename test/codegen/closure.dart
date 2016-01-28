@@ -33,6 +33,10 @@ class Foo<T> {
   static name() => 'Foo.name()';
   static length() => 'Foo.length()';
 
+  static arguments() => 'Foo.arguments()';
+  static caller() => 'Foo.caller()';
+  static callee() => 'Foo.callee()';
+
   nullary_method() {}
 
   function_params(int f(x, [y]), g(x, {String y, z}), Callback cb) {
@@ -59,6 +63,9 @@ class Baz extends Foo<int> with Bar {
 void main(args) {
   print(Foo.name());
   print(Foo.length());
+  print(Foo.arguments());
+  print(Foo.caller());
+  print(Foo.callee());
 }
 
 const String some_top_level_constant = "abc";
