@@ -159,6 +159,9 @@ class BatchCompiler extends AbstractCompiler {
     // to ensure reverse post-order.  This will ensure that we handle back
     // edges from the original depth-first search correctly.
 
+    for (var unit in _pendingLibraries) {
+      _jsGen.scanLibrary(unit, isMain: false); // TODO
+    }
     while (_pendingLibraries.isNotEmpty) {
       var unit = _pendingLibraries.removeLast();
       var library = unit.library.element.enclosingElement;

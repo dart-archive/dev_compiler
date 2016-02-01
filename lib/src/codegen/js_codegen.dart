@@ -40,6 +40,8 @@ import 'js_printer.dart' show writeJsLibrary;
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
+import 'usage.dart';
+import 'dart:io';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -109,7 +111,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   bool _isDartRuntime;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
-      this._extensionTypes, this._fieldsNeedingStorage)
+      this._extensionTypes, this._fieldsNeedingStorage, this._isReachable)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
         _types = compiler.context.typeProvider {
@@ -125,6 +127,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   TypeProvider get types => _types;
 
   NullableExpressionPredicate _isNullable;
+  ReachabilityPredicate _isReachable;
 
   JS.Program emitLibrary(LibraryUnit library) {
     // Modify the AST to make coercions explicit.
@@ -402,6 +405,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
+    if (!_isReachable(node.element)) return null;
+
     var classElem = node.element;
     var type = classElem.type;
     var jsName = findAnnotation(classElem, isJSAnnotation);
@@ -458,6 +463,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   JS.Statement visitEnumDeclaration(EnumDeclaration node) {
+    if (!_isReachable(node.element)) return null;
+
     var element = node.element;
     var type = element.type;
     var name = js.string(type.name);
@@ -609,6 +616,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     bool hasIterator = false;
     for (var m in node.members) {
+      if (!_isReachable(m.element)) continue;
+
       if (m is ConstructorDeclaration) {
         jsMethods.add(_emitConstructor(m, type, fields, isObject));
       } else if (m is MethodDeclaration) {
@@ -737,6 +746,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // (in other words, they override a getter/setter pair).
     for (FieldDeclaration member in fields) {
       for (VariableDeclaration field in member.fields.variables) {
+        if (!_isReachable(field.element)) continue;
         if (_fieldsNeedingStorage.contains(field.element)) {
           body.add(_overrideField(field.element));
         }
@@ -833,6 +843,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var lazyStatics = <VariableDeclaration>[];
     for (FieldDeclaration member in staticFields) {
       for (VariableDeclaration field in member.fields.variables) {
+        if (!_isReachable(field.element)) continue;
+
         JS.Statement eagerField = _emitConstantStaticField(classElem, field);
         if (eagerField != null) {
           body.add(eagerField);
@@ -1125,6 +1137,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     for (var declaration in fieldDecls) {
       for (var fieldNode in declaration.fields.variables) {
         var element = fieldNode.element;
+        if (!_isReachable(element)) continue;
+
         if (constField.isFieldInitConstant(fieldNode)) {
           unsetFields[element as FieldElement] = fieldNode;
         } else {
@@ -1295,6 +1309,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   JS.Statement visitFunctionDeclaration(FunctionDeclaration node) {
+    if (!_isReachable(node.element)) return null;
+
     assert(node.parent is CompilationUnit);
 
     if (_externalOrNative(node)) return null;
@@ -2161,6 +2177,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (!node.isStatic) return;
 
     for (var f in node.fields.variables) {
+      if (!_isReachable(f.element)) continue;
       _loader.loadDeclaration(f, f.element);
     }
   }
@@ -2256,6 +2273,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// Emits a top-level field.
   JS.Statement _emitTopLevelField(VariableDeclaration field) {
     TopLevelVariableElement element = field.element;
+    if (!_isReachable(element)) return null;
     assert(element.isStatic);
 
     bool eagerInit;
@@ -3520,8 +3538,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 class JSGenerator extends CodeGenerator {
   final _extensionTypes = new HashSet<ClassElement>();
   final TypeProvider _types;
+  final UsageVisitor _usageVisitor;
+  final _roots = new Set<Element>();
   JSGenerator(AbstractCompiler compiler)
       : _types = compiler.context.typeProvider,
+        _usageVisitor = new UsageVisitor(),
         super(compiler) {
     // TODO(jacobr): determine the the set of types with extension methods from
     // the annotations rather than hard coding the list once the analyzer
@@ -3548,14 +3569,34 @@ class JSGenerator extends CodeGenerator {
     _addExtensionType(t.superclass);
   }
 
+  void scanLibrary(LibraryUnit unit, {bool isMain}) {
+    bool isPublic(String name) => !name.startsWith('_');
+    // bool isRoot()
+    stderr.writeln("Scanning: ${unit}");
+    unit.libraryThenParts.forEach((u) => u.accept(_usageVisitor));
+    unit.libraryThenParts.forEach((u) {
+      for (var d in u.declarations) {
+        var e = d.element;
+        if (e == null) continue;
+        if (isPublic(e.name) //||
+            // d is FunctionDeclaration && d.name == 'main'
+          ) {
+          stderr.writeln("ADDING ROOT: ${e.name}");
+          _roots.add(e);
+        }
+      }
+    });
+  }
+
   String generateLibrary(LibraryUnit unit) {
     // Clone the AST first, so we can mutate it.
     unit = unit.clone();
     var library = unit.library.element.library;
     var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
+    var isReachable = _usageVisitor.buildReachabilityPredicate(_roots);
     var codegen =
-        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
+        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, isReachable);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;
