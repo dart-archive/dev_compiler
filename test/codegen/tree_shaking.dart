@@ -7,6 +7,8 @@ class _KeepAnnotation1 {
 }
 const _keepAnnotation2 = const _KeepAnnotation1();
 
+@_DropAnnotation1()
+@_dropAnnotation2
 class _Drop1 {
   keepMethod1() {}
 }
