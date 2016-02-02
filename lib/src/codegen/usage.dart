@@ -316,50 +316,15 @@ class UsageVisitor extends GeneralizingAstVisitor {
     return
       e.name == 'startRootIsolate' ||
       e.name == 'registerDevtoolsFormatter' ||
-      // e.name == 'topEventLoop' ||
-      // e.name == 'globalPostMessageDefined' ||
-      // e.name == '_global' || e.name == 'globalWindow' || e.name == 'globalWorker' ||
-      // e.name == 'nextIsolateId' ||
-      // e.name == 'controlPort' ||
-      // e.name == 'RawReceivePortImpl' || e.name == '_controlPort' ||
-      // // e.name == 'toString' ||
-      e.name == '_nativeDetectEnvironment' || // dart:_debugger
-      // // e.name.endsWith('MapMixin') || e.name.endsWith('MapView') ||
-      // e.name == '_StreamController' ||
-      // e.name == '_LinkedHashMap' ||
-      // e.name == '_LinkedHashSet' ||
-      // e.name == '_HashSetBase' ||
-      // e.name == 'SetBase' ||
-      // e.name == 'JS_CREATE_ISOLATE' ||
-      // e.name == 'JS_SET_CURRENT_ISOLATE' ||
-      // e.name == 'Capability' || e.name == 'CapabilityImpl' ||
-      // e.name == 'random64' || e.name == '_internal' ||
-      // e.name == 'SendPort' ||
-      e.name == 'LinkedHashSetCell' || e.name == 'LinkedHashMapCell' ||
-      // // e.name == '_isStringElement' || e.name == '_isNumericElement' || e.name == '_newHashTable' ||
-      // e.name == '_MainManagerStub' ||
-      // e.name == '_nativeInitWorkerMessageHandler' ||
-      // e.name == 'IsolateNatives' ||
-      // e.name == '_globalState' || // for setter
-      // e.name == 'ListQueue' ||
+      // e.name == '_nativeDetectEnvironment' || // dart:_debugger
+      e.name == 'LinkedHashSetCell' ||
+      e.name == 'LinkedHashMapCell' ||
       e is ClassMemberElement && (// e.isStatic && (
           e.enclosingElement.name == 'ListQueue' ||
-      //     e.enclosingElement.name == 'JSArray' ||
-      //     e.enclosingElement.name == '_Manager' ||
-      //     e.enclosingElement.name == '_EventLoop' ||
           e.enclosingElement.name == '_LinkedHashSet' ||
           e.enclosingElement.name == '_LinkedHashMap' ||
-      //     e.enclosingElement.name == '_IsolateContext'
           false
       ) ||
-      // // e.name.endsWith('ListMixin') || e.name.endsWith('ListView') || e.name == 'ListBase' ||
-      // // e.name == '_isPowerOf2' ||
-      // // '$e'.contains('_isPowerOf2') ||
-      // // e.name == 'markFixedList' ||
-      // e.name == '_AsyncStreamControllerDispatch' ||
-      // e.name == '_SyncStreamControllerDispatch' ||
-      // e.name == '_NoCallbacks' ||
-      // e.name == '_NoCallbackSyncStreamController';
       false;
   }
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
@@ -391,9 +356,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
         if (e is FunctionElement) {
           return accessible.contains(new _UnresolvedElement(null, e.name));
         }
-        // if (e is ClassMemberElement && !isReachable(e.enclosingElement)) {
-        //   return false;
-        // }
         if (e is ClassMemberElement || e is PropertyAccessorElement) {
           var enclosingClass = e.getAncestor((a) => a is ClassElement);
           if (enclosingClass != null) {
@@ -420,7 +382,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
       var res = containsUnresolved();
       // if (e.name.contains('Map') && res) stderr.writeln("CONTAINS UNRESOLVED: $e");
       return res;
-      // return false;
     }
     return isReachable;
   }

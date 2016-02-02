@@ -109,7 +109,9 @@ class BatchCompiler extends AbstractCompiler {
     _inputBaseDir = options.inputBaseDir;
     if (outputDir != null) {
       _jsGen = new JSGenerator(this);
-      _runtimeOutputDir = path.join(outputDir, 'dev_compiler', 'runtime');
+      _runtimeOutputDir = options.checkSdk
+          ? outputDir
+          : path.join(outputDir, 'dev_compiler', 'runtime');
     }
     _dartCore = context.typeProvider.objectType.element.library;
   }
