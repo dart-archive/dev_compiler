@@ -334,9 +334,9 @@ multiKeyPutIfAbsent(map, keys, valueFn) => JS('', '''(() => {
     }
     $map = value;
   }
-  if ($map.has(_value)) return $map.get(_value);
+  if ($map.has($_value)) return $map.get($_value);
   let value = $valueFn();
-  $map.set(_value, value);
+  $map.set($_value, value);
   return value;
 })()''');
 
