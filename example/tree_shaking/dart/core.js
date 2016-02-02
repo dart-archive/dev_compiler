@@ -23,9 +23,9 @@ require("./collection");
 require("./core");
 let dart = require("./_runtime");
 let _js_helper = require("./_js_helper");
+let _interceptors = require("./_interceptors");
 let _internal = require("./_internal");
 let collection = require("./collection");
-let _interceptors = require("./_interceptors");
 let convert = require("./convert");
 let dartx = dart.dartx;
 class Object {
@@ -34,9 +34,6 @@ class Object {
     let result = void 0;
     if (name in this) result = this[name](...arguments);
     return result === void 0 ? this : result;
-  }
-  ['=='](other) {
-    return identical(this, other);
   }
   get hashCode() {
     return _js_helper.Primitives.objectHashCode(this);
@@ -47,60 +44,22 @@ class Object {
   noSuchMethod(invocation) {
     dart.throw(new NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments));
   }
-  get runtimeType() {
-    return dart.realRuntimeType(this);
-  }
 }
 dart.setSignature(Object, {
   constructors: () => ({Object: [Object, []]}),
   methods: () => ({
-    '==': [bool, [dart.dynamic]],
     toString: [String, []],
     noSuchMethod: [dart.dynamic, [Invocation]]
   })
 });
-class Deprecated extends Object {
-  Deprecated(expires) {
-    this.expires = expires;
-  }
-  toString() {
-    return `Deprecated feature. Will be removed ${this.expires}`;
-  }
-}
-dart.setSignature(Deprecated, {
-  constructors: () => ({Deprecated: [Deprecated, [String]]})
-});
-class _Override extends Object {
-  _Override() {
-  }
-}
-dart.setSignature(_Override, {
-  constructors: () => ({_Override: [_Override, []]})
-});
-const deprecated = dart.const(new Deprecated("next release"));
-const override = dart.const(new _Override());
-class _Proxy extends Object {
-  _Proxy() {
-  }
-}
-dart.setSignature(_Proxy, {
-  constructors: () => ({_Proxy: [_Proxy, []]})
-});
-const proxy = dart.const(new _Proxy());
 dart.defineExtensionNames([
   'toString'
 ]);
 class bool extends Object {
-  static fromEnvironment(name, {defaultValue = false} = {}) {
-    dart.throw(new UnsupportedError('bool.fromEnvironment can only be used as a const constructor'));
-  }
   toString() {
     return this ? "true" : "false";
   }
 }
-dart.setSignature(bool, {
-  constructors: () => ({fromEnvironment: [bool, [String], {defaultValue: bool}]})
-});
 const Comparator$ = dart.generic(function(T) {
   const Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
   return Comparator;
@@ -128,18 +87,6 @@ class DateTime extends Object {
     if (second === void 0) second = 0;
     if (millisecond === void 0) millisecond = 0;
     this._internal(year, month, day, hour, minute, second, millisecond, false);
-  }
-  utc(year, month, day, hour, minute, second, millisecond) {
-    if (month === void 0) month = 1;
-    if (day === void 0) day = 1;
-    if (hour === void 0) hour = 0;
-    if (minute === void 0) minute = 0;
-    if (second === void 0) second = 0;
-    if (millisecond === void 0) millisecond = 0;
-    this._internal(year, month, day, hour, minute, second, millisecond, true);
-  }
-  now() {
-    this._now();
   }
   static parse(formattedString) {
     let re = RegExp.new('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
@@ -198,10 +145,6 @@ class DateTime extends Object {
     }
     if (isUtc == null) dart.throw(new ArgumentError(isUtc));
   }
-  ['=='](other) {
-    if (!dart.is(other, DateTime)) return false;
-    return dart.equals(this.millisecondsSinceEpoch, dart.dload(other, 'millisecondsSinceEpoch')) && dart.equals(this.isUtc, dart.dload(other, 'isUtc'));
-  }
   isBefore(other) {
     return dart.notNull(this.millisecondsSinceEpoch) < dart.notNull(other.millisecondsSinceEpoch);
   }
@@ -227,30 +170,6 @@ class DateTime extends Object {
     if (dart.notNull(this.isUtc)) return this;
     return new DateTime.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, {isUtc: true});
   }
-  static _fourDigits(n) {
-    let absN = n[dartx.abs]();
-    let sign = dart.notNull(n) < 0 ? "-" : "";
-    if (dart.notNull(absN) >= 1000) return `${n}`;
-    if (dart.notNull(absN) >= 100) return `${sign}0${absN}`;
-    if (dart.notNull(absN) >= 10) return `${sign}00${absN}`;
-    return `${sign}000${absN}`;
-  }
-  static _sixDigits(n) {
-    dart.assert(dart.notNull(n) < -9999 || dart.notNull(n) > 9999);
-    let absN = n[dartx.abs]();
-    let sign = dart.notNull(n) < 0 ? "-" : "+";
-    if (dart.notNull(absN) >= 100000) return `${sign}${absN}`;
-    return `${sign}0${absN}`;
-  }
-  static _threeDigits(n) {
-    if (dart.notNull(n) >= 100) return `${n}`;
-    if (dart.notNull(n) >= 10) return `0${n}`;
-    return `00${n}`;
-  }
-  static _twoDigits(n) {
-    if (dart.notNull(n) >= 10) return `${n}`;
-    return `0${n}`;
-  }
   toString() {
     let y = DateTime._fourDigits(this.year);
     let m = DateTime._twoDigits(this.month);
@@ -263,20 +182,6 @@ class DateTime extends Object {
       return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}Z`;
     } else {
       return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}`;
-    }
-  }
-  toIso8601String() {
-    let y = dart.notNull(this.year) >= -9999 && dart.notNull(this.year) <= 9999 ? DateTime._fourDigits(this.year) : DateTime._sixDigits(this.year);
-    let m = DateTime._twoDigits(this.month);
-    let d = DateTime._twoDigits(this.day);
-    let h = DateTime._twoDigits(this.hour);
-    let min = DateTime._twoDigits(this.minute);
-    let sec = DateTime._twoDigits(this.second);
-    let ms = DateTime._threeDigits(this.millisecond);
-    if (dart.notNull(this.isUtc)) {
-      return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}Z`;
-    } else {
-      return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}`;
     }
   }
   add(duration) {
@@ -300,9 +205,6 @@ class DateTime extends Object {
     this.isUtc = false;
     this.millisecondsSinceEpoch = _js_helper.Primitives.dateNow();
   }
-  static _brokenDownDateToMillisecondsSinceEpoch(year, month, day, hour, minute, second, millisecond, isUtc) {
-    return dart.as(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc), int);
-  }
   get timeZoneName() {
     if (dart.notNull(this.isUtc)) return "UTC";
     return _js_helper.Primitives.getTimeZoneName(this);
@@ -311,42 +213,14 @@ class DateTime extends Object {
     if (dart.notNull(this.isUtc)) return new Duration();
     return new Duration({minutes: _js_helper.Primitives.getTimeZoneOffsetInMinutes(this)});
   }
-  get year() {
-    return dart.as(_js_helper.Primitives.getYear(this), int);
-  }
-  get month() {
-    return dart.as(_js_helper.Primitives.getMonth(this), int);
-  }
-  get day() {
-    return dart.as(_js_helper.Primitives.getDay(this), int);
-  }
-  get hour() {
-    return dart.as(_js_helper.Primitives.getHours(this), int);
-  }
-  get minute() {
-    return dart.as(_js_helper.Primitives.getMinutes(this), int);
-  }
-  get second() {
-    return dart.as(_js_helper.Primitives.getSeconds(this), int);
-  }
-  get millisecond() {
-    return dart.as(_js_helper.Primitives.getMilliseconds(this), int);
-  }
-  get weekday() {
-    return dart.as(_js_helper.Primitives.getWeekday(this), int);
-  }
 }
 DateTime[dart.implements] = () => [Comparable];
-dart.defineNamedConstructor(DateTime, 'utc');
-dart.defineNamedConstructor(DateTime, 'now');
 dart.defineNamedConstructor(DateTime, 'fromMillisecondsSinceEpoch');
 dart.defineNamedConstructor(DateTime, '_internal');
 dart.defineNamedConstructor(DateTime, '_now');
 dart.setSignature(DateTime, {
   constructors: () => ({
     DateTime: [DateTime, [int], [int, int, int, int, int, int]],
-    utc: [DateTime, [int], [int, int, int, int, int, int]],
-    now: [DateTime, []],
     fromMillisecondsSinceEpoch: [DateTime, [int], {isUtc: bool}],
     _internal: [DateTime, [int, int, int, int, int, int, int, bool]],
     _now: [DateTime, []]
@@ -358,43 +232,18 @@ dart.setSignature(DateTime, {
     compareTo: [int, [DateTime]],
     toLocal: [DateTime, []],
     toUtc: [DateTime, []],
-    toIso8601String: [String, []],
     add: [DateTime, [Duration]],
     subtract: [DateTime, [Duration]],
     difference: [Duration, [DateTime]]
   }),
-  statics: () => ({
-    parse: [DateTime, [String]],
-    _fourDigits: [String, [int]],
-    _sixDigits: [String, [int]],
-    _threeDigits: [String, [int]],
-    _twoDigits: [String, [int]],
-    _brokenDownDateToMillisecondsSinceEpoch: [int, [int, int, int, int, int, int, int, bool]]
-  }),
-  names: ['parse', '_fourDigits', '_sixDigits', '_threeDigits', '_twoDigits', '_brokenDownDateToMillisecondsSinceEpoch']
+  statics: () => ({parse: [DateTime, [String]]}),
+  names: ['parse']
 });
 dart.defineExtensionMembers(DateTime, ['compareTo']);
 DateTime.MONDAY = 1;
-DateTime.TUESDAY = 2;
-DateTime.WEDNESDAY = 3;
-DateTime.THURSDAY = 4;
 DateTime.FRIDAY = 5;
-DateTime.SATURDAY = 6;
-DateTime.SUNDAY = 7;
-DateTime.DAYS_PER_WEEK = 7;
 DateTime.JANUARY = 1;
-DateTime.FEBRUARY = 2;
-DateTime.MARCH = 3;
-DateTime.APRIL = 4;
-DateTime.MAY = 5;
-DateTime.JUNE = 6;
-DateTime.JULY = 7;
 DateTime.AUGUST = 8;
-DateTime.SEPTEMBER = 9;
-DateTime.OCTOBER = 10;
-DateTime.NOVEMBER = 11;
-DateTime.DECEMBER = 12;
-DateTime.MONTHS_PER_YEAR = 12;
 DateTime._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 class num extends Object {
   static parse(input, onError) {
@@ -409,25 +258,12 @@ class num extends Object {
     if (onError == null) dart.throw(new FormatException(input));
     return onError(input);
   }
-  static _onParseErrorInt(_) {
-    num._parseError = true;
-    return 0;
-  }
-  static _onParseErrorDouble(_) {
-    num._parseError = true;
-    return 0.0;
-  }
 }
 num[dart.implements] = () => [Comparable$(num)];
 dart.setSignature(num, {
-  statics: () => ({
-    parse: [num, [String], [dart.functionType(num, [String])]],
-    _onParseErrorInt: [int, [String]],
-    _onParseErrorDouble: [double, [String]]
-  }),
-  names: ['parse', '_onParseErrorInt', '_onParseErrorDouble']
+  statics: () => ({parse: [num, [String], [dart.functionType(num, [String])]]}),
+  names: ['parse']
 });
-num._parseError = false;
 class double extends num {
   static parse(source, onError) {
     if (onError === void 0) onError = null;
@@ -438,15 +274,6 @@ dart.setSignature(double, {
   statics: () => ({parse: [double, [String], [dart.functionType(double, [String])]]}),
   names: ['parse']
 });
-double.NAN = 0.0 / 0.0;
-double.INFINITY = 1.0 / 0.0;
-double.MIN_POSITIVE = 5e-324;
-double.MAX_FINITE = 1.7976931348623157e+308;
-dart.defineLazyProperties(double, {
-  get NEGATIVE_INFINITY() {
-    return -dart.notNull(double.INFINITY);
-  }
-});
 const _duration = dart.JsSymbol('_duration');
 class Duration extends Object {
   Duration({days = 0, hours = 0, minutes = 0, seconds = 0, milliseconds = 0, microseconds = 0} = {}) {
@@ -455,52 +282,11 @@ class Duration extends Object {
   _microseconds(duration) {
     this[_duration] = duration;
   }
-  ['+'](other) {
-    return new Duration._microseconds(dart.notNull(this[_duration]) + dart.notNull(other[_duration]));
-  }
-  ['-'](other) {
-    return new Duration._microseconds(dart.notNull(this[_duration]) - dart.notNull(other[_duration]));
-  }
-  ['*'](factor) {
-    return new Duration._microseconds((dart.notNull(this[_duration]) * dart.notNull(factor))[dartx.round]());
-  }
-  ['~/'](quotient) {
-    if (quotient == 0) dart.throw(new IntegerDivisionByZeroException());
-    return new Duration._microseconds((dart.notNull(this[_duration]) / dart.notNull(quotient))[dartx.truncate]());
-  }
-  ['<'](other) {
-    return dart.notNull(this[_duration]) < dart.notNull(other[_duration]);
-  }
-  ['>'](other) {
-    return dart.notNull(this[_duration]) > dart.notNull(other[_duration]);
-  }
-  ['<='](other) {
-    return dart.notNull(this[_duration]) <= dart.notNull(other[_duration]);
-  }
-  ['>='](other) {
-    return dart.notNull(this[_duration]) >= dart.notNull(other[_duration]);
-  }
   get inDays() {
     return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_DAY))[dartx.truncate]();
   }
-  get inHours() {
-    return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_HOUR))[dartx.truncate]();
-  }
-  get inMinutes() {
-    return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_MINUTE))[dartx.truncate]();
-  }
-  get inSeconds() {
-    return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_SECOND))[dartx.truncate]();
-  }
   get inMilliseconds() {
     return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_MILLISECOND))[dartx.truncate]();
-  }
-  get inMicroseconds() {
-    return this[_duration];
-  }
-  ['=='](other) {
-    if (!dart.is(other, Duration)) return false;
-    return dart.equals(this[_duration], dart.dload(other, _duration));
   }
   get hashCode() {
     return dart.hashCode(this[_duration]);
@@ -531,14 +317,8 @@ class Duration extends Object {
     let sixDigitUs = sixDigits(dart.asInt(this.inMicroseconds[dartx.remainder](Duration.MICROSECONDS_PER_SECOND)));
     return `${this.inHours}:${twoDigitMinutes}:${twoDigitSeconds}.${sixDigitUs}`;
   }
-  get isNegative() {
-    return dart.notNull(this[_duration]) < 0;
-  }
   abs() {
     return new Duration._microseconds(this[_duration][dartx.abs]());
-  }
-  ['unary-']() {
-    return new Duration._microseconds(-dart.notNull(this[_duration]));
   }
 }
 Duration[dart.implements] = () => [Comparable$(Duration)];
@@ -549,17 +329,8 @@ dart.setSignature(Duration, {
     _microseconds: [Duration, [int]]
   }),
   methods: () => ({
-    '+': [Duration, [Duration]],
-    '-': [Duration, [Duration]],
-    '*': [Duration, [num]],
-    '~/': [Duration, [int]],
-    '<': [bool, [Duration]],
-    '>': [bool, [Duration]],
-    '<=': [bool, [Duration]],
-    '>=': [bool, [Duration]],
     compareTo: [int, [Duration]],
-    abs: [Duration, []],
-    'unary-': [Duration, []]
+    abs: [Duration, []]
   })
 });
 dart.defineExtensionMembers(Duration, ['compareTo']);
@@ -581,24 +352,6 @@ dart.defineLazyProperties(Duration, {
   get MICROSECONDS_PER_DAY() {
     return dart.notNull(Duration.MICROSECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
   },
-  get MILLISECONDS_PER_MINUTE() {
-    return dart.notNull(Duration.MILLISECONDS_PER_SECOND) * dart.notNull(Duration.SECONDS_PER_MINUTE);
-  },
-  get MILLISECONDS_PER_HOUR() {
-    return dart.notNull(Duration.MILLISECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
-  },
-  get MILLISECONDS_PER_DAY() {
-    return dart.notNull(Duration.MILLISECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  },
-  get SECONDS_PER_HOUR() {
-    return dart.notNull(Duration.SECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
-  },
-  get SECONDS_PER_DAY() {
-    return dart.notNull(Duration.SECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  },
-  get MINUTES_PER_DAY() {
-    return dart.notNull(Duration.MINUTES_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  },
   get ZERO() {
     return dart.const(new Duration({seconds: 0}));
   }
@@ -606,40 +359,18 @@ dart.defineLazyProperties(Duration, {
 class Error extends Object {
   Error() {
   }
-  static safeToString(object) {
-    if (typeof object == 'number' || typeof object == 'boolean' || null == object) {
-      return dart.toString(object);
-    }
-    if (typeof object == 'string') {
-      return Error._stringToSafeString(object);
-    }
-    return Error._objectToString(object);
-  }
-  static _stringToSafeString(string) {
-    return _js_helper.jsonEncodeNative(string);
-  }
-  static _objectToString(object) {
-    return _js_helper.Primitives.objectToString(object);
-  }
   get stackTrace() {
     return _js_helper.Primitives.extractStackTrace(this);
   }
 }
 dart.setSignature(Error, {
-  constructors: () => ({Error: [Error, []]}),
-  statics: () => ({
-    safeToString: [String, [Object]],
-    _stringToSafeString: [String, [String]],
-    _objectToString: [String, [Object]]
-  }),
-  names: ['safeToString', '_stringToSafeString', '_objectToString']
+  constructors: () => ({Error: [Error, []]})
 });
 class AssertionError extends Error {
   AssertionError() {
     super.Error();
   }
 }
-class TypeError extends AssertionError {}
 class CastError extends Error {
   CastError() {
     super.Error();
@@ -672,10 +403,6 @@ class ArgumentError extends Error {
     this[_hasValue] = true;
     super.Error();
   }
-  notNull(name) {
-    if (name === void 0) name = null;
-    this.value(null, name, "Must not be null");
-  }
   toString() {
     if (!dart.notNull(this[_hasValue])) {
       let result = "Invalid arguments(s)";
@@ -692,12 +419,10 @@ class ArgumentError extends Error {
   }
 }
 dart.defineNamedConstructor(ArgumentError, 'value');
-dart.defineNamedConstructor(ArgumentError, 'notNull');
 dart.setSignature(ArgumentError, {
   constructors: () => ({
     ArgumentError: [ArgumentError, [], [dart.dynamic]],
-    value: [ArgumentError, [dart.dynamic], [String, String]],
-    notNull: [ArgumentError, [], [String]]
+    value: [ArgumentError, [dart.dynamic], [String, String]]
   })
 });
 class RangeError extends ArgumentError {
@@ -705,13 +430,6 @@ class RangeError extends ArgumentError {
     this.start = null;
     this.end = null;
     super.ArgumentError(message);
-  }
-  value(value, name, message) {
-    if (name === void 0) name = null;
-    if (message === void 0) message = null;
-    this.start = null;
-    this.end = null;
-    super.value(value, name, message != null ? message : "Value not in range");
   }
   range(invalidValue, minValue, maxValue, name, message) {
     if (name === void 0) name = null;
@@ -722,23 +440,6 @@ class RangeError extends ArgumentError {
   }
   static index(index, indexable, name, message, length) {
     return new IndexError(index, indexable, name, message, length);
-  }
-  static checkValueInInterval(value, minValue, maxValue, name, message) {
-    if (name === void 0) name = null;
-    if (message === void 0) message = null;
-    if (dart.notNull(value) < dart.notNull(minValue) || dart.notNull(value) > dart.notNull(maxValue)) {
-      dart.throw(new RangeError.range(value, minValue, maxValue, name, message));
-    }
-  }
-  static checkValidIndex(index, indexable, name, length, message) {
-    if (name === void 0) name = null;
-    if (length === void 0) length = null;
-    if (message === void 0) message = null;
-    if (length == null) length = dart.as(dart.dload(indexable, 'length'), int);
-    if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
-      if (name == null) name = "index";
-      dart.throw(RangeError.index(index, indexable, name, message, length));
-    }
   }
   static checkValidRange(start, end, length, startName, endName, message) {
     if (startName === void 0) startName = null;
@@ -752,11 +453,6 @@ class RangeError extends ArgumentError {
       if (endName == null) endName = "end";
       dart.throw(new RangeError.range(end, start, length, endName, message));
     }
-  }
-  static checkNotNegative(value, name, message) {
-    if (name === void 0) name = null;
-    if (message === void 0) message = null;
-    if (dart.notNull(value) < 0) dart.throw(new RangeError.range(value, 0, null, name, message));
   }
   toString() {
     if (!dart.notNull(this[_hasValue])) return `RangeError: ${this.message}`;
@@ -778,22 +474,15 @@ class RangeError extends ArgumentError {
     return `RangeError: ${this.message} (${value})${explanation}`;
   }
 }
-dart.defineNamedConstructor(RangeError, 'value');
 dart.defineNamedConstructor(RangeError, 'range');
 dart.setSignature(RangeError, {
   constructors: () => ({
     RangeError: [RangeError, [dart.dynamic]],
-    value: [RangeError, [num], [String, String]],
     range: [RangeError, [num, int, int], [String, String]],
     index: [RangeError, [int, dart.dynamic], [String, String, int]]
   }),
-  statics: () => ({
-    checkValueInInterval: [dart.void, [int, int, int], [String, String]],
-    checkValidIndex: [dart.void, [int, dart.dynamic], [String, int, String]],
-    checkValidRange: [dart.void, [int, int, int], [String, String, String]],
-    checkNotNegative: [dart.void, [int], [String, String]]
-  }),
-  names: ['checkValueInInterval', 'checkValidIndex', 'checkValidRange', 'checkNotNegative']
+  statics: () => ({checkValidRange: [dart.void, [int, int, int], [String, String, String]]}),
+  names: ['checkValidRange']
 });
 class IndexError extends ArgumentError {
   IndexError(invalidValue, indexable, name, message, length) {
@@ -823,27 +512,6 @@ class IndexError extends ArgumentError {
 IndexError[dart.implements] = () => [RangeError];
 dart.setSignature(IndexError, {
   constructors: () => ({IndexError: [IndexError, [int, dart.dynamic], [String, String, int]]})
-});
-class FallThroughError extends Error {
-  FallThroughError() {
-    super.Error();
-  }
-}
-dart.setSignature(FallThroughError, {
-  constructors: () => ({FallThroughError: [FallThroughError, []]})
-});
-const _className = dart.JsSymbol('_className');
-class AbstractClassInstantiationError extends Error {
-  AbstractClassInstantiationError(className) {
-    this[_className] = className;
-    super.Error();
-  }
-  toString() {
-    return `Cannot instantiate abstract class: '${this[_className]}'`;
-  }
-}
-dart.setSignature(AbstractClassInstantiationError, {
-  constructors: () => ({AbstractClassInstantiationError: [AbstractClassInstantiationError, [String]]})
 });
 const _receiver = dart.JsSymbol('_receiver');
 const _memberName = dart.JsSymbol('_memberName');
@@ -913,20 +581,6 @@ class UnsupportedError extends Error {
 dart.setSignature(UnsupportedError, {
   constructors: () => ({UnsupportedError: [UnsupportedError, [String]]})
 });
-class UnimplementedError extends Error {
-  UnimplementedError(message) {
-    if (message === void 0) message = null;
-    this.message = message;
-    super.Error();
-  }
-  toString() {
-    return this.message != null ? `UnimplementedError: ${this.message}` : "UnimplementedError";
-  }
-}
-UnimplementedError[dart.implements] = () => [UnsupportedError];
-dart.setSignature(UnimplementedError, {
-  constructors: () => ({UnimplementedError: [UnimplementedError, [], [String]]})
-});
 class StateError extends Error {
   StateError(message) {
     this.message = message;
@@ -954,47 +608,6 @@ class ConcurrentModificationError extends Error {
 }
 dart.setSignature(ConcurrentModificationError, {
   constructors: () => ({ConcurrentModificationError: [ConcurrentModificationError, [], [Object]]})
-});
-class OutOfMemoryError extends Object {
-  OutOfMemoryError() {
-  }
-  toString() {
-    return "Out of Memory";
-  }
-  get stackTrace() {
-    return null;
-  }
-}
-OutOfMemoryError[dart.implements] = () => [Error];
-dart.setSignature(OutOfMemoryError, {
-  constructors: () => ({OutOfMemoryError: [OutOfMemoryError, []]})
-});
-class StackOverflowError extends Object {
-  StackOverflowError() {
-  }
-  toString() {
-    return "Stack Overflow";
-  }
-  get stackTrace() {
-    return null;
-  }
-}
-StackOverflowError[dart.implements] = () => [Error];
-dart.setSignature(StackOverflowError, {
-  constructors: () => ({StackOverflowError: [StackOverflowError, []]})
-});
-class CyclicInitializationError extends Error {
-  CyclicInitializationError(variableName) {
-    if (variableName === void 0) variableName = null;
-    this.variableName = variableName;
-    super.Error();
-  }
-  toString() {
-    return this.variableName == null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
-  }
-}
-dart.setSignature(CyclicInitializationError, {
-  constructors: () => ({CyclicInitializationError: [CyclicInitializationError, [], [String]]})
 });
 class Exception extends Object {
   static new(message) {
@@ -1108,17 +721,6 @@ FormatException[dart.implements] = () => [Exception];
 dart.setSignature(FormatException, {
   constructors: () => ({FormatException: [FormatException, [], [String, dart.dynamic, int]]})
 });
-class IntegerDivisionByZeroException extends Object {
-  IntegerDivisionByZeroException() {
-  }
-  toString() {
-    return "IntegerDivisionByZeroException";
-  }
-}
-IntegerDivisionByZeroException[dart.implements] = () => [Exception];
-dart.setSignature(IntegerDivisionByZeroException, {
-  constructors: () => ({IntegerDivisionByZeroException: [IntegerDivisionByZeroException, []]})
-});
 const _getKey = dart.JsSymbol('_getKey');
 const Expando$ = dart.generic(function(T) {
   class Expando extends Object {
@@ -1143,30 +745,14 @@ const Expando$ = dart.generic(function(T) {
       _js_helper.Primitives.setProperty(values, this[_getKey](), value);
       return value;
     }
-    [_getKey]() {
-      let key = dart.as(_js_helper.Primitives.getProperty(this, Expando$()._KEY_PROPERTY_NAME), String);
-      if (key == null) {
-        key = `expando\$key\$${(() => {
-          let x = Expando$()._keyCount;
-          Expando$()._keyCount = dart.notNull(x) + 1;
-          return x;
-        })()}`;
-        _js_helper.Primitives.setProperty(this, Expando$()._KEY_PROPERTY_NAME, key);
-      }
-      return key;
-    }
   }
   dart.setSignature(Expando, {
     constructors: () => ({Expando: [Expando$(T), [], [String]]}),
     methods: () => ({
       get: [T, [Object]],
-      set: [dart.void, [Object, T]],
-      [_getKey]: [String, []]
+      set: [dart.void, [Object, T]]
     })
   });
-  Expando._KEY_PROPERTY_NAME = 'expando$key';
-  Expando._EXPANDO_PROPERTY_NAME = 'expando$values';
-  Expando._keyCount = 0;
   return Expando;
 });
 let Expando = Expando$();
@@ -1175,20 +761,10 @@ class Function extends Object {
     if (namedArguments === void 0) namedArguments = null;
     return dart.dcall.apply(null, [f].concat(positionalArguments));
   }
-  static _toMangledNames(namedArguments) {
-    let result = dart.map();
-    namedArguments.forEach(dart.fn((symbol, value) => {
-      result.set(_symbolToString(symbol), value);
-    }, dart.void, [Symbol, dart.dynamic]));
-    return result;
-  }
 }
 dart.setSignature(Function, {
-  statics: () => ({
-    apply: [dart.dynamic, [Function, List], [Map$(Symbol, dart.dynamic)]],
-    _toMangledNames: [Map$(String, dart.dynamic), [Map$(Symbol, dart.dynamic)]]
-  }),
-  names: ['apply', '_toMangledNames']
+  statics: () => ({apply: [dart.dynamic, [Function, List], [Map$(Symbol, dart.dynamic)]]}),
+  names: ['apply']
 });
 function identical(a, b) {
   return _js_helper.Primitives.identicalImplementation(a, b);
@@ -1199,34 +775,21 @@ function identityHashCode(object) {
 }
 dart.fn(identityHashCode, () => dart.definiteFunctionType(int, [Object]));
 class int extends num {
-  static fromEnvironment(name, {defaultValue = null} = {}) {
-    dart.throw(new UnsupportedError('int.fromEnvironment can only be used as a const constructor'));
-  }
   static parse(source, {radix = null, onError = null} = {}) {
     return _js_helper.Primitives.parseInt(source, radix, onError);
   }
 }
 dart.setSignature(int, {
-  constructors: () => ({fromEnvironment: [int, [String], {defaultValue: int}]}),
   statics: () => ({parse: [int, [String], {radix: int, onError: dart.functionType(int, [String])}]}),
   names: ['parse']
 });
-class Invocation extends Object {
-  get isAccessor() {
-    return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
-  }
-}
+class Invocation extends Object {}
 const Iterable$ = dart.generic(function(E) {
   dart.defineExtensionNames([
     'join'
   ]);
   class Iterable extends Object {
     Iterable() {
-    }
-    static generate(count, generator) {
-      if (generator === void 0) generator = null;
-      if (dart.notNull(count) <= 0) return new (_internal.EmptyIterable$(E))();
-      return new (exports._GeneratorIterable$(E))(count, generator);
     }
     [dart.JsSymbol.iterator]() {
       return new dart.JsIterator(this[dartx.iterator]);
@@ -1239,10 +802,7 @@ const Iterable$ = dart.generic(function(E) {
     }
   }
   dart.setSignature(Iterable, {
-    constructors: () => ({
-      Iterable: [Iterable$(E), []],
-      generate: [Iterable$(E), [int], [dart.functionType(E, [int])]]
-    }),
+    constructors: () => ({Iterable: [Iterable$(E), []]}),
     methods: () => ({[dartx.join]: [String, [], [String]]})
   });
   return Iterable;
@@ -1253,97 +813,6 @@ const _Generator$ = dart.generic(function(E) {
   return _Generator;
 });
 let _Generator = _Generator$();
-const _end = dart.JsSymbol('_end');
-const _start = dart.JsSymbol('_start');
-const _generator = dart.JsSymbol('_generator');
-const _GeneratorIterable$ = dart.generic(function(E) {
-  class _GeneratorIterable extends collection.IterableBase$(E) {
-    _GeneratorIterable(end, generator) {
-      this[_end] = end;
-      this[_start] = 0;
-      this[_generator] = dart.as(generator != null ? generator : exports._GeneratorIterable$()._id, _Generator$(E));
-      super.IterableBase();
-    }
-    slice(start, end, generator) {
-      this[_start] = start;
-      this[_end] = end;
-      this[_generator] = generator;
-      super.IterableBase();
-    }
-    get iterator() {
-      return new (_GeneratorIterator$(E))(this[_start], this[_end], this[_generator]);
-    }
-    get length() {
-      return dart.notNull(this[_end]) - dart.notNull(this[_start]);
-    }
-    skip(count) {
-      RangeError.checkNotNegative(count, "count");
-      if (count == 0) return this;
-      let newStart = dart.notNull(this[_start]) + dart.notNull(count);
-      if (newStart >= dart.notNull(this[_end])) return new (_internal.EmptyIterable$(E))();
-      return new (exports._GeneratorIterable$(E)).slice(newStart, this[_end], this[_generator]);
-    }
-    take(count) {
-      RangeError.checkNotNegative(count, "count");
-      if (count == 0) return new (_internal.EmptyIterable$(E))();
-      let newEnd = dart.notNull(this[_start]) + dart.notNull(count);
-      if (newEnd >= dart.notNull(this[_end])) return this;
-      return new (exports._GeneratorIterable$(E)).slice(this[_start], newEnd, this[_generator]);
-    }
-    static _id(n) {
-      return n;
-    }
-  }
-  _GeneratorIterable[dart.implements] = () => [_internal.EfficientLength];
-  dart.defineNamedConstructor(_GeneratorIterable, 'slice');
-  dart.setSignature(_GeneratorIterable, {
-    constructors: () => ({
-      _GeneratorIterable: [exports._GeneratorIterable$(E), [int, dart.functionType(E, [int])]],
-      slice: [exports._GeneratorIterable$(E), [int, int, _Generator$(E)]]
-    }),
-    methods: () => ({
-      skip: [Iterable$(E), [int]],
-      take: [Iterable$(E), [int]]
-    }),
-    statics: () => ({_id: [int, [int]]}),
-    names: ['_id']
-  });
-  dart.defineExtensionMembers(_GeneratorIterable, ['skip', 'take', 'iterator', 'length']);
-  return _GeneratorIterable;
-});
-dart.defineLazyClassGeneric(exports, '_GeneratorIterable', {get: _GeneratorIterable$});
-const _index = dart.JsSymbol('_index');
-const _current = dart.JsSymbol('_current');
-const _GeneratorIterator$ = dart.generic(function(E) {
-  class _GeneratorIterator extends Object {
-    _GeneratorIterator(index, end, generator) {
-      this[_index] = index;
-      this[_end] = end;
-      this[_generator] = generator;
-      this[_current] = null;
-    }
-    moveNext() {
-      if (dart.notNull(this[_index]) < dart.notNull(this[_end])) {
-        this[_current] = this[_generator](this[_index]);
-        this[_index] = dart.notNull(this[_index]) + 1;
-        return true;
-      } else {
-        this[_current] = null;
-        return false;
-      }
-    }
-    get current() {
-      return this[_current];
-    }
-  }
-  _GeneratorIterator[dart.implements] = () => [Iterator$(E)];
-  dart.setSignature(_GeneratorIterator, {
-    constructors: () => ({_GeneratorIterator: [_GeneratorIterator$(E), [int, int, _Generator$(E)]]}),
-    methods: () => ({moveNext: [bool, []]})
-  });
-  return _GeneratorIterator;
-});
-let _GeneratorIterator = _GeneratorIterator$();
 const BidirectionalIterator$ = dart.generic(function(E) {
   class BidirectionalIterator extends Object {}
   BidirectionalIterator[dart.implements] = () => [Iterator$(E)];
@@ -1370,15 +839,6 @@ const List$ = dart.generic(function(E) {
       }
       return _interceptors.JSArray$(E).typed(list);
     }
-    static filled(length, fill) {
-      let result = List$(E).new(length);
-      if (length != 0 && fill != null) {
-        for (let i = 0; i < dart.notNull(result[dartx.length]); i++) {
-          result[dartx.set](i, fill);
-        }
-      }
-      return result;
-    }
     static from(elements, {growable = true} = {}) {
       let list = List$(E).new();
       for (let e of elements) {
@@ -1386,19 +846,6 @@ const List$ = dart.generic(function(E) {
       }
       if (dart.notNull(growable)) return list;
       return dart.as(_internal.makeListFixedLength(list), List$(E));
-    }
-    static generate(length, generator, {growable = true} = {}) {
-      let result = null;
-      if (dart.notNull(growable)) {
-        result = dart.list([], E);
-        result[dartx.length] = length;
-      } else {
-        result = List$(E).new(length);
-      }
-      for (let i = 0; i < dart.notNull(length); i++) {
-        result[dartx.set](i, generator(i));
-      }
-      return result;
     }
     [dart.JsSymbol.iterator]() {
       return new dart.JsIterator(this[dartx.iterator]);
@@ -1408,9 +855,7 @@ const List$ = dart.generic(function(E) {
   dart.setSignature(List, {
     constructors: () => ({
       new: [List$(E), [], [int]],
-      filled: [List$(E), [int, E]],
-      from: [List$(E), [Iterable], {growable: bool}],
-      generate: [List$(E), [int, dart.functionType(E, [int])], {growable: bool}]
+      from: [List$(E), [Iterable], {growable: bool}]
     })
   });
   return List;
@@ -1421,42 +866,24 @@ const Map$ = dart.generic(function(K, V) {
     static new() {
       return collection.LinkedHashMap$(K, V).new();
     }
-    static from(other) {
-      return collection.LinkedHashMap$(K, V).from(other);
-    }
     static identity() {
       return collection.LinkedHashMap$(K, V).identity();
-    }
-    static fromIterable(iterable, opts) {
-      return collection.LinkedHashMap$(K, V).fromIterable(iterable, opts);
-    }
-    static fromIterables(keys, values) {
-      return collection.LinkedHashMap$(K, V).fromIterables(keys, values);
     }
   }
   dart.setSignature(Map, {
     constructors: () => ({
       new: [Map$(K, V), []],
-      from: [Map$(K, V), [Map$()]],
-      identity: [Map$(K, V), []],
-      fromIterable: [Map$(K, V), [Iterable], {key: dart.functionType(K, [dart.dynamic]), value: dart.functionType(V, [dart.dynamic])}],
-      fromIterables: [Map$(K, V), [Iterable$(K), Iterable$(V)]]
+      identity: [Map$(K, V), []]
     })
   });
   return Map;
 });
 let Map = Map$();
 class Null extends Object {
-  static _uninstantiable() {
-    dart.throw(new UnsupportedError('class Null cannot be instantiated'));
-  }
   toString() {
     return "null";
   }
 }
-dart.setSignature(Null, {
-  constructors: () => ({_uninstantiable: [Null, []]})
-});
 class Pattern extends Object {}
 function print(object) {
   let line = `${object}`;
@@ -1485,16 +912,12 @@ const Set$ = dart.generic(function(E) {
     static identity() {
       return collection.LinkedHashSet$(E).identity();
     }
-    static from(elements) {
-      return collection.LinkedHashSet$(E).from(elements);
-    }
   }
   Set[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(Set, {
     constructors: () => ({
       new: [exports.Set$(E), []],
-      identity: [exports.Set$(E), []],
-      from: [exports.Set$(E), [Iterable$(E)]]
+      identity: [exports.Set$(E), []]
     })
   });
   return Set;
@@ -1506,74 +929,19 @@ const Sink$ = dart.generic(function(T) {
 });
 let Sink = Sink$();
 class StackTrace extends Object {}
-const _stop = dart.JsSymbol('_stop');
 class Stopwatch extends Object {
-  get frequency() {
-    return Stopwatch._frequency;
-  }
   Stopwatch() {
-    this[_start] = null;
-    this[_stop] = null;
     Stopwatch._initTicker();
-  }
-  start() {
-    if (dart.notNull(this.isRunning)) return;
-    if (this[_start] == null) {
-      this[_start] = Stopwatch._now();
-    } else {
-      this[_start] = dart.notNull(Stopwatch._now()) - (dart.notNull(this[_stop]) - dart.notNull(this[_start]));
-      this[_stop] = null;
-    }
-  }
-  stop() {
-    if (!dart.notNull(this.isRunning)) return;
-    this[_stop] = Stopwatch._now();
-  }
-  reset() {
-    if (this[_start] == null) return;
-    this[_start] = Stopwatch._now();
-    if (this[_stop] != null) {
-      this[_stop] = this[_start];
-    }
-  }
-  get elapsedTicks() {
-    if (this[_start] == null) {
-      return 0;
-    }
-    return dart.asInt(this[_stop] == null ? dart.notNull(Stopwatch._now()) - dart.notNull(this[_start]) : dart.notNull(this[_stop]) - dart.notNull(this[_start]));
-  }
-  get elapsed() {
-    return new Duration({microseconds: this.elapsedMicroseconds});
-  }
-  get elapsedMicroseconds() {
-    return (dart.notNull(this.elapsedTicks) * 1000000 / dart.notNull(this.frequency))[dartx.truncate]();
-  }
-  get elapsedMilliseconds() {
-    return (dart.notNull(this.elapsedTicks) * 1000 / dart.notNull(this.frequency))[dartx.truncate]();
-  }
-  get isRunning() {
-    return this[_start] != null && this[_stop] == null;
   }
   static _initTicker() {
     _js_helper.Primitives.initTicker();
     Stopwatch._frequency = _js_helper.Primitives.timerFrequency;
   }
-  static _now() {
-    return dart.as(dart.dcall(_js_helper.Primitives.timerTicks), int);
-  }
 }
 dart.setSignature(Stopwatch, {
   constructors: () => ({Stopwatch: [Stopwatch, []]}),
-  methods: () => ({
-    start: [dart.void, []],
-    stop: [dart.void, []],
-    reset: [dart.void, []]
-  }),
-  statics: () => ({
-    _initTicker: [dart.void, []],
-    _now: [int, []]
-  }),
-  names: ['_initTicker', '_now']
+  statics: () => ({_initTicker: [dart.void, []]}),
+  names: ['_initTicker']
 });
 Stopwatch._frequency = null;
 class String extends Object {
@@ -1600,9 +968,6 @@ class String extends Object {
   }
   static fromCharCode(charCode) {
     return _js_helper.Primitives.stringFromCharCode(charCode);
-  }
-  static fromEnvironment(name, {defaultValue = null} = {}) {
-    dart.throw(new UnsupportedError('String.fromEnvironment can only be used as a const constructor'));
   }
   static _stringFromIterable(charCodes, start, end) {
     if (dart.notNull(start) < 0) dart.throw(new RangeError.range(start, 0, charCodes[dartx.length]));
@@ -1634,8 +999,7 @@ String[dart.implements] = () => [Comparable$(String), Pattern];
 dart.setSignature(String, {
   constructors: () => ({
     fromCharCodes: [String, [Iterable$(int)], [int, int]],
-    fromCharCode: [String, [int]],
-    fromEnvironment: [String, [String], {defaultValue: String}]
+    fromCharCode: [String, [int]]
   }),
   statics: () => ({_stringFromIterable: [String, [Iterable$(int), int, int]]}),
   names: ['_stringFromIterable']
@@ -1672,67 +1036,17 @@ dart.defineLazyClass(exports, {
     return Runes;
   }
 });
-function _isLeadSurrogate(code) {
-  return (dart.notNull(code) & 64512) == 55296;
-}
-dart.fn(_isLeadSurrogate, bool, [int]);
-function _isTrailSurrogate(code) {
-  return (dart.notNull(code) & 64512) == 56320;
-}
-dart.fn(_isTrailSurrogate, bool, [int]);
-function _combineSurrogatePair(start, end) {
-  return 65536 + ((dart.notNull(start) & 1023) << 10) + (dart.notNull(end) & 1023);
-}
-dart.fn(_combineSurrogatePair, int, [int, int]);
 const _position = dart.JsSymbol('_position');
 const _nextPosition = dart.JsSymbol('_nextPosition');
 const _currentCodePoint = dart.JsSymbol('_currentCodePoint');
-const _checkSplitSurrogate = dart.JsSymbol('_checkSplitSurrogate');
 class RuneIterator extends Object {
   RuneIterator(string) {
     this.string = string;
     this[_position] = 0;
     this[_nextPosition] = 0;
-    this[_currentCodePoint] = null;
-  }
-  at(string, index) {
-    this.string = string;
-    this[_position] = index;
-    this[_nextPosition] = index;
-    this[_currentCodePoint] = null;
-    RangeError.checkValueInInterval(index, 0, string[dartx.length]);
-    this[_checkSplitSurrogate](index);
-  }
-  [_checkSplitSurrogate](index) {
-    if (dart.notNull(index) > 0 && dart.notNull(index) < dart.notNull(this.string[dartx.length]) && dart.notNull(_isLeadSurrogate(this.string[dartx.codeUnitAt](dart.notNull(index) - 1))) && dart.notNull(_isTrailSurrogate(this.string[dartx.codeUnitAt](index)))) {
-      dart.throw(new ArgumentError(`Index inside surrogate pair: ${index}`));
-    }
-  }
-  get rawIndex() {
-    return this[_position] != this[_nextPosition] ? this[_position] : null;
-  }
-  set rawIndex(rawIndex) {
-    RangeError.checkValidIndex(rawIndex, this.string, "rawIndex");
-    this.reset(rawIndex);
-    this.moveNext();
-  }
-  reset(rawIndex) {
-    if (rawIndex === void 0) rawIndex = 0;
-    RangeError.checkValueInInterval(rawIndex, 0, this.string[dartx.length], "rawIndex");
-    this[_checkSplitSurrogate](rawIndex);
-    this[_position] = this[_nextPosition] = rawIndex;
-    this[_currentCodePoint] = null;
   }
   get current() {
     return dart.asInt(this[_currentCodePoint]);
-  }
-  get currentSize() {
-    return dart.notNull(this[_nextPosition]) - dart.notNull(this[_position]);
-  }
-  get currentAsString() {
-    if (this[_position] == this[_nextPosition]) return null;
-    if (dart.notNull(this[_position]) + 1 == this[_nextPosition]) return this.string[dartx.get](this[_position]);
-    return this.string[dartx.substring](this[_position], this[_nextPosition]);
   }
   moveNext() {
     this[_position] = this[_nextPosition];
@@ -1754,40 +1068,11 @@ class RuneIterator extends Object {
     this[_currentCodePoint] = codeUnit;
     return true;
   }
-  movePrevious() {
-    this[_nextPosition] = this[_position];
-    if (this[_position] == 0) {
-      this[_currentCodePoint] = null;
-      return false;
-    }
-    let position = dart.notNull(this[_position]) - 1;
-    let codeUnit = this.string[dartx.codeUnitAt](position);
-    if (dart.notNull(_isTrailSurrogate(codeUnit)) && position > 0) {
-      let prevCodeUnit = this.string[dartx.codeUnitAt](position - 1);
-      if (dart.notNull(_isLeadSurrogate(prevCodeUnit))) {
-        this[_position] = position - 1;
-        this[_currentCodePoint] = _combineSurrogatePair(prevCodeUnit, codeUnit);
-        return true;
-      }
-    }
-    this[_position] = position;
-    this[_currentCodePoint] = codeUnit;
-    return true;
-  }
 }
 RuneIterator[dart.implements] = () => [BidirectionalIterator$(int)];
-dart.defineNamedConstructor(RuneIterator, 'at');
 dart.setSignature(RuneIterator, {
-  constructors: () => ({
-    RuneIterator: [RuneIterator, [String]],
-    at: [RuneIterator, [String, int]]
-  }),
-  methods: () => ({
-    [_checkSplitSurrogate]: [dart.void, [int]],
-    reset: [dart.void, [], [int]],
-    moveNext: [bool, []],
-    movePrevious: [bool, []]
-  })
+  constructors: () => ({RuneIterator: [RuneIterator, [String]]}),
+  methods: () => ({moveNext: [bool, []]})
 });
 const _contents = dart.JsSymbol('_contents');
 const _writeString = dart.JsSymbol('_writeString');
@@ -1827,11 +1112,6 @@ class StringBuffer extends Object {
       }
     }
   }
-  writeln(obj) {
-    if (obj === void 0) obj = "";
-    this.write(obj);
-    this.write("\n");
-  }
   clear() {
     this[_contents] = "";
   }
@@ -1849,7 +1129,6 @@ dart.setSignature(StringBuffer, {
     write: [dart.void, [Object]],
     writeCharCode: [dart.void, [int]],
     writeAll: [dart.void, [Iterable], [String]],
-    writeln: [dart.void, [], [Object]],
     clear: [dart.void, []],
     [_writeString]: [dart.void, [dart.dynamic]]
   })
@@ -1864,55 +1143,19 @@ dart.setSignature(Symbol, {
   constructors: () => ({new: [Symbol, [String]]})
 });
 class Type extends Object {}
-const _writeAuthority = dart.JsSymbol('_writeAuthority');
 const _userInfo = dart.JsSymbol('_userInfo');
 const _host = dart.JsSymbol('_host');
 const _port = dart.JsSymbol('_port');
 const _path = dart.JsSymbol('_path');
 const _query = dart.JsSymbol('_query');
 const _fragment = dart.JsSymbol('_fragment');
-const _pathSegments = dart.JsSymbol('_pathSegments');
 const _queryParameters = dart.JsSymbol('_queryParameters');
-const _merge = dart.JsSymbol('_merge');
-const _hasDotSegments = dart.JsSymbol('_hasDotSegments');
-const _removeDotSegments = dart.JsSymbol('_removeDotSegments');
-const _toWindowsFilePath = dart.JsSymbol('_toWindowsFilePath');
-const _toFilePath = dart.JsSymbol('_toFilePath');
-const _isPathAbsolute = dart.JsSymbol('_isPathAbsolute');
+const _writeAuthority = dart.JsSymbol('_writeAuthority');
 class Uri extends Object {
-  get authority() {
-    if (!dart.notNull(this.hasAuthority)) return "";
-    let sb = new StringBuffer();
-    this[_writeAuthority](sb);
-    return dart.toString(sb);
-  }
-  get userInfo() {
-    return this[_userInfo];
-  }
-  get host() {
-    if (this[_host] == null) return "";
-    if (dart.notNull(this[_host][dartx.startsWith]('['))) {
-      return this[_host][dartx.substring](1, dart.notNull(this[_host][dartx.length]) - 1);
-    }
-    return this[_host];
-  }
-  get port() {
-    if (this[_port] == null) return Uri._defaultPort(this.scheme);
-    return dart.asInt(this[_port]);
-  }
   static _defaultPort(scheme) {
     if (scheme == "http") return 80;
     if (scheme == "https") return 443;
     return 0;
-  }
-  get path() {
-    return this[_path];
-  }
-  get query() {
-    return this[_query] == null ? "" : this[_query];
-  }
-  get fragment() {
-    return this[_fragment] == null ? "" : this[_fragment];
   }
   static parse(uri) {
     function isRegName(ch) {
@@ -2088,8 +1331,6 @@ class Uri extends Object {
     this[_path] = path;
     this[_query] = query;
     this[_fragment] = fragment;
-    this[_pathSegments] = null;
-    this[_queryParameters] = null;
   }
   static new({scheme = "", userInfo = "", host = null, port = null, path = null, pathSegments = null, query = null, queryParameters = null, fragment = null} = {}) {
     scheme = Uri._makeScheme(scheme, Uri._stringOrNullLength(scheme));
@@ -2106,207 +1347,6 @@ class Uri extends Object {
     let ensureLeadingSlash = host != null;
     path = Uri._makePath(path, 0, Uri._stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
     return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
-  }
-  static http(authority, unencodedPath, queryParameters) {
-    if (queryParameters === void 0) queryParameters = null;
-    return Uri._makeHttpUri("http", authority, unencodedPath, queryParameters);
-  }
-  static https(authority, unencodedPath, queryParameters) {
-    if (queryParameters === void 0) queryParameters = null;
-    return Uri._makeHttpUri("https", authority, unencodedPath, queryParameters);
-  }
-  static _makeHttpUri(scheme, authority, unencodedPath, queryParameters) {
-    let userInfo = "";
-    let host = null;
-    let port = null;
-    if (authority != null && dart.notNull(authority[dartx.isNotEmpty])) {
-      let hostStart = 0;
-      let hasUserInfo = false;
-      for (let i = 0; i < dart.notNull(authority[dartx.length]); i++) {
-        if (authority[dartx.codeUnitAt](i) == Uri._AT_SIGN) {
-          hasUserInfo = true;
-          userInfo = authority[dartx.substring](0, i);
-          hostStart = i + 1;
-          break;
-        }
-      }
-      let hostEnd = hostStart;
-      if (hostStart < dart.notNull(authority[dartx.length]) && authority[dartx.codeUnitAt](hostStart) == Uri._LEFT_BRACKET) {
-        for (; hostEnd < dart.notNull(authority[dartx.length]); hostEnd++) {
-          if (authority[dartx.codeUnitAt](hostEnd) == Uri._RIGHT_BRACKET) break;
-        }
-        if (hostEnd == authority[dartx.length]) {
-          dart.throw(new FormatException("Invalid IPv6 host entry.", authority, hostStart));
-        }
-        Uri.parseIPv6Address(authority, hostStart + 1, hostEnd);
-        hostEnd++;
-        if (hostEnd != authority[dartx.length] && authority[dartx.codeUnitAt](hostEnd) != Uri._COLON) {
-          dart.throw(new FormatException("Invalid end of authority", authority, hostEnd));
-        }
-      }
-      let hasPort = false;
-      for (; hostEnd < dart.notNull(authority[dartx.length]); hostEnd++) {
-        if (authority[dartx.codeUnitAt](hostEnd) == Uri._COLON) {
-          let portString = authority[dartx.substring](hostEnd + 1);
-          if (dart.notNull(portString[dartx.isNotEmpty])) port = int.parse(portString);
-          break;
-        }
-      }
-      host = authority[dartx.substring](hostStart, hostEnd);
-    }
-    return Uri.new({scheme: scheme, userInfo: userInfo, host: dart.as(host, String), port: dart.as(port, int), pathSegments: unencodedPath[dartx.split]("/"), queryParameters: queryParameters});
-  }
-  static file(path, {windows = null} = {}) {
-    windows = windows == null ? Uri._isWindows : windows;
-    return dart.as(dart.notNull(windows) ? Uri._makeWindowsFileUrl(path) : Uri._makeFileUri(path), Uri);
-  }
-  static get base() {
-    let uri = _js_helper.Primitives.currentUri();
-    if (uri != null) return Uri.parse(uri);
-    dart.throw(new UnsupportedError("'Uri.base' is not supported"));
-  }
-  static get _isWindows() {
-    return false;
-  }
-  static _checkNonWindowsPathReservedCharacters(segments, argumentError) {
-    segments[dartx.forEach](dart.fn(segment => {
-      if (dart.notNull(segment[dartx.contains]("/"))) {
-        if (dart.notNull(argumentError)) {
-          dart.throw(new ArgumentError(`Illegal path character ${segment}`));
-        } else {
-          dart.throw(new UnsupportedError(`Illegal path character ${segment}`));
-        }
-      }
-    }, dart.void, [String]));
-  }
-  static _checkWindowsPathReservedCharacters(segments, argumentError, firstSegment) {
-    if (firstSegment === void 0) firstSegment = 0;
-    segments[dartx.skip](firstSegment)[dartx.forEach](dart.fn(segment => {
-      if (dart.notNull(segment[dartx.contains](RegExp.new('["*/:<>?\\\\|]')))) {
-        if (dart.notNull(argumentError)) {
-          dart.throw(new ArgumentError("Illegal character in path"));
-        } else {
-          dart.throw(new UnsupportedError("Illegal character in path"));
-        }
-      }
-    }, dart.void, [String]));
-  }
-  static _checkWindowsDriveLetter(charCode, argumentError) {
-    if (dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._UPPER_CASE_Z) || dart.notNull(Uri._LOWER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._LOWER_CASE_Z)) {
-      return;
-    }
-    if (dart.notNull(argumentError)) {
-      dart.throw(new ArgumentError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode))));
-    } else {
-      dart.throw(new UnsupportedError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode))));
-    }
-  }
-  static _makeFileUri(path) {
-    let sep = "/";
-    if (dart.notNull(path[dartx.startsWith](sep))) {
-      return Uri.new({scheme: "file", pathSegments: path[dartx.split](sep)});
-    } else {
-      return Uri.new({pathSegments: path[dartx.split](sep)});
-    }
-  }
-  static _makeWindowsFileUrl(path) {
-    if (dart.notNull(path[dartx.startsWith]("\\\\?\\"))) {
-      if (dart.notNull(path[dartx.startsWith]("\\\\?\\UNC\\"))) {
-        path = `\\${path[dartx.substring](7)}`;
-      } else {
-        path = path[dartx.substring](4);
-        if (dart.notNull(path[dartx.length]) < 3 || path[dartx.codeUnitAt](1) != Uri._COLON || path[dartx.codeUnitAt](2) != Uri._BACKSLASH) {
-          dart.throw(new ArgumentError("Windows paths with \\\\?\\ prefix must be absolute"));
-        }
-      }
-    } else {
-      path = path[dartx.replaceAll]("/", "\\");
-    }
-    let sep = "\\";
-    if (dart.notNull(path[dartx.length]) > 1 && path[dartx.get](1) == ":") {
-      Uri._checkWindowsDriveLetter(path[dartx.codeUnitAt](0), true);
-      if (path[dartx.length] == 2 || path[dartx.codeUnitAt](2) != Uri._BACKSLASH) {
-        dart.throw(new ArgumentError("Windows paths with drive letter must be absolute"));
-      }
-      let pathSegments = path[dartx.split](sep);
-      Uri._checkWindowsPathReservedCharacters(pathSegments, true, 1);
-      return Uri.new({scheme: "file", pathSegments: pathSegments});
-    }
-    if (dart.notNull(path[dartx.length]) > 0 && path[dartx.get](0) == sep) {
-      if (dart.notNull(path[dartx.length]) > 1 && path[dartx.get](1) == sep) {
-        let pathStart = path[dartx.indexOf]("\\", 2);
-        let hostPart = pathStart == -1 ? path[dartx.substring](2) : path[dartx.substring](2, pathStart);
-        let pathPart = pathStart == -1 ? "" : path[dartx.substring](dart.notNull(pathStart) + 1);
-        let pathSegments = pathPart[dartx.split](sep);
-        Uri._checkWindowsPathReservedCharacters(pathSegments, true);
-        return Uri.new({scheme: "file", host: hostPart, pathSegments: pathSegments});
-      } else {
-        let pathSegments = path[dartx.split](sep);
-        Uri._checkWindowsPathReservedCharacters(pathSegments, true);
-        return Uri.new({scheme: "file", pathSegments: pathSegments});
-      }
-    } else {
-      let pathSegments = path[dartx.split](sep);
-      Uri._checkWindowsPathReservedCharacters(pathSegments, true);
-      return Uri.new({pathSegments: pathSegments});
-    }
-  }
-  replace({scheme = null, userInfo = null, host = null, port = null, path = null, pathSegments = null, query = null, queryParameters = null, fragment = null} = {}) {
-    let schemeChanged = false;
-    if (scheme != null) {
-      scheme = Uri._makeScheme(scheme, scheme[dartx.length]);
-      schemeChanged = true;
-    } else {
-      scheme = this.scheme;
-    }
-    let isFile = scheme == "file";
-    if (userInfo != null) {
-      userInfo = Uri._makeUserInfo(userInfo, 0, userInfo[dartx.length]);
-    } else {
-      userInfo = this.userInfo;
-    }
-    if (port != null) {
-      port = Uri._makePort(port, scheme);
-    } else {
-      port = dart.asInt(this[_port]);
-      if (schemeChanged) {
-        port = Uri._makePort(port, scheme);
-      }
-    }
-    if (host != null) {
-      host = Uri._makeHost(host, 0, host[dartx.length], false);
-    } else if (dart.notNull(this.hasAuthority)) {
-      host = this.host;
-    } else if (dart.notNull(userInfo[dartx.isNotEmpty]) || port != null || isFile) {
-      host = "";
-    }
-    let ensureLeadingSlash = host != null;
-    if (path != null || pathSegments != null) {
-      path = Uri._makePath(path, 0, Uri._stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
-    } else {
-      path = this.path;
-      if ((isFile || ensureLeadingSlash && !dart.notNull(path[dartx.isEmpty])) && !dart.notNull(path[dartx.startsWith]('/'))) {
-        path = `/${path}`;
-      }
-    }
-    if (query != null || queryParameters != null) {
-      query = Uri._makeQuery(query, 0, Uri._stringOrNullLength(query), queryParameters);
-    } else if (dart.notNull(this.hasQuery)) {
-      query = this.query;
-    }
-    if (fragment != null) {
-      fragment = Uri._makeFragment(fragment, 0, fragment[dartx.length]);
-    } else if (dart.notNull(this.hasFragment)) {
-      fragment = this.fragment;
-    }
-    return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
-  }
-  get pathSegments() {
-    if (this[_pathSegments] == null) {
-      let pathToSplit = !dart.notNull(this.path[dartx.isEmpty]) && this.path[dartx.codeUnitAt](0) == Uri._SLASH ? this.path[dartx.substring](1) : this.path;
-      this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.list([], String)) : List$(String).from(pathToSplit[dartx.split]("/")[dartx.map](Uri.decodeComponent), {growable: false}));
-    }
-    return this[_pathSegments];
   }
   get queryParameters() {
     if (this[_queryParameters] == null) {
@@ -2605,188 +1645,8 @@ class Uri extends Object {
   static _isGeneralDelimiter(ch) {
     return dart.notNull(ch) <= dart.notNull(Uri._RIGHT_BRACKET) && !dart.equals(dart.dsend(Uri._genDelimitersTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
   }
-  get isAbsolute() {
-    return this.scheme != "" && this.fragment == "";
-  }
-  [_merge](base, reference) {
-    if (dart.notNull(base[dartx.isEmpty])) return `/${reference}`;
-    let backCount = 0;
-    let refStart = 0;
-    while (dart.notNull(reference[dartx.startsWith]("../", refStart))) {
-      refStart = refStart + 3;
-      backCount++;
-    }
-    let baseEnd = base[dartx.lastIndexOf]('/');
-    while (dart.notNull(baseEnd) > 0 && backCount > 0) {
-      let newEnd = base[dartx.lastIndexOf]('/', dart.notNull(baseEnd) - 1);
-      if (dart.notNull(newEnd) < 0) {
-        break;
-      }
-      let delta = dart.notNull(baseEnd) - dart.notNull(newEnd);
-      if ((delta == 2 || delta == 3) && base[dartx.codeUnitAt](dart.notNull(newEnd) + 1) == Uri._DOT && (delta == 2 || base[dartx.codeUnitAt](dart.notNull(newEnd) + 2) == Uri._DOT)) {
-        break;
-      }
-      baseEnd = newEnd;
-      backCount--;
-    }
-    return dart.notNull(base[dartx.substring](0, dart.notNull(baseEnd) + 1)) + dart.notNull(reference[dartx.substring](refStart - 3 * backCount));
-  }
-  [_hasDotSegments](path) {
-    if (dart.notNull(path[dartx.length]) > 0 && path[dartx.codeUnitAt](0) == Uri._DOT) return true;
-    let index = path[dartx.indexOf]("/.");
-    return index != -1;
-  }
-  [_removeDotSegments](path) {
-    if (!dart.notNull(this[_hasDotSegments](path))) return path;
-    let output = dart.list([], String);
-    let appendSlash = false;
-    for (let segment of path[dartx.split]("/")) {
-      appendSlash = false;
-      if (segment == "..") {
-        if (!dart.notNull(output[dartx.isEmpty]) && (output[dartx.length] != 1 || output[dartx.get](0) != "")) output[dartx.removeLast]();
-        appendSlash = true;
-      } else if ("." == segment) {
-        appendSlash = true;
-      } else {
-        output[dartx.add](segment);
-      }
-    }
-    if (appendSlash) output[dartx.add]("");
-    return output[dartx.join]("/");
-  }
-  resolve(reference) {
-    return this.resolveUri(Uri.parse(reference));
-  }
-  resolveUri(reference) {
-    let targetScheme = null;
-    let targetUserInfo = "";
-    let targetHost = null;
-    let targetPort = null;
-    let targetPath = null;
-    let targetQuery = null;
-    if (dart.notNull(reference.scheme[dartx.isNotEmpty])) {
-      targetScheme = reference.scheme;
-      if (dart.notNull(reference.hasAuthority)) {
-        targetUserInfo = reference.userInfo;
-        targetHost = reference.host;
-        targetPort = dart.notNull(reference.hasPort) ? reference.port : null;
-      }
-      targetPath = this[_removeDotSegments](reference.path);
-      if (dart.notNull(reference.hasQuery)) {
-        targetQuery = reference.query;
-      }
-    } else {
-      targetScheme = this.scheme;
-      if (dart.notNull(reference.hasAuthority)) {
-        targetUserInfo = reference.userInfo;
-        targetHost = reference.host;
-        targetPort = Uri._makePort(dart.notNull(reference.hasPort) ? reference.port : null, targetScheme);
-        targetPath = this[_removeDotSegments](reference.path);
-        if (dart.notNull(reference.hasQuery)) targetQuery = reference.query;
-      } else {
-        if (reference.path == "") {
-          targetPath = this[_path];
-          if (dart.notNull(reference.hasQuery)) {
-            targetQuery = reference.query;
-          } else {
-            targetQuery = this[_query];
-          }
-        } else {
-          if (dart.notNull(reference.path[dartx.startsWith]("/"))) {
-            targetPath = this[_removeDotSegments](reference.path);
-          } else {
-            targetPath = this[_removeDotSegments](this[_merge](this[_path], reference.path));
-          }
-          if (dart.notNull(reference.hasQuery)) targetQuery = reference.query;
-        }
-        targetUserInfo = this[_userInfo];
-        targetHost = this[_host];
-        targetPort = dart.asInt(this[_port]);
-      }
-    }
-    let fragment = dart.notNull(reference.hasFragment) ? reference.fragment : null;
-    return new Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
-  }
   get hasAuthority() {
     return this[_host] != null;
-  }
-  get hasPort() {
-    return this[_port] != null;
-  }
-  get hasQuery() {
-    return this[_query] != null;
-  }
-  get hasFragment() {
-    return this[_fragment] != null;
-  }
-  get origin() {
-    if (this.scheme == "" || this[_host] == null || this[_host] == "") {
-      dart.throw(new StateError(`Cannot use origin without a scheme: ${this}`));
-    }
-    if (this.scheme != "http" && this.scheme != "https") {
-      dart.throw(new StateError(`Origin is only applicable schemes http and https: ${this}`));
-    }
-    if (this[_port] == null) return `${this.scheme}://${this[_host]}`;
-    return `${this.scheme}://${this[_host]}:${this[_port]}`;
-  }
-  toFilePath({windows = null} = {}) {
-    if (this.scheme != "" && this.scheme != "file") {
-      dart.throw(new UnsupportedError(`Cannot extract a file path from a ${this.scheme} URI`));
-    }
-    if (this.query != "") {
-      dart.throw(new UnsupportedError("Cannot extract a file path from a URI with a query component"));
-    }
-    if (this.fragment != "") {
-      dart.throw(new UnsupportedError("Cannot extract a file path from a URI with a fragment component"));
-    }
-    if (windows == null) windows = Uri._isWindows;
-    return dart.notNull(windows) ? this[_toWindowsFilePath]() : this[_toFilePath]();
-  }
-  [_toFilePath]() {
-    if (this.host != "") {
-      dart.throw(new UnsupportedError("Cannot extract a non-Windows file path from a file URI " + "with an authority"));
-    }
-    Uri._checkNonWindowsPathReservedCharacters(this.pathSegments, false);
-    let result = new StringBuffer();
-    if (dart.notNull(this[_isPathAbsolute])) result.write("/");
-    result.writeAll(this.pathSegments, "/");
-    return dart.toString(result);
-  }
-  [_toWindowsFilePath]() {
-    let hasDriveLetter = false;
-    let segments = this.pathSegments;
-    if (dart.notNull(segments[dartx.length]) > 0 && segments[dartx.get](0)[dartx.length] == 2 && segments[dartx.get](0)[dartx.codeUnitAt](1) == Uri._COLON) {
-      Uri._checkWindowsDriveLetter(segments[dartx.get](0)[dartx.codeUnitAt](0), false);
-      Uri._checkWindowsPathReservedCharacters(segments, false, 1);
-      hasDriveLetter = true;
-    } else {
-      Uri._checkWindowsPathReservedCharacters(segments, false);
-    }
-    let result = new StringBuffer();
-    if (dart.notNull(this[_isPathAbsolute]) && !hasDriveLetter) result.write("\\");
-    if (this.host != "") {
-      result.write("\\");
-      result.write(this.host);
-      result.write("\\");
-    }
-    result.writeAll(segments, "\\");
-    if (hasDriveLetter && segments[dartx.length] == 1) result.write("\\");
-    return dart.toString(result);
-  }
-  get [_isPathAbsolute]() {
-    if (this.path == null || dart.notNull(this.path[dartx.isEmpty])) return false;
-    return this.path[dartx.startsWith]('/');
-  }
-  [_writeAuthority](ss) {
-    if (dart.notNull(this[_userInfo][dartx.isNotEmpty])) {
-      ss.write(this[_userInfo]);
-      ss.write("@");
-    }
-    if (this[_host] != null) ss.write(this[_host]);
-    if (this[_port] != null) {
-      ss.write(":");
-      ss.write(this[_port]);
-    }
   }
   toString() {
     let sb = new StringBuffer();
@@ -2806,11 +1666,6 @@ class Uri extends Object {
     }
     return dart.toString(sb);
   }
-  ['=='](other) {
-    if (!dart.is(other, Uri)) return false;
-    let uri = dart.as(other, Uri);
-    return this.scheme == uri.scheme && this.hasAuthority == uri.hasAuthority && this.userInfo == uri.userInfo && this.host == uri.host && this.port == uri.port && this.path == uri.path && this.hasQuery == uri.hasQuery && this.query == uri.query && this.hasFragment == uri.hasFragment && this.fragment == uri.fragment;
-  }
   get hashCode() {
     function combine(part, current) {
       return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', dart.hashCode(part)), '&', 1073741823), int);
@@ -2818,44 +1673,8 @@ class Uri extends Object {
     dart.fn(combine, int, [dart.dynamic, dart.dynamic]);
     return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
   }
-  static _addIfNonEmpty(sb, test, first, second) {
-    if ("" != test) {
-      sb.write(first);
-      sb.write(second);
-    }
-  }
-  static encodeComponent(component) {
-    return Uri._uriEncode(dart.as(Uri._unreserved2396Table, List$(int)), component);
-  }
   static encodeQueryComponent(component, {encoding = convert.UTF8} = {}) {
     return Uri._uriEncode(dart.as(Uri._unreservedTable, List$(int)), component, {encoding: encoding, spaceToPlus: true});
-  }
-  static decodeComponent(encodedComponent) {
-    return Uri._uriDecode(encodedComponent);
-  }
-  static decodeQueryComponent(encodedComponent, {encoding = convert.UTF8} = {}) {
-    return Uri._uriDecode(encodedComponent, {plusToSpace: true, encoding: encoding});
-  }
-  static encodeFull(uri) {
-    return Uri._uriEncode(dart.as(Uri._encodeFullTable, List$(int)), uri);
-  }
-  static decodeFull(uri) {
-    return Uri._uriDecode(uri);
-  }
-  static splitQueryString(query, {encoding = convert.UTF8} = {}) {
-    return dart.as(query[dartx.split]("&")[dartx.fold](dart.map(), dart.fn((map, element) => {
-      let index = element[dartx.indexOf]("=");
-      if (index == -1) {
-        if (element != "") {
-          dart.dsetindex(map, Uri.decodeQueryComponent(element, {encoding: encoding}), "");
-        }
-      } else if (index != 0) {
-        let key = element[dartx.substring](0, index);
-        let value = element[dartx.substring](dart.notNull(index) + 1);
-        dart.dsetindex(map, Uri.decodeQueryComponent(key, {encoding: encoding}), Uri.decodeQueryComponent(value, {encoding: encoding}));
-      }
-      return map;
-    }, dart.dynamic, [dart.dynamic, String])), Map$(String, String));
   }
   static parseIPv4Address(host) {
     function error(msg) {
@@ -2987,58 +1806,6 @@ class Uri extends Object {
     }
     return dart.toString(result);
   }
-  static _hexCharPairToByte(s, pos) {
-    let byte = 0;
-    for (let i = 0; i < 2; i++) {
-      let charCode = s[dartx.codeUnitAt](dart.notNull(pos) + i);
-      if (48 <= dart.notNull(charCode) && dart.notNull(charCode) <= 57) {
-        byte = byte * 16 + dart.notNull(charCode) - 48;
-      } else {
-        charCode = dart.notNull(charCode) | 32;
-        if (97 <= dart.notNull(charCode) && dart.notNull(charCode) <= 102) {
-          byte = byte * 16 + dart.notNull(charCode) - 87;
-        } else {
-          dart.throw(new ArgumentError("Invalid URL encoding"));
-        }
-      }
-    }
-    return byte;
-  }
-  static _uriDecode(text, {plusToSpace = false, encoding = convert.UTF8} = {}) {
-    let simple = true;
-    for (let i = 0; i < dart.notNull(text[dartx.length]) && simple; i++) {
-      let codeUnit = text[dartx.codeUnitAt](i);
-      simple = codeUnit != Uri._PERCENT && codeUnit != Uri._PLUS;
-    }
-    let bytes = null;
-    if (simple) {
-      if (dart.equals(encoding, convert.UTF8) || dart.equals(encoding, convert.LATIN1)) {
-        return text;
-      } else {
-        bytes = text[dartx.codeUnits];
-      }
-    } else {
-      bytes = List$(int).new();
-      for (let i = 0; i < dart.notNull(text[dartx.length]); i++) {
-        let codeUnit = text[dartx.codeUnitAt](i);
-        if (dart.notNull(codeUnit) > 127) {
-          dart.throw(new ArgumentError("Illegal percent encoding in URI"));
-        }
-        if (codeUnit == Uri._PERCENT) {
-          if (i + 3 > dart.notNull(text[dartx.length])) {
-            dart.throw(new ArgumentError('Truncated URI'));
-          }
-          bytes[dartx.add](Uri._hexCharPairToByte(text, i + 1));
-          i = i + 2;
-        } else if (dart.notNull(plusToSpace) && codeUnit == Uri._PLUS) {
-          bytes[dartx.add](Uri._SPACE);
-        } else {
-          bytes[dartx.add](codeUnit);
-        }
-      }
-    }
-    return encoding.decode(bytes);
-  }
   static _isAlphabeticCharacter(codeUnit) {
     return dart.notNull(codeUnit) >= dart.notNull(Uri._LOWER_CASE_A) && dart.notNull(codeUnit) <= dart.notNull(Uri._LOWER_CASE_Z) || dart.notNull(codeUnit) >= dart.notNull(Uri._UPPER_CASE_A) && dart.notNull(codeUnit) <= dart.notNull(Uri._UPPER_CASE_Z);
   }
@@ -3047,33 +1814,12 @@ dart.defineNamedConstructor(Uri, '_internal');
 dart.setSignature(Uri, {
   constructors: () => ({
     _internal: [Uri, [String, String, String, num, String, String, String]],
-    new: [Uri, [], {scheme: String, userInfo: String, host: String, port: int, path: String, pathSegments: Iterable$(String), query: String, queryParameters: Map$(String, String), fragment: String}],
-    http: [Uri, [String, String], [Map$(String, String)]],
-    https: [Uri, [String, String], [Map$(String, String)]],
-    file: [Uri, [String], {windows: bool}]
-  }),
-  methods: () => ({
-    replace: [Uri, [], {scheme: String, userInfo: String, host: String, port: int, path: String, pathSegments: Iterable$(String), query: String, queryParameters: Map$(String, String), fragment: String}],
-    [_merge]: [String, [String, String]],
-    [_hasDotSegments]: [bool, [String]],
-    [_removeDotSegments]: [String, [String]],
-    resolve: [Uri, [String]],
-    resolveUri: [Uri, [Uri]],
-    toFilePath: [String, [], {windows: bool}],
-    [_toFilePath]: [String, []],
-    [_toWindowsFilePath]: [String, []],
-    [_writeAuthority]: [dart.void, [StringSink]]
+    new: [Uri, [], {scheme: String, userInfo: String, host: String, port: int, path: String, pathSegments: Iterable$(String), query: String, queryParameters: Map$(String, String), fragment: String}]
   }),
   statics: () => ({
     _defaultPort: [int, [String]],
     parse: [Uri, [String]],
     _fail: [dart.void, [String, int, String]],
-    _makeHttpUri: [Uri, [String, String, String, Map$(String, String)]],
-    _checkNonWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool]],
-    _checkWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool], [int]],
-    _checkWindowsDriveLetter: [dart.dynamic, [int, bool]],
-    _makeFileUri: [dart.dynamic, [String]],
-    _makeWindowsFileUrl: [dart.dynamic, [String]],
     _makePort: [int, [int, String]],
     _makeHost: [String, [String, int, int, bool]],
     _isRegNameChar: [bool, [int]],
@@ -3092,70 +1838,38 @@ dart.setSignature(Uri, {
     _normalize: [String, [String, int, int, List$(int)]],
     _isSchemeCharacter: [bool, [int]],
     _isGeneralDelimiter: [bool, [int]],
-    _addIfNonEmpty: [dart.void, [StringBuffer, String, String, String]],
-    encodeComponent: [String, [String]],
     encodeQueryComponent: [String, [String], {encoding: convert.Encoding}],
-    decodeComponent: [String, [String]],
-    decodeQueryComponent: [String, [String], {encoding: convert.Encoding}],
-    encodeFull: [String, [String]],
-    decodeFull: [String, [String]],
-    splitQueryString: [Map$(String, String), [String], {encoding: convert.Encoding}],
     parseIPv4Address: [List$(int), [String]],
     parseIPv6Address: [List$(int), [String], [int, int]],
     _uriEncode: [String, [List$(int), String], {encoding: convert.Encoding, spaceToPlus: bool}],
-    _hexCharPairToByte: [int, [String, int]],
-    _uriDecode: [String, [String], {plusToSpace: bool, encoding: convert.Encoding}],
     _isAlphabeticCharacter: [bool, [int]]
   }),
-  names: ['_defaultPort', 'parse', '_fail', '_makeHttpUri', '_checkNonWindowsPathReservedCharacters', '_checkWindowsPathReservedCharacters', '_checkWindowsDriveLetter', '_makeFileUri', '_makeWindowsFileUrl', '_makePort', '_makeHost', '_isRegNameChar', '_normalizeRegName', '_makeScheme', '_makeUserInfo', '_makePath', '_makeQuery', '_makeFragment', '_stringOrNullLength', '_isHexDigit', '_hexValue', '_normalizeEscape', '_isUnreservedChar', '_escapeChar', '_normalize', '_isSchemeCharacter', '_isGeneralDelimiter', '_addIfNonEmpty', 'encodeComponent', 'encodeQueryComponent', 'decodeComponent', 'decodeQueryComponent', 'encodeFull', 'decodeFull', 'splitQueryString', 'parseIPv4Address', 'parseIPv6Address', '_uriEncode', '_hexCharPairToByte', '_uriDecode', '_isAlphabeticCharacter']
+  names: ['_defaultPort', 'parse', '_fail', '_makePort', '_makeHost', '_isRegNameChar', '_normalizeRegName', '_makeScheme', '_makeUserInfo', '_makePath', '_makeQuery', '_makeFragment', '_stringOrNullLength', '_isHexDigit', '_hexValue', '_normalizeEscape', '_isUnreservedChar', '_escapeChar', '_normalize', '_isSchemeCharacter', '_isGeneralDelimiter', 'encodeQueryComponent', 'parseIPv4Address', 'parseIPv6Address', '_uriEncode', '_isAlphabeticCharacter']
 });
 Uri._SPACE = 32;
-Uri._DOUBLE_QUOTE = 34;
-Uri._NUMBER_SIGN = 35;
 Uri._PERCENT = 37;
-Uri._ASTERISK = 42;
 Uri._PLUS = 43;
-Uri._DOT = 46;
 Uri._SLASH = 47;
 Uri._ZERO = 48;
 Uri._NINE = 57;
 Uri._COLON = 58;
-Uri._LESS = 60;
-Uri._GREATER = 62;
-Uri._QUESTION = 63;
-Uri._AT_SIGN = 64;
 Uri._UPPER_CASE_A = 65;
-Uri._UPPER_CASE_F = 70;
 Uri._UPPER_CASE_Z = 90;
 Uri._LEFT_BRACKET = 91;
-Uri._BACKSLASH = 92;
 Uri._RIGHT_BRACKET = 93;
 Uri._LOWER_CASE_A = 97;
 Uri._LOWER_CASE_F = 102;
 Uri._LOWER_CASE_Z = 122;
-Uri._BAR = 124;
 Uri._unreservedTable = dart.const([0, 0, 24576, 1023, 65534, 34815, 65534, 18431]);
-Uri._unreserved2396Table = dart.const([0, 0, 26498, 1023, 65534, 34815, 65534, 18431]);
-Uri._encodeFullTable = dart.const([0, 0, 65498, 45055, 65535, 34815, 65534, 18431]);
 Uri._schemeTable = dart.const([0, 0, 26624, 1023, 65534, 2047, 65534, 2047]);
-Uri._schemeLowerTable = dart.const([0, 0, 26624, 1023, 0, 0, 65534, 2047]);
-Uri._subDelimitersTable = dart.const([0, 0, 32722, 11263, 65534, 34815, 65534, 18431]);
 Uri._genDelimitersTable = dart.const([0, 0, 32776, 33792, 1, 10240, 0, 0]);
 Uri._userinfoTable = dart.const([0, 0, 32722, 12287, 65534, 34815, 65534, 18431]);
 Uri._regNameTable = dart.const([0, 0, 32754, 11263, 65534, 34815, 65534, 18431]);
 Uri._pathCharTable = dart.const([0, 0, 32722, 12287, 65535, 34815, 65534, 18431]);
 Uri._pathCharOrSlashTable = dart.const([0, 0, 65490, 12287, 65535, 34815, 65534, 18431]);
 Uri._queryCharTable = dart.const([0, 0, 65490, 45055, 65535, 34815, 65534, 18431]);
-function _symbolToString(symbol) {
-  return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
-}
-dart.fn(_symbolToString, String, [Symbol]);
 // Exports:
 exports.Object = Object;
-exports.Deprecated = Deprecated;
-exports.deprecated = deprecated;
-exports.override = override;
-exports.proxy = proxy;
 exports.bool = bool;
 exports.Comparator$ = Comparator$;
 exports.Comparator = Comparator;
@@ -3167,25 +1881,17 @@ exports.double = double;
 exports.Duration = Duration;
 exports.Error = Error;
 exports.AssertionError = AssertionError;
-exports.TypeError = TypeError;
 exports.CastError = CastError;
 exports.NullThrownError = NullThrownError;
 exports.ArgumentError = ArgumentError;
 exports.RangeError = RangeError;
 exports.IndexError = IndexError;
-exports.FallThroughError = FallThroughError;
-exports.AbstractClassInstantiationError = AbstractClassInstantiationError;
 exports.NoSuchMethodError = NoSuchMethodError;
 exports.UnsupportedError = UnsupportedError;
-exports.UnimplementedError = UnimplementedError;
 exports.StateError = StateError;
 exports.ConcurrentModificationError = ConcurrentModificationError;
-exports.OutOfMemoryError = OutOfMemoryError;
-exports.StackOverflowError = StackOverflowError;
-exports.CyclicInitializationError = CyclicInitializationError;
 exports.Exception = Exception;
 exports.FormatException = FormatException;
-exports.IntegerDivisionByZeroException = IntegerDivisionByZeroException;
 exports.Expando$ = Expando$;
 exports.Expando = Expando;
 exports.Function = Function;

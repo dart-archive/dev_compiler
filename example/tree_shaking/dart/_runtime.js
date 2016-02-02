@@ -234,8 +234,6 @@ function throwAssertionError() {
 function throwNullValueError() {
   throw_(new core.NoSuchMethodError(null, new core.Symbol('<Unexpected Null Value>'), null, null, null));
 }
-const _jsIterator = Symbol("_jsIterator");
-const _current = Symbol("_current");
 function syncStar(gen, E, ...args) {
   const SyncIterable_E = getGenericClass(_js_helper.SyncIterable)(E);
   return new SyncIterable_E(gen, args);

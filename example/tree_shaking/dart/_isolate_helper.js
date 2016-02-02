@@ -150,9 +150,6 @@ class _Serializer extends core.Object {
     }
     return ['raw sendport', x];
   }
-  serializeCapability(x) {
-    return ['capability', x[_id]];
-  }
   serializeClosure(x) {
     let name = IsolateNatives._getJSFunctionName(x);
     if (name == null) {
@@ -185,7 +182,6 @@ dart.setSignature(_Serializer, {
     serializeJSObject: [dart.dynamic, [_interceptors.JSObject]],
     serializeWorkerSendPort: [dart.dynamic, [_WorkerSendPort]],
     serializeJsSendPort: [dart.dynamic, [_NativeJsSendPort]],
-    serializeCapability: [dart.dynamic, [CapabilityImpl]],
     serializeClosure: [dart.dynamic, [core.Function]],
     serializeDartObject: [dart.dynamic, [dart.dynamic]]
   })
@@ -400,12 +396,6 @@ dart.setSignature(_Deserializer, {
   })
 });
 const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-function _callInIsolate(isolate, func) {
-  let result = isolate.eval(func);
-  exports._globalState.topEventLoop.run();
-  return result;
-}
-dart.fn(_callInIsolate, () => dart.definiteFunctionType(dart.dynamic, [_IsolateContext, core.Function]));
 const _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
 function enterJsAsync() {
   let o = exports._globalState.topEventLoop;
@@ -418,14 +408,6 @@ function leaveJsAsync() {
   dart.assert(dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) >= 0);
 }
 dart.fn(leaveJsAsync);
-function isWorker() {
-  return exports._globalState.isWorker;
-}
-dart.fn(isWorker, core.bool, []);
-function _currentIsolate() {
-  return exports._globalState.currentContext;
-}
-dart.fn(_currentIsolate, () => dart.definiteFunctionType(_IsolateContext, []));
 function startRootIsolate(entry, args) {
   args = args;
   if (args == null) args = [];
@@ -568,74 +550,6 @@ class _IsolateContext extends core.Object {
     }
     this[_updateGlobalState]();
   }
-  removePause(resume) {
-    if (!dart.notNull(this.isPaused)) return;
-    this.pauseTokens.remove(resume);
-    if (dart.notNull(this.pauseTokens.isEmpty)) {
-      while (dart.notNull(this.delayedEvents[dartx.isNotEmpty])) {
-        let event = this.delayedEvents[dartx.removeLast]();
-        exports._globalState.topEventLoop.prequeue(event);
-      }
-      this.isPaused = false;
-    }
-    this[_updateGlobalState]();
-  }
-  addDoneListener(responsePort) {
-    if (this.doneHandlers == null) {
-      this.doneHandlers = [];
-    }
-    if (dart.notNull(dart.as(dart.dsend(this.doneHandlers, 'contains', responsePort), core.bool))) return;
-    dart.dsend(this.doneHandlers, 'add', responsePort);
-  }
-  removeDoneListener(responsePort) {
-    if (this.doneHandlers == null) return;
-    dart.dsend(this.doneHandlers, 'remove', responsePort);
-  }
-  setErrorsFatal(authentification, errorsAreFatal) {
-    if (!dart.equals(this.terminateCapability, authentification)) return;
-    this.errorsAreFatal = errorsAreFatal;
-  }
-  handlePing(responsePort, pingType) {
-    if (pingType == isolate.Isolate.IMMEDIATE || pingType == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
-      responsePort.send(null);
-      return;
-    }
-    function respond() {
-      responsePort.send(null);
-    }
-    dart.fn(respond, dart.void, []);
-    if (pingType == isolate.Isolate.AS_EVENT) {
-      exports._globalState.topEventLoop.enqueue(this, respond, "ping");
-      return;
-    }
-    dart.assert(pingType == isolate.Isolate.BEFORE_NEXT_EVENT);
-    if (this[_scheduledControlEvents] == null) {
-      this[_scheduledControlEvents] = collection.Queue.new();
-    }
-    dart.dsend(this[_scheduledControlEvents], 'addLast', respond);
-  }
-  handleKill(authentification, priority) {
-    if (!dart.equals(this.terminateCapability, authentification)) return;
-    if (priority == isolate.Isolate.IMMEDIATE || priority == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
-      this.kill();
-      return;
-    }
-    if (priority == isolate.Isolate.AS_EVENT) {
-      exports._globalState.topEventLoop.enqueue(this, dart.bind(this, 'kill'), "kill");
-      return;
-    }
-    dart.assert(priority == isolate.Isolate.BEFORE_NEXT_EVENT);
-    if (this[_scheduledControlEvents] == null) {
-      this[_scheduledControlEvents] = collection.Queue.new();
-    }
-    dart.dsend(this[_scheduledControlEvents], 'addLast', dart.bind(this, 'kill'));
-  }
-  addErrorListener(port) {
-    this.errorPorts.add(port);
-  }
-  removeErrorListener(port) {
-    this.errorPorts.remove(port);
-  }
   handleUncaughtError(error, stackTrace) {
     if (dart.notNull(this.errorPorts.isEmpty)) {
       if (dart.notNull(this.errorsAreFatal) && dart.notNull(core.identical(this, exports._globalState.rootContext))) {
@@ -688,56 +602,6 @@ class _IsolateContext extends core.Object {
   [_setGlobals]() {
     _foreign_helper.JS_SET_CURRENT_ISOLATE(this.isolateStatics);
   }
-  handleControlMessage(message) {
-    switch (dart.dindex(message, 0)) {
-      case "pause":
-      {
-        this.addPause(dart.as(dart.dindex(message, 1), isolate.Capability), dart.as(dart.dindex(message, 2), isolate.Capability));
-        break;
-      }
-      case "resume":
-      {
-        this.removePause(dart.as(dart.dindex(message, 1), isolate.Capability));
-        break;
-      }
-      case 'add-ondone':
-      {
-        this.addDoneListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
-        break;
-      }
-      case 'remove-ondone':
-      {
-        this.removeDoneListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
-        break;
-      }
-      case 'set-errors-fatal':
-      {
-        this.setErrorsFatal(dart.as(dart.dindex(message, 1), isolate.Capability), dart.as(dart.dindex(message, 2), core.bool));
-        break;
-      }
-      case "ping":
-      {
-        this.handlePing(dart.as(dart.dindex(message, 1), isolate.SendPort), dart.as(dart.dindex(message, 2), core.int));
-        break;
-      }
-      case "kill":
-      {
-        this.handleKill(dart.as(dart.dindex(message, 1), isolate.Capability), dart.as(dart.dindex(message, 2), core.int));
-        break;
-      }
-      case "getErrors":
-      {
-        this.addErrorListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
-        break;
-      }
-      case "stopErrors":
-      {
-        this.removeErrorListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
-        break;
-      }
-      default:
-    }
-  }
   lookup(portId) {
     return this.ports.get(portId);
   }
@@ -780,36 +644,21 @@ class _IsolateContext extends core.Object {
       this.doneHandlers = null;
     }
   }
-  unregister(portId) {
-    this.ports.remove(portId);
-    this.weakPorts.remove(portId);
-    this[_updateGlobalState]();
-  }
 }
 _IsolateContext[dart.implements] = () => [_foreign_helper.IsolateContext];
 dart.setSignature(_IsolateContext, {
   constructors: () => ({_IsolateContext: [_IsolateContext, []]}),
   methods: () => ({
     addPause: [dart.void, [isolate.Capability, isolate.Capability]],
-    removePause: [dart.void, [isolate.Capability]],
-    addDoneListener: [dart.void, [isolate.SendPort]],
-    removeDoneListener: [dart.void, [isolate.SendPort]],
-    setErrorsFatal: [dart.void, [isolate.Capability, core.bool]],
-    handlePing: [dart.void, [isolate.SendPort, core.int]],
-    handleKill: [dart.void, [isolate.Capability, core.int]],
-    addErrorListener: [dart.void, [isolate.SendPort]],
-    removeErrorListener: [dart.void, [isolate.SendPort]],
     handleUncaughtError: [dart.void, [dart.dynamic, core.StackTrace]],
     eval: [dart.dynamic, [core.Function]],
     [_setGlobals]: [dart.void, []],
-    handleControlMessage: [dart.void, [dart.dynamic]],
     lookup: [RawReceivePortImpl, [core.int]],
     [_addRegistration]: [dart.void, [core.int, RawReceivePortImpl]],
     register: [dart.void, [core.int, RawReceivePortImpl]],
     registerWeak: [dart.void, [core.int, RawReceivePortImpl]],
     [_updateGlobalState]: [dart.void, []],
-    kill: [dart.void, []],
-    unregister: [dart.void, [core.int]]
+    kill: [dart.void, []]
   })
 });
 const _runHelper = Symbol('_runHelper');
@@ -820,9 +669,6 @@ class _EventLoop extends core.Object {
   }
   enqueue(isolate, fn, msg) {
     this.events.addLast(new _IsolateEvent(dart.as(isolate, _IsolateContext), dart.as(fn, core.Function), dart.as(msg, core.String)));
-  }
-  prequeue(event) {
-    this.events.addFirst(event);
   }
   dequeue() {
     if (dart.notNull(this.events.isEmpty)) return null;
@@ -874,7 +720,6 @@ dart.setSignature(_EventLoop, {
   constructors: () => ({_EventLoop: [_EventLoop, []]}),
   methods: () => ({
     enqueue: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
-    prequeue: [dart.void, [_IsolateEvent]],
     dequeue: [_IsolateEvent, []],
     checkOpenReceivePortsFromCommandLine: [dart.void, []],
     runIteration: [core.bool, []],
@@ -1062,9 +907,6 @@ class IsolateNatives extends core.Object {
   static _getJSFunctionName(f) {
     return dart.as(f.$name, core.String);
   }
-  static _allocate(ctor) {
-    return new ctor();
-  }
   static spawnFunction(topLevelFunction, message, startPaused) {
     IsolateNatives.enableSpawnWorker = true;
     let name = IsolateNatives._getJSFunctionName(topLevelFunction);
@@ -1074,12 +916,6 @@ class IsolateNatives extends core.Object {
     let isLight = false;
     let isSpawnUri = false;
     return IsolateNatives.spawn(name, null, null, message, isLight, isSpawnUri, startPaused);
-  }
-  static spawnUri(uri, args, message, startPaused) {
-    IsolateNatives.enableSpawnWorker = true;
-    let isLight = false;
-    let isSpawnUri = true;
-    return IsolateNatives.spawn(null, dart.toString(uri), args, message, isLight, isSpawnUri, startPaused);
   }
   static spawn(functionName, uri, args, message, isLight, isSpawnUri, startPaused) {
     if (uri != null && dart.notNull(uri[dartx.endsWith](".dart"))) {
@@ -1121,10 +957,6 @@ class IsolateNatives extends core.Object {
       let func = IsolateNatives._getJSFunctionFromName(functionName);
       IsolateNatives._startIsolate(dart.as(func, core.Function), args, message, isSpawnUri, startPaused, replyPort);
     }), 'nonworker start');
-  }
-  static get currentIsolate() {
-    let context = dart.as(_foreign_helper.JS_CURRENT_ISOLATE_CONTEXT(), _IsolateContext);
-    return new isolate.Isolate(context.controlPort.sendPort, {pauseCapability: context.pauseCapability, terminateCapability: context.terminateCapability});
   }
   static _startIsolate(topLevel, args, message, isSpawnUri, startPaused, replyTo) {
     let context = dart.as(_foreign_helper.JS_CURRENT_ISOLATE_CONTEXT(), _IsolateContext);
@@ -1198,9 +1030,7 @@ dart.setSignature(IsolateNatives, {
     _consoleLog: [dart.void, [dart.dynamic]],
     _getJSFunctionFromName: [dart.dynamic, [core.String]],
     _getJSFunctionName: [core.String, [core.Function]],
-    _allocate: [dart.dynamic, [dart.dynamic]],
     spawnFunction: [async.Future$(core.List), [dart.functionType(dart.void, [dart.dynamic]), dart.dynamic, core.bool]],
-    spawnUri: [async.Future$(core.List), [core.Uri, core.List$(core.String), dart.dynamic, core.bool]],
     spawn: [async.Future$(core.List), [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, core.bool]],
     _startWorker: [dart.void, [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
     _startNonWorker: [dart.void, [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort]],
@@ -1208,7 +1038,7 @@ dart.setSignature(IsolateNatives, {
     _spawnWorker: [dart.void, [dart.dynamic, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
     workerOnError: [core.bool, [dart.dynamic, core.String, dart.functionType(dart.void, [core.String])]]
   }),
-  names: ['computeThisScript', 'computeThisScriptJsshell', 'computeThisScriptD8', 'computeThisScriptFromTrace', '_getEventData', '_processWorkerMessage', 'handleSpawnWorkerRequest', '_log', '_consoleLog', '_getJSFunctionFromName', '_getJSFunctionName', '_allocate', 'spawnFunction', 'spawnUri', 'spawn', '_startWorker', '_startNonWorker', '_startIsolate', '_spawnWorker', 'workerOnError']
+  names: ['computeThisScript', 'computeThisScriptJsshell', 'computeThisScriptD8', 'computeThisScriptFromTrace', '_getEventData', '_processWorkerMessage', 'handleSpawnWorkerRequest', '_log', '_consoleLog', '_getJSFunctionFromName', '_getJSFunctionName', 'spawnFunction', 'spawn', '_startWorker', '_startNonWorker', '_startIsolate', '_spawnWorker', 'workerOnError']
 });
 IsolateNatives.enableSpawnWorker = null;
 dart.defineLazyProperties(IsolateNatives, {
@@ -1220,21 +1050,14 @@ dart.defineLazyProperties(IsolateNatives, {
     return new (core.Expando$(core.int))();
   }
 });
-const _checkReplyTo = Symbol('_checkReplyTo');
 class _BaseSendPort extends core.Object {
   _BaseSendPort(isolateId) {
     this[_isolateId] = isolateId;
   }
-  [_checkReplyTo](replyTo) {
-    if (replyTo != null && !dart.is(replyTo, _NativeJsSendPort) && !dart.is(replyTo, _WorkerSendPort)) {
-      dart.throw(core.Exception.new("SendPort.send: Illegal replyTo port type"));
-    }
-  }
 }
 _BaseSendPort[dart.implements] = () => [isolate.SendPort];
 dart.setSignature(_BaseSendPort, {
-  constructors: () => ({_BaseSendPort: [_BaseSendPort, [core.int]]}),
-  methods: () => ({[_checkReplyTo]: [dart.void, [isolate.SendPort]]})
+  constructors: () => ({_BaseSendPort: [_BaseSendPort, [core.int]]})
 });
 const _isClosed = Symbol('_isClosed');
 const _add = Symbol('_add');
@@ -1257,9 +1080,6 @@ class _NativeJsSendPort extends _BaseSendPort {
         this[_receivePort][_add](msg);
       }
     }).bind(this)), `receive ${message}`);
-  }
-  ['=='](other) {
-    return dart.is(other, _NativeJsSendPort) && dart.equals(this[_receivePort], other[_receivePort]);
   }
   get hashCode() {
     return this[_receivePort][_id];
@@ -1287,9 +1107,6 @@ class _WorkerSendPort extends _BaseSendPort {
       }
     }
   }
-  ['=='](other) {
-    return dart.is(other, _WorkerSendPort) && this[_workerId] == other[_workerId] && this[_isolateId] == other[_isolateId] && this[_receivePortId] == other[_receivePortId];
-  }
   get hashCode() {
     return dart.notNull(this[_workerId]) << 16 ^ dart.notNull(this[_isolateId]) << 8 ^ dart.notNull(this[_receivePortId]);
   }
@@ -1311,16 +1128,6 @@ class RawReceivePortImpl extends core.Object {
     this[_isClosed] = false;
     exports._globalState.currentContext.register(this[_id], this);
   }
-  weak(handler) {
-    this[_handler] = handler;
-    this[_id] = (() => {
-      let x = RawReceivePortImpl._nextFreeId;
-      RawReceivePortImpl._nextFreeId = dart.notNull(x) + 1;
-      return x;
-    })();
-    this[_isClosed] = false;
-    exports._globalState.currentContext.registerWeak(this[_id], this);
-  }
   _controlPort() {
     this[_handler] = null;
     this[_id] = 0;
@@ -1339,27 +1146,20 @@ class RawReceivePortImpl extends core.Object {
     this[_handler] = null;
     exports._globalState.currentContext.unregister(this[_id]);
   }
-  [_add](dataEvent) {
-    if (dart.notNull(this[_isClosed])) return;
-    dart.dcall(this[_handler], dataEvent);
-  }
   get sendPort() {
     return new _NativeJsSendPort(this, exports._globalState.currentContext.id);
   }
 }
 RawReceivePortImpl[dart.implements] = () => [isolate.RawReceivePort];
-dart.defineNamedConstructor(RawReceivePortImpl, 'weak');
 dart.defineNamedConstructor(RawReceivePortImpl, '_controlPort');
 dart.setSignature(RawReceivePortImpl, {
   constructors: () => ({
     RawReceivePortImpl: [RawReceivePortImpl, [core.Function]],
-    weak: [RawReceivePortImpl, [core.Function]],
     _controlPort: [RawReceivePortImpl, []]
   }),
   methods: () => ({
     [_close]: [dart.void, []],
-    close: [dart.void, []],
-    [_add]: [dart.void, [dart.dynamic]]
+    close: [dart.void, []]
   })
 });
 RawReceivePortImpl._nextFreeId = 1;
@@ -1368,9 +1168,6 @@ const _controller = Symbol('_controller');
 class ReceivePortImpl extends async.Stream {
   ReceivePortImpl() {
     this.fromRawReceivePort(new RawReceivePortImpl(null));
-  }
-  weak() {
-    this.fromRawReceivePort(new RawReceivePortImpl.weak(null));
   }
   fromRawReceivePort(rawPort) {
     this[_rawPort] = rawPort;
@@ -1391,12 +1188,10 @@ class ReceivePortImpl extends async.Stream {
   }
 }
 ReceivePortImpl[dart.implements] = () => [isolate.ReceivePort];
-dart.defineNamedConstructor(ReceivePortImpl, 'weak');
 dart.defineNamedConstructor(ReceivePortImpl, 'fromRawReceivePort');
 dart.setSignature(ReceivePortImpl, {
   constructors: () => ({
     ReceivePortImpl: [ReceivePortImpl, []],
-    weak: [ReceivePortImpl, []],
     fromRawReceivePort: [ReceivePortImpl, [isolate.RawReceivePort]]
   }),
   methods: () => ({
@@ -1435,19 +1230,6 @@ class TimerImpl extends core.Object {
       dart.throw(new core.UnsupportedError("Timer greater than 0."));
     }
   }
-  periodic(milliseconds, callback) {
-    this[_once] = false;
-    this[_inEventLoop] = false;
-    this[_handle] = null;
-    if (dart.notNull(hasTimer())) {
-      enterJsAsync();
-      this[_handle] = self.setInterval(dart.fn((() => {
-        callback(this);
-      }).bind(this)), milliseconds);
-    } else {
-      dart.throw(new core.UnsupportedError("Periodic timer."));
-    }
-  }
   cancel() {
     if (dart.notNull(hasTimer())) {
       if (dart.notNull(this[_inEventLoop])) {
@@ -1465,17 +1247,10 @@ class TimerImpl extends core.Object {
       dart.throw(new core.UnsupportedError("Canceling a timer."));
     }
   }
-  get isActive() {
-    return this[_handle] != null;
-  }
 }
 TimerImpl[dart.implements] = () => [async.Timer];
-dart.defineNamedConstructor(TimerImpl, 'periodic');
 dart.setSignature(TimerImpl, {
-  constructors: () => ({
-    TimerImpl: [TimerImpl, [core.int, dart.functionType(dart.void, [])]],
-    periodic: [TimerImpl, [core.int, dart.functionType(dart.void, [async.Timer])]]
-  }),
+  constructors: () => ({TimerImpl: [TimerImpl, [core.int, dart.functionType(dart.void, [])]]}),
   methods: () => ({cancel: [dart.void, []]})
 });
 function hasTimer() {
@@ -1500,13 +1275,6 @@ class CapabilityImpl extends core.Object {
     hash = dart.notNull(hash) ^ dart.notNull(hash) >> 16;
     return hash;
   }
-  ['=='](other) {
-    if (dart.notNull(core.identical(other, this))) return true;
-    if (dart.is(other, CapabilityImpl)) {
-      return core.identical(this[_id], other[_id]);
-    }
-    return false;
-  }
 }
 CapabilityImpl[dart.implements] = () => [isolate.Capability];
 dart.defineNamedConstructor(CapabilityImpl, '_internal');
@@ -1514,13 +1282,11 @@ dart.setSignature(CapabilityImpl, {
   constructors: () => ({
     CapabilityImpl: [CapabilityImpl, []],
     _internal: [CapabilityImpl, [core.int]]
-  }),
-  methods: () => ({'==': [core.bool, [core.Object]]})
+  })
 });
 // Exports:
 exports.enterJsAsync = enterJsAsync;
 exports.leaveJsAsync = leaveJsAsync;
-exports.isWorker = isWorker;
 exports.startRootIsolate = startRootIsolate;
 exports.IsolateNatives = IsolateNatives;
 exports.RawReceivePortImpl = RawReceivePortImpl;

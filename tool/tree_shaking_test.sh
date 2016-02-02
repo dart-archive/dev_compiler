@@ -5,8 +5,8 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 [[ -d example/tree_shaking ]] || mkdir -p example/tree_shaking
 
-# --tree-shaking=all \
 ./tool/build_sdk.sh \
+  --tree-shaking=all \
   --destructure-named-params \
   --modules=node \
   -o example/tree_shaking \
