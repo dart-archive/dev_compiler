@@ -736,6 +736,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // Named constructors
     for (ConstructorDeclaration member in ctors) {
+      if (!_isReachable(member.element)) continue;
       if (member.name != null && member.factoryKeyword == null) {
         body.add(js.statement('dart.defineNamedConstructor(#, #);',
             [name, _emitMemberName(member.name.name, isStatic: true)]));
@@ -760,6 +761,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       var tMethods = <JS.Property>[];
       var sNames = <JS.Expression>[];
       for (MethodDeclaration node in methods) {
+        if (!_isReachable(node.element)) continue;
         if (!(node.isSetter || node.isGetter || node.isAbstract)) {
           var name = node.name.name;
           var element = node.element;
@@ -784,6 +786,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
       var tCtors = <JS.Property>[];
       for (ConstructorDeclaration node in ctors) {
+        if (!_isReachable(node.element)) continue;
         var memberName = _constructorName(node.element);
         var element = node.element;
         var parts = _emitFunctionTypeParts(element.type, node.parameters);
@@ -3570,22 +3573,50 @@ class JSGenerator extends CodeGenerator {
   }
 
   void scanLibrary(LibraryUnit unit, {bool isMain}) {
-    bool isPublic(String name) => !name.startsWith('_');
-    // bool isRoot()
-    stderr.writeln("Scanning: ${unit}");
+    var isMainOrSdk = isMain || unit.library.element.source.isInSystemLibrary;
+
     unit.libraryThenParts.forEach((u) => u.accept(_usageVisitor));
-    unit.libraryThenParts.forEach((u) {
-      for (var d in u.declarations) {
-        var e = d.element;
-        if (e == null) continue;
-        if (isPublic(e.name) //||
-            // d is FunctionDeclaration && d.name == 'main'
-          ) {
-          stderr.writeln("ADDING ROOT: ${e.name}");
-          _roots.add(e);
+
+    if (isMainOrSdk) {
+      unit.libraryThenParts.forEach((u) {
+        for (var d in u.declarations) {
+          if (d is TopLevelVariableDeclaration) {
+            d.variables.variables.forEach((v) => _addRoot(v.element));
+          } else {
+            _addRoot(d.element);
+          }
+        }
+      });
+    }
+  }
+  bool _isPublic(String name) => !name.startsWith('_');
+
+  _addRoot(Element e) {
+    if (e != null) {
+      for (var m in _getPublicElements(e)) {
+        // stderr.writeln("ADDING ROOT: ${m.name}");
+        _roots.add(m);
+      }
+    }
+  }
+  Iterable<Element> _getPublicElements(Element e) sync* {
+    if (_isPublic(e.name)) {
+      yield e;
+      if (e is PropertyInducingElement) {
+        if (e.getter != null) yield e.getter;
+        if (e.setter != null) yield e.setter;
+      } else if (e is ClassElement) {
+        for (var m in e.constructors) {
+          if (_isPublic(m.name)) yield m;
+        }
+        for (var m in e.methods) {
+          if (_isPublic(m.name)) yield m;
+        }
+        for (var m in e.fields) {
+          yield* _getPublicElements(m);
         }
       }
-    });
+    }
   }
 
   String generateLibrary(LibraryUnit unit) {

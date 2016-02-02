@@ -148,7 +148,7 @@ class BatchCompiler extends AbstractCompiler {
     if (AnalysisEngine.isHtmlFileName(source.uri.path)) {
       _compileHtml(source, notifier);
     } else {
-      _compileLibrary(context.computeLibraryElement(source), notifier);
+      _compileLibrary(context.computeLibraryElement(source), notifier, isMain: true);
     }
     _processPending();
     reporter.flush();
@@ -159,8 +159,8 @@ class BatchCompiler extends AbstractCompiler {
     // to ensure reverse post-order.  This will ensure that we handle back
     // edges from the original depth-first search correctly.
 
-    for (var unit in _pendingLibraries) {
-      _jsGen.scanLibrary(unit, isMain: false); // TODO
+    for (var libUnit in _pendingLibraries) {
+      _jsGen.scanLibrary(libUnit, isMain: _mainLibs.contains(libUnit));
     }
     while (_pendingLibraries.isNotEmpty) {
       var unit = _pendingLibraries.removeLast();
@@ -189,7 +189,8 @@ class BatchCompiler extends AbstractCompiler {
     }
   }
 
-  bool _compileLibrary(LibraryElement library, CompilationNotifier notifier) {
+  final _mainLibs = <LibraryUnit>[];
+  bool _compileLibrary(LibraryElement library, CompilationNotifier notifier, {bool isMain : false}) {
     var success = _compilationRecord[library];
     if (success != null) {
       if (!success) _failure = true;
@@ -249,7 +250,9 @@ class BatchCompiler extends AbstractCompiler {
     if (success || options.codegenOptions.forceCompile) {
       var unit = units.first;
       var parts = units.skip(1).toList();
-      _pendingLibraries.add(new LibraryUnit(unit, parts));
+      var libUnit = new LibraryUnit(unit, parts);
+      if (isMain) _mainLibs.add(libUnit);
+      _pendingLibraries.add(libUnit);
     }
 
     // Return tentative success status.
@@ -302,7 +305,7 @@ class BatchCompiler extends AbstractCompiler {
 
       if (scriptSource != null) {
         var lib = context.computeLibraryElement(scriptSource);
-        _compileLibrary(lib, notifier);
+        _compileLibrary(lib, notifier, isMain: true);
         script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
       }
     }

@@ -12,13 +12,15 @@ dart_library.library('tree_shaking', null, /* Imports */[
   exports._keep3 = null;
   exports._keep4 = 0;
   const _keep5 = 0;
-  const _keep1 = Symbol('_keep1');
+  const _keepMethod2 = Symbol('_keepMethod2');
   class _Foo extends core.Object {
     _Foo() {
     }
     keep() {
     }
-    [_keep1]() {}
+    keepMethod1() {}
+    [_keepMethod2]() {}
+    static _keepStaticMethod1() {}
   }
   dart.defineNamedConstructor(_Foo, 'keep');
   dart.setSignature(_Foo, {
@@ -26,9 +28,20 @@ dart_library.library('tree_shaking', null, /* Imports */[
       _Foo: [_Foo, []],
       keep: [_Foo, []]
     }),
-    methods: () => ({[_keep1]: [dart.dynamic, []]})
+    methods: () => ({
+      keepMethod1: [dart.dynamic, []],
+      [_keepMethod2]: [dart.dynamic, []]
+    }),
+    statics: () => ({_keepStaticMethod1: [dart.dynamic, []]}),
+    names: ['_keepStaticMethod1']
   });
-  function main() {
+  class _Bar extends core.Object {
+    keepMethod1() {}
+  }
+  dart.setSignature(_Bar, {
+    methods: () => ({keepMethod1: [dart.dynamic, []]})
+  });
+  function _testRefs(args) {
     new _Keep1();
     _keep2();
     exports._keep3;
@@ -36,7 +49,57 @@ dart_library.library('tree_shaking', null, /* Imports */[
     _keep5;
     let foo = new _Foo();
     foo = new _Foo.keep();
-    foo[_keep1]();
+    foo.keepMethod1();
+    foo[_keepMethod2]();
+    let fooBar = dart.equals(dart.dload(args, 'length'), 1) ? new _Foo() : new _Bar();
+    dart.dsend(fooBar, 'keepMethod1');
+    _Foo._keepStaticMethod1();
+  }
+  dart.fn(_testRefs);
+  class _Base extends core.Object {
+    _() {
+    }
+    kept() {
+      this._();
+    }
+    report() {
+      this.measure();
+    }
+    measure() {
+      this.run();
+    }
+  }
+  dart.defineNamedConstructor(_Base, '_');
+  dart.defineNamedConstructor(_Base, 'kept');
+  dart.setSignature(_Base, {
+    constructors: () => ({
+      _: [_Base, []],
+      kept: [_Base, []]
+    }),
+    methods: () => ({
+      report: [dart.dynamic, []],
+      measure: [dart.dynamic, []]
+    })
+  });
+  class _Sub extends _Base {
+    _Sub() {
+      super.kept();
+    }
+    run() {
+      return core.print('Sub');
+    }
+  }
+  dart.setSignature(_Sub, {
+    constructors: () => ({_Sub: [_Sub, []]}),
+    methods: () => ({run: [dart.dynamic, []]})
+  });
+  function _testInheritance(args) {
+    new _Sub().report();
+  }
+  dart.fn(_testInheritance);
+  function main(args) {
+    _testRefs(args);
+    _testInheritance(args);
   }
   dart.fn(main);
   // Exports:
