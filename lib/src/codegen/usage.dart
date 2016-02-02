@@ -14,53 +14,50 @@ typedef bool ReachabilityPredicate(Element e);
 class UsageVisitor extends GeneralizingAstVisitor {
   // TODO(ochafik): Detect reflect & reflectType.
   bool followReflection;
-  // TODO(ochafik): Follow annotations.
-  bool followAnnotations;
+  bool debug;
+  final _specialRoots = new Set<Element>();
   final _graph = new DirectedGraph<Object>();
 
-  UsageVisitor({this.followAnnotations : true, this.followReflection : true});
+  UsageVisitor({this.followReflection : true, this.debug : true});
 
   AstNode getSameOrAncestor(AstNode node, bool predicate(AstNode node)) =>
       predicate(node) ? node : node.getAncestor(predicate);
 
-  List<Element> _enclosingElement(AstNode node) {
-    var ancestor = getSameOrAncestor(node, (AstNode node) {
-      return node is Declaration || node is VariableDeclarationList;
-    });
-    if (ancestor is VariableDeclarationList) {
-      return ancestor.variables.map((v) => v.element).toList();
+  List<Element> _currentEnclosingElement = const<Element>[];
+  @override
+  visitNode(AstNode node) {
+    if (node is Declaration && node.element != null && _isSpecial(node.element)) {
+      _specialRoots.add(node.element);
     }
-    Declaration decl = ancestor;
-    Element e;
-    if (decl is ClassTypeAlias) {
-      e = decl.name.bestElement;
-    } else {
-      e = decl?.element;
+    var oldEnclosingElement = _currentEnclosingElement;
+    setEnclosing(Element e) {
+      _currentEnclosingElement = e == null ? [] : [e];
     }
-    // if (e == null) throw new StateError('No enclosing element for $node (${node.runtimeType}): ${node?.parent}, ${node?.parent?.parent}');
-    if (e == null && node is ConstructorDeclaration) throw new StateError('No enclosing element for $node (${node.runtimeType}): ${node?.parent}, ${node?.parent?.parent}');
-    return e == null ? const<Element>[] : <Element>[e];
+    if (node is Declaration) {
+      if (node is ClassTypeAlias) {
+        var e = node.name.bestElement;
+        if (e != node.element) throw new Error();
+      }
+      setEnclosing(node.element);
+    } else if (node is VariableDeclarationList) {
+      _currentEnclosingElement = node.variables.map((v) => v.element).toList();
+    } else if (node is ClassTypeAlias) {
+      setEnclosing(node.name.bestElement);
+    }
+
+    // stderr.writeln("NODE: $node (${node.runtimeType})");
+    super.visitNode(node);
+
+    _currentEnclosingElement = oldEnclosingElement;
   }
 
   Element _normalize(Element e) {
-    // if (e.type.e)
     if (e is PropertyAccessorElement) return _normalize(e.variable);
-    if (e is ClassElement) {
-      // var ee = e.type.element;
-      // if (e.type.typeArguments.any((t) => t is! TypeParameterType && !t.isDynamic && !t.isBottom)) {
-      //   stderr.writeln("WEIRD $e (${e.type.typeArguments.map((t) => '$t: ${t.runtimeType}')})");
-      // }
-      // if (ee != e) {
-      //   stderr.writeln("NORMALIZED $e -> $ee");
-      // }
-      // return ee;
-      // e.type.typeArguments;
-    }
     if (e is ConstructorElement) {
       // Normalize generic constructors (Map<dynamic, dynamic> -> Map<K, V>).
       var cls = e.enclosingElement;
       var ctor = e.isDefaultConstructor
-          ? cls.type.lookUpConstructor(e.name, cls.library)//cls.constructors.firstWhere((c) => c.name == '')//isDefaultConstructor)
+          ? cls.type.lookUpConstructor(e.name, cls.library)
           : cls.getNamedConstructor(e.name);
       return ctor;
     }
@@ -86,7 +83,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
     if (to is Element) to = _normalize(to);
 
-    var froms = _enclosingElement(node);
+    var froms = _currentEnclosingElement;
     // if (froms.isEmpty) throw new ArgumentError('No origin for destination $to ($node)');
     _addEdge(node, froms, to);
     if (to is ClassMemberElement) {
@@ -116,11 +113,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
     if (e != null) _declareDep(node, e);
     super.visitTypeName(node);
   }
-
-  // visitNode(AstNode node) {
-  //   stderr.writeln("NODE: $node (${node.runtimeType})");
-  //   super.visitNode(node);
-  // }
 
   @override
   visitAnnotatedNode(AnnotatedNode node) {
@@ -221,7 +213,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
   }
 
   void _declareTargetPropertyDep(AstNode node, Element target, Element memberElement, String propertyName) {//Identifier name) {
-    // var e = name.bestElement;
     if (memberElement != null) {
       _declareDep(node, memberElement);
     }
@@ -246,7 +237,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
       _declareDep(node, ancestor);
     }
 
-    //var defaultCtor = e.constructors.firstWhere((c) => c.name == '', orElse: () => null);
     var defaultCtor = e.type.lookUpConstructor('', e.library);
     if (defaultCtor != null) {
       _addEdge(node, [e], defaultCtor);
@@ -312,30 +302,31 @@ class UsageVisitor extends GeneralizingAstVisitor {
     super.visitIdentifier(node);
   }
 
-  bool isSpecial(Element e) {
+  bool _isSpecial(Element e) {
+    var uri = e.source.uri.toString();
     return
-      e.name == 'startRootIsolate' ||
-      e.name == 'registerDevtoolsFormatter' ||
-      // e.name == '_nativeDetectEnvironment' || // dart:_debugger
-      e.name == 'LinkedHashSetCell' ||
-      e.name == 'LinkedHashMapCell' ||
-      e is ClassMemberElement && (// e.isStatic && (
+      uri == 'dart:_debugger' && (debug || e.name == 'registerDevtoolsFormatter') ||
+      uri == 'dart:_isolate_helper' && e.name == 'startRootIsolate' ||
+      uri == 'dart:collection' && (
+        e.name == 'LinkedHashSetCell' ||
+        e.name == 'LinkedHashMapCell' ||
+        e is ClassMemberElement && (
           e.enclosingElement.name == 'ListQueue' ||
           e.enclosingElement.name == '_LinkedHashSet' ||
-          e.enclosingElement.name == '_LinkedHashMap' ||
-          false
-      ) ||
-      false;
+          e.enclosingElement.name == '_LinkedHashMap'
+        )
+      );
   }
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
-    var accessible = _graph.getTransitiveClosure(roots);
+    var accessible = _graph.getTransitiveClosure(
+        new Set<Element>()..addAll(_specialRoots)..addAll(roots));
     bool isReachable(Element e) {
       e = _normalize(e);
 
       if (e == null) throw new ArgumentError.notNull('e');
       if (accessible.contains(e)) return true;
 
-      if (isSpecial(e)) {
+      // if (_isSpecial(e)) {
       //   stderr.writeln("SPECIAL: $e");
       //   stderr.writeln('INCOMING($e): ${_graph.getIncoming(e)}');
       //   // if (e.name.contains('_Manager')) {
@@ -349,8 +340,8 @@ class UsageVisitor extends GeneralizingAstVisitor {
       //     }
       //     if (path == null) stderr.writeln('FOUND NO PATH $e');
       //   // }
-        return true;
-      }
+      //   return true;
+      // }
 
       bool containsUnresolved() {
         if (e is FunctionElement) {

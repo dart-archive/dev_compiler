@@ -17,6 +17,7 @@ import 'utils.dart' show parseEnum, getEnumName;
 const String _V8_BINARY_DEFAULT = 'node';
 const bool _CLOSURE_DEFAULT = false;
 const bool _DESTRUCTURE_NAMED_PARAMS_DEFAULT = false;
+const bool _DEBUG_DEFAULT = true;
 
 /// Options used to set up Source URI resolution in the analysis context.
 class SourceResolverOptions {
@@ -90,6 +91,8 @@ class CodegenOptions {
 
   final TreeShakingMode treeShakingMode;
 
+  final bool debug;
+
   const CodegenOptions(
       {this.emitSourceMaps: true,
       this.forceCompile: false,
@@ -98,6 +101,7 @@ class CodegenOptions {
       this.outputDir,
       this.arrowFnBindThisWorkaround: false,
       this.treeShakingMode: TreeShakingMode.none,
+      this.debug: _DEBUG_DEFAULT,
       this.moduleFormat: ModuleFormat.legacy});
 }
 
@@ -247,6 +251,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           destructureNamedParams: args['destructure-named-params'],
           outputDir: outputDir,
           arrowFnBindThisWorkaround: args['arrow-fn-bind-this'],
+          debug: args['debug'],
           treeShakingMode: parseTreeShakingMode(args['tree-shaking']),
           moduleFormat: parseModuleFormat(args['modules'])),
       sourceOptions: new SourceResolverOptions(
@@ -313,6 +318,7 @@ final ArgParser argParser = new ArgParser()
       help: 'Where to find dev_compiler\'s runtime files', defaultsTo: null)
   ..addFlag('arrow-fn-bind-this',
       help: 'Work around `this` binding in => functions')
+  ..addFlag('debug', defaultsTo: true)
   ..addOption('tree-shaking',
       help: 'What level of tree-shaking to apply (experimental)',
       allowed: TreeShakingMode.values.map(getEnumName).toList(),
