@@ -405,7 +405,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
-    if (!_isReachable(node.element)) return null;
+    if (!_isReachable(node.element)) {
+      // if (node.name.name == 'MapMixin') throw new Error();
+      return null;
+    }
 
     var classElem = node.element;
     var type = classElem.type;
@@ -616,11 +619,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     bool hasIterator = false;
     for (var m in node.members) {
-      if (!_isReachable(m.element)) continue;
-
       if (m is ConstructorDeclaration) {
+        if (!_isReachable(m.element)) continue;
         jsMethods.add(_emitConstructor(m, type, fields, isObject));
       } else if (m is MethodDeclaration) {
+        if (!_isReachable(m.element)) continue;
         jsMethods.add(_emitMethodDeclaration(type, m));
 
         if (!hasJsPeer && m.isGetter && m.name.name == 'iterator') {
@@ -702,6 +705,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       var dartxNames = <JS.Expression>[];
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
+          if (!_isReachable(m.element)) continue;
           dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
         }
       }

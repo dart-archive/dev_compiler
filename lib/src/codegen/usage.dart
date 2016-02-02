@@ -20,54 +20,85 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   UsageVisitor({this.followAnnotations : true, this.followReflection : true});
 
-  _enclosingElement(AstNode node) {
-    var ancestor = node.getAncestor((AstNode node) {
+  AstNode getSameOrAncestor(AstNode node, bool predicate(AstNode node)) =>
+      predicate(node) ? node : node.getAncestor(predicate);
+
+  List<Element> _enclosingElement(AstNode node) {
+    var ancestor = getSameOrAncestor(node, (AstNode node) {
       return node is Declaration || node is VariableDeclarationList;
     });
     if (ancestor is VariableDeclarationList) {
-      return ancestor.variables;
+      return ancestor.variables.map((v) => v.element).toList();
     }
     Declaration decl = ancestor;
-    var e = decl?.element;
-    return e == null ? [] : [e];
+    Element e;
+    if (decl is ClassTypeAlias) {
+      e = decl.name.bestElement;
+    } else {
+      e = decl?.element;
+    }
+    // if (e == null) throw new StateError('No enclosing element for $node (${node.runtimeType}): ${node?.parent}, ${node?.parent?.parent}');
+    if (e == null && node is ConstructorDeclaration) throw new StateError('No enclosing element for $node (${node.runtimeType}): ${node?.parent}, ${node?.parent?.parent}');
+    return e == null ? const<Element>[] : <Element>[e];
   }
 
-  _addEdge(froms, to) {
-    for (var from in froms) {
+  _addEdge(AstNode node, List<Element> froms, to) {
+    for (Element from in froms) {
       if (from == null || to == null) throw new ArgumentError('Invalid edge: $from -> $to');
+      if (from == to) continue;
+      //'$from' == '$to') throw new StateError('$from');
+      // stderr.writeln('Dep ${from} -> ${to}');
+      // var f = from is ConstructorElement ? (from.isDefaultConstructor ? from.name : '${from.enclosingElement.name}.${from.name}') : from.name;//'$from', t = '$to';
+      // isMap(s) => from is ConstructorElement && s.startsWith('Map') || s.endsWith('Map');
+      // if (isMap(f)) {//} || isMap(t)) {
+        // stderr.writeln('MAP EDGE(${node.runtimeType}): [${from.name}: ${from.runtimeType}] -> [${to.name}: ${to.runtimeType}]');
+      // }
       _graph.addEdge(from, to);
     }
   }
-  _declareDep(AstNode node, Object to) {
+  _declareDep(AstNode node, to) {
+    assert(to is Element || to is _UnresolvedElement);
     var froms = _enclosingElement(node);
-    // stderr.writeln('Dep ${node} -> ${to}');
-    _addEdge(froms, to);
+    // if (froms.isEmpty) throw new ArgumentError('No origin for destination $to ($node)');
+    _addEdge(node, froms, to);
     if (to is ClassMemberElement) {
-      _addEdge(froms, to.enclosingElement);
+      _addEdge(node, froms, to.enclosingElement);
     } else if (to is PropertyAccessorElement) {
-      _addEdge(froms, to.variable);
+      _addEdge(node, froms, to.variable);
     } else if (to is PropertyInducingElement) {
       // TODO(ochafik): Refine.
-      if (to.getter != null) _addEdge(froms, to.getter);
-      if (to.setter != null) _addEdge(froms, to.setter);
+      if (to.getter != null) _addEdge(node, froms, to.getter);
+      if (to.setter != null) _addEdge(node, froms, to.setter);
     }
+    // else if (to is ClassTypeAlias) {
+    //   var e = to.name.bestElement;
+    //   stderr.writeln("ALIAS: $froms -> $to ($e)");
+    //   if (e != null) _addEdge(node, froms, e);
+    // }
   }
 
-  static ClassElement _getElement(InterfaceType type) => type.element;
+  // static ClassElement _getElement(InterfaceType type) => type.element;
 
   Iterable<ClassElement> _collectHierarchy(ClassElement e) sync* {
     yield e;
-    if (e.supertype != null) yield e.supertype.element;
-    if (e.interfaces != null) yield* e.interfaces.map(_getElement);
-    if (e.mixins != null) yield* e.mixins.map(_getElement);
+    yield* e.allSupertypes.map((InterfaceType t) => t.element);
+    // if (e.supertype != null) yield e.supertype.element;
+    // if (e.interfaces != null) yield* e.interfaces.map(_getElement);
+    // if (e.mixins != null) yield* e.mixins.map(_getElement);
   }
 
   @override
   visitTypeName(TypeName node) {
-    var e = node.type?.element;
+    var e = node?.type?.element;
     if (e != null) _declareDep(node, e);
+    // else stderr.writeln("NO TYPE: $node");
     super.visitTypeName(node);
   }
+
+  // visitNode(AstNode node) {
+  //   stderr.writeln("NODE: $node (${node.runtimeType})");
+  //   super.visitNode(node);
+  // }
 
   @override
   visitAnnotatedNode(AnnotatedNode node) {
@@ -75,6 +106,12 @@ class UsageVisitor extends GeneralizingAstVisitor {
       _declareDep(node, annotation.elementAnnotation.element);
     }
     super.visitAnnotatedNode(node);
+  }
+
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    var e = node.element?.redirectedConstructor;
+    if (e != null) _declareDep(node, e);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -169,12 +206,40 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    var e = node.element;
+    _visitClassElement(node, node.element);
+    super.visitClassDeclaration(node);
+  }
+
+  void _visitClassElement(AstNode node, ClassElement e) {
     for (var ancestor in _collectHierarchy(e)) {
       if (ancestor == e) continue;
       _declareDep(node, ancestor);
     }
-    super.visitClassDeclaration(node);
+  }
+
+  @override
+  visitClassTypeAlias(ClassTypeAlias node) {
+    _visitClassElement(node, node.element);
+    // stderr.writeln("ALIAS: ${node.element}: ${node.element.runtimeType}");
+    // if (node.superclass != null) visitTypeName(node.superclass);
+    // if (node.implementsClause != null) node.implementsClause.interfaces.forEach(visitTypeName);
+    // if (node.withClause != null) node.withClause.mixinTypes.forEach(visitTypeName);
+    //
+    // for (var tparam in node.typeParameters.typeParameters) {
+    //   if (tparam.bound != null) visitTypeName(tparam.bound);
+    // }
+    super.visitClassTypeAlias(node);
+  }
+
+  @override
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    if (node.returnType != null) visitTypeName(node.returnType);
+
+    for (var param in node.parameters.parameters) {
+      var e = param.element?.type?.element;
+      if (e != null) _declareDep(node, e);
+    }
+    super.visitFunctionTypeAlias(node);
   }
 
   @override
@@ -183,7 +248,9 @@ class UsageVisitor extends GeneralizingAstVisitor {
     if (e != null) {
       _declareDep(node, e);
     } else {
-      var enclosingClass = node.getAncestor((a) => a is ClassDeclaration);
+      var enclosingClass = getSameOrAncestor(node, (a) {
+        return a is ClassDeclaration || a is ClassTypeAlias;
+      });
       if (enclosingClass != null) {
         _declareTargetPropertyDep(node, enclosingClass.element, node);
       }
@@ -194,7 +261,34 @@ class UsageVisitor extends GeneralizingAstVisitor {
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
     var accessible = _graph.getTransitiveClosure(roots);
     bool isReachable(Element e) {
+      if (e == null) throw new ArgumentError.notNull('e');
       if (accessible.contains(e)) return true;
+
+      if (e is FunctionElement && e.name == 'startRootIsolate' ||
+          e.name == '_nativeDetectEnvironment' ||
+          e.name.endsWith('MapMixin') || e.name.endsWith('MapView') ||
+          e.name == '_StreamController' ||
+          e.name == '_AsyncStreamControllerDispatch' ||
+          e.name == '_SyncStreamControllerDispatch' ||
+          e.name == '_NoCallbacks' ||
+          e.name == '_NoCallbackSyncStreamController' ||
+          e.name.endsWith('ListMixin') || e.name.endsWith('ListView') || e.name == 'ListBase') {
+        return true;
+      }
+      // if (e.name == 'MapMixin') {
+      //   for (var n in accessible.map((e) => e.name).toSet().toList()..sort()) {
+      //     stderr.writeln('  $n');
+      //   }
+      //   // for (var x in accessible.toList()..sort((a, b) => a.name.compar)) {
+      //   //   if (x.name == 'MapMixin') {
+      //   //     throw new StateError('$e vs. $x: ${e == x}');
+      //   //   }
+      //   //   print('  ')
+      //   // }
+      //   throw new StateError('FAILED TO FIND MapMixin (roots = $roots)!');
+      //   //
+      //     // if (node.name.name == 'MapMixin') throw new Error();
+      // }
       if (e is FunctionElement) {
         return accessible.contains(new _UnresolvedElement(null, e.name));
       }
