@@ -19,7 +19,14 @@ const _drop5 = 0;
 
 @_KeepAnnotation1()
 @_keepAnnotation2
-class _Keep1 {}
+class _Keep1 {
+  final Function entry;
+  _Keep1(this.entry) {
+    _keepThisUtilMember();
+  }
+
+  void _keepThisUtilMember() {}
+}
 _keep2() {}
 var _keep3;
 final _keep4 = 0;
@@ -47,7 +54,7 @@ class _Bar {
 }
 
 _testRefs(args) {
-  new _Keep1();
+  new _Keep1(null);
   _keep2();
   _keep3;
   _keep4;

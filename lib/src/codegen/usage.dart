@@ -76,7 +76,13 @@ class UsageVisitor extends GeneralizingAstVisitor {
   _declareDep(AstNode node, to) {
     assert(to is Element || to is _UnresolvedElement);
 
-    if (to is Element) to = _normalize(to);
+    if (to is Element) {
+      to = _normalize(to);
+      if (isSpecial(to)) {
+        stderr.writeln("REGISTERING SPECIAL: $to");
+        //return true;
+      }
+    }
     var froms = _enclosingElement(node);
     // if (froms.isEmpty) throw new ArgumentError('No origin for destination $to ($node)');
     _addEdge(node, froms, to);
@@ -304,6 +310,55 @@ class UsageVisitor extends GeneralizingAstVisitor {
     super.visitIdentifier(node);
   }
 
+  bool isSpecial(Element e) {
+    return
+      false;
+      // e.name == 'startRootIsolate' ||
+      // e.name == 'topEventLoop' ||
+      // e.name == 'globalPostMessageDefined' ||
+      // e.name == '_global' || e.name == 'globalWindow' || e.name == 'globalWorker' ||
+      // e.name == 'nextIsolateId' ||
+      // e.name == 'controlPort' ||
+      // e.name == 'RawReceivePortImpl' || e.name == '_controlPort' ||
+      // // e.name == 'toString' ||
+      // e.name == '_nativeDetectEnvironment' ||
+      // e.name == 'registerDevtoolsFormatter' || // dart:_debugger
+      // // e.name.endsWith('MapMixin') || e.name.endsWith('MapView') ||
+      // e.name == '_StreamController' ||
+      // e.name == '_LinkedHashMap' ||
+      // e.name == '_LinkedHashSet' ||
+      // e.name == '_HashSetBase' ||
+      // e.name == 'SetBase' ||
+      // e.name == 'JS_CREATE_ISOLATE' ||
+      // e.name == 'JS_SET_CURRENT_ISOLATE' ||
+      // e.name == 'Capability' || e.name == 'CapabilityImpl' ||
+      // e.name == 'random64' || e.name == '_internal' ||
+      // e.name == 'SendPort' ||
+      // e.name == 'LinkedHashSetCell' || e.name == 'LinkedHashMapCell' ||
+      // // e.name == '_isStringElement' || e.name == '_isNumericElement' || e.name == '_newHashTable' ||
+      // e.name == '_MainManagerStub' ||
+      // e.name == '_nativeInitWorkerMessageHandler' ||
+      // e.name == 'IsolateNatives' ||
+      // e.name == '_globalState' || // for setter
+      // e.name == 'ListQueue' ||
+      // e is ClassMemberElement && (
+      //     e.enclosingElement.name == 'ListQueue' ||
+      //     e.enclosingElement.name == 'JSArray' ||
+      //     e.enclosingElement.name == '_Manager' ||
+      //     e.enclosingElement.name == '_EventLoop' ||
+      //     e.enclosingElement.name == '_LinkedHashSet' ||
+      //     e.enclosingElement.name == '_LinkedHashMap' ||
+      //     e.enclosingElement.name == '_IsolateContext'
+      // ) ||
+      // // e.name.endsWith('ListMixin') || e.name.endsWith('ListView') || e.name == 'ListBase' ||
+      // // e.name == '_isPowerOf2' ||
+      // // '$e'.contains('_isPowerOf2') ||
+      // // e.name == 'markFixedList' ||
+      // e.name == '_AsyncStreamControllerDispatch' ||
+      // e.name == '_SyncStreamControllerDispatch' ||
+      // e.name == '_NoCallbacks' ||
+      // e.name == '_NoCallbackSyncStreamController';
+  }
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
     var accessible = _graph.getTransitiveClosure(roots);
     bool isReachable(Element e) {
@@ -313,56 +368,8 @@ class UsageVisitor extends GeneralizingAstVisitor {
       if (accessible.contains(e)) return true;
       if (e is PropertyAccessorElement && accessible.contains(e.variable)) return true;
 
-      var isSpecial =
-          //e is FunctionElement &&
-          e.name == 'startRootIsolate' ||
-          e.name == 'topEventLoop' ||
-          e.name == 'globalPostMessageDefined' ||
-          e.name == '_global' || e.name == 'globalWindow' || e.name == 'globalWorker' ||
-          e.name == 'nextIsolateId' ||
-          e.name == 'controlPort' ||
-          e.name == 'RawReceivePortImpl' || e.name == '_controlPort' ||
-          e.name == 'toString' ||
-          e.name == '_nativeDetectEnvironment' ||
-          e.name == 'registerDevtoolsFormatter' || // dart:_debugger
-          e.name.endsWith('MapMixin') || e.name.endsWith('MapView') ||
-          e.name == '_StreamController' ||
-          e.name == '_LinkedHashMap' ||
-          e.name == '_LinkedHashSet' ||
-          e.name == '_HashSetBase' ||
-          e.name == 'SetBase' ||
-          e.name == 'JS_CREATE_ISOLATE' ||
-          e.name == 'JS_SET_CURRENT_ISOLATE' ||
-          e.name == 'Capability' || e.name == 'CapabilityImpl' ||
-          e.name == 'random64' || e.name == '_internal' ||
-          e.name == 'SendPort' ||
-          e.name == 'LinkedHashSetCell' || e.name == 'LinkedHashMapCell' ||
-          // e.name == '_isStringElement' || e.name == '_isNumericElement' || e.name == '_newHashTable' ||
-          e.name == '_MainManagerStub' ||
-          e.name == '_nativeInitWorkerMessageHandler' ||
-          e.name == 'IsolateNatives' ||
-          e.name == '_globalState' || // for setter
-          e.name == 'ListQueue' ||
-          e is ClassMemberElement && (
-              e.enclosingElement.name == 'ListQueue' ||
-              e.enclosingElement.name == 'JSArray' ||
-              e.enclosingElement.name == '_Manager' ||
-              e.enclosingElement.name == '_EventLoop' ||
-              e.enclosingElement.name == '_LinkedHashSet' ||
-              e.enclosingElement.name == '_LinkedHashMap' ||
-              e.enclosingElement.name == '_IsolateContext'
-          ) ||
-          // e.name == '_isPowerOf2' ||
-          // '$e'.contains('_isPowerOf2') ||
-          // e.name == 'markFixedList' ||
-          e.name == '_AsyncStreamControllerDispatch' ||
-          e.name == '_SyncStreamControllerDispatch' ||
-          e.name == '_NoCallbacks' ||
-          e.name == '_NoCallbackSyncStreamController' ||
-          e.name.endsWith('ListMixin') || e.name.endsWith('ListView') || e.name == 'ListBase';
-
-      if (isSpecial) {
-        stderr.writeln("SPECIAL: $e");
+      if (isSpecial(e)) {
+        // stderr.writeln("SPECIAL: $e");
         return true;
       }
       // if (e.name == 'MapMixin') {

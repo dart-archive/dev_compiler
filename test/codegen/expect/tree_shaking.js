@@ -13,7 +13,18 @@ dart_library.library('tree_shaking', null, /* Imports */[
     constructors: () => ({_KeepAnnotation1: [_KeepAnnotation1, []]})
   });
   const _keepAnnotation2 = dart.const(new _KeepAnnotation1());
-  class _Keep1 extends core.Object {}
+  const _keepThisUtilMember = Symbol('_keepThisUtilMember');
+  class _Keep1 extends core.Object {
+    _Keep1(entry) {
+      this.entry = entry;
+      this[_keepThisUtilMember]();
+    }
+    [_keepThisUtilMember]() {}
+  }
+  dart.setSignature(_Keep1, {
+    constructors: () => ({_Keep1: [_Keep1, [core.Function]]}),
+    methods: () => ({[_keepThisUtilMember]: [dart.void, []]})
+  });
   _Keep1[dart.metadata] = () => [dart.const(new _KeepAnnotation1()), _keepAnnotation2];
   function _keep2() {
   }
@@ -57,7 +68,7 @@ dart_library.library('tree_shaking', null, /* Imports */[
     methods: () => ({keepMethod1: [dart.dynamic, []]})
   });
   function _testRefs(args) {
-    new _Keep1();
+    new _Keep1(null);
     _keep2();
     exports._keep3;
     exports._keep4;
