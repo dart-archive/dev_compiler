@@ -52,7 +52,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
   }
 
   Element _normalize(Element e) {
-    if (e is PropertyAccessorElement) return _normalize(e.variable);
+    // if (e is PropertyAccessorElement) return _normalize(e.variable);
     if (e is ConstructorElement) {
       // Normalize generic constructors (Map<dynamic, dynamic> -> Map<K, V>).
       var cls = e.enclosingElement;
@@ -307,10 +307,22 @@ class UsageVisitor extends GeneralizingAstVisitor {
     return
       uri == 'dart:_debugger' && (debug || e.name == 'registerDevtoolsFormatter') ||
       uri == 'dart:_isolate_helper' && e.name == 'startRootIsolate' ||
+      // uri == 'dart:_interceptors' ||
+      // e. /
+      // e.name == 'floor' ||
+      e.name == 'iterator' ||
+      e.name == 'values' ||
+      e is ClassMemberElement && (
+        e.enclosingElement.name == 'JSNumber' ||
+        e.enclosingElement.name == 'JSArray' ||
+        e.enclosingElement.name == 'JSBool'
+      ) ||
       uri == 'dart:collection' && (
         e.name == 'LinkedHashSetCell' ||
         e.name == 'LinkedHashMapCell' ||
         e is ClassMemberElement && (
+          e.enclosingElement.name == 'MappedIterator' ||
+          e.enclosingElement.name == 'LinkedHashMapKeyIterable' ||
           e.enclosingElement.name == 'ListQueue' ||
           e.enclosingElement.name == '_LinkedHashSet' ||
           e.enclosingElement.name == '_LinkedHashMap'
@@ -326,6 +338,14 @@ class UsageVisitor extends GeneralizingAstVisitor {
       if (e == null) throw new ArgumentError.notNull('e');
       if (accessible.contains(e)) return true;
 
+      // if (e is ClassMemberElement) {
+      //   if (_isSpecial(e) || _isSpecial(e.enclosingElement)) {
+      //     stderr.writeln("SPECIAL: $e");
+      //   // if (_specialRoots.contains(e.enclosingElement)) {
+      //   //   s
+      //     return true;
+      //   }
+      // }
       // if (_isSpecial(e)) {
       //   stderr.writeln("SPECIAL: $e");
       //   stderr.writeln('INCOMING($e): ${_graph.getIncoming(e)}');

@@ -41,7 +41,6 @@ import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
 import 'usage.dart';
-import 'dart:io';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -367,6 +366,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
+    if (!_isReachable(node.element)) return null;
     var element = node.element;
 
     // Forward all generative constructors from the base class.
@@ -3605,7 +3605,7 @@ class JSGenerator extends CodeGenerator {
   _addRoot(Element e) {
     if (e != null) {
       for (var m in _getPublicElements(e)) {
-        // stderr.writeln("ADDING ROOT: ${m.name}");
+        // stderr.writeln("ADDING ROOT: ${m.name} (${m.runtimeType})");
         _roots.add(m);
       }
     }
