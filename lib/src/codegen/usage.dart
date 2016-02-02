@@ -67,15 +67,25 @@ class UsageVisitor extends GeneralizingAstVisitor {
     if (e.interfaces != null) yield* e.interfaces.map((i) => i.element);
   }
   @override
+  visitAnnotatedNode(AnnotatedNode node) {
+    for (var annotation in node.metadata) {
+      _declareDep(node, annotation.elementAnnotation.element);
+    }
+    super.visitAnnotatedNode(node);
+  }
+
+  @override
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _declareDep(node, node.staticElement);
     super.visitSuperConstructorInvocation(node);
   }
+
   @override
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _declareDep(node, node.fieldName.bestElement);
     super.visitConstructorFieldInitializer(node);
   }
+
   @override
   visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     _declareDep(node, node.staticElement);

@@ -60,6 +60,9 @@ class SourceResolverOptions {
 enum ModuleFormat { es6, legacy, node }
 ModuleFormat parseModuleFormat(String s) => parseEnum(s, ModuleFormat.values);
 
+enum TreeShakingMode { all, private, none }
+TreeShakingMode parseTreeShakingMode(String s) => parseEnum(s, TreeShakingMode.values);
+
 // TODO(jmesserly): refactor all codegen options here.
 class CodegenOptions {
   /// Whether to emit the source map files.
@@ -85,6 +88,8 @@ class CodegenOptions {
   /// Currently 'es6' and 'legacy' are supported.
   final ModuleFormat moduleFormat;
 
+  final TreeShakingMode treeShakingMode;
+
   const CodegenOptions(
       {this.emitSourceMaps: true,
       this.forceCompile: false,
@@ -92,6 +97,7 @@ class CodegenOptions {
       this.destructureNamedParams: _DESTRUCTURE_NAMED_PARAMS_DEFAULT,
       this.outputDir,
       this.arrowFnBindThisWorkaround: false,
+      this.treeShakingMode: TreeShakingMode.none,
       this.moduleFormat: ModuleFormat.legacy});
 }
 
@@ -241,6 +247,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           destructureNamedParams: args['destructure-named-params'],
           outputDir: outputDir,
           arrowFnBindThisWorkaround: args['arrow-fn-bind-this'],
+          treeShakingMode: parseTreeShakingMode(args['tree-shaking']),
           moduleFormat: parseModuleFormat(args['modules'])),
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
@@ -306,6 +313,17 @@ final ArgParser argParser = new ArgParser()
       help: 'Where to find dev_compiler\'s runtime files', defaultsTo: null)
   ..addFlag('arrow-fn-bind-this',
       help: 'Work around `this` binding in => functions')
+  ..addOption('tree-shaking',
+      help: 'What level of tree-shaking to apply (experimental)',
+      allowed: TreeShakingMode.values.map(getEnumName).toList(),
+      allowedHelp: {
+        getEnumName(TreeShakingMode.none): 'none (safer)',
+        getEnumName(TreeShakingMode.private):
+            'only tree-shake unused private elements',
+        getEnumName(TreeShakingMode.all):
+            'tree-shake all unused elements'
+      },
+      defaultsTo: getEnumName(TreeShakingMode.none))
   ..addOption('modules',
       help: 'Which module pattern to emit',
       allowed: ModuleFormat.values.map(getEnumName).toList(),

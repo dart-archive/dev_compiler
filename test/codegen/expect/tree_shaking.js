@@ -5,6 +5,18 @@ dart_library.library('tree_shaking', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  class _Drop1 extends core.Object {
+    keepMethod1() {}
+  }
+  dart.setSignature(_Drop1, {
+    methods: () => ({keepMethod1: [dart.dynamic, []]})
+  });
+  function _drop2() {
+  }
+  dart.fn(_drop2);
+  exports._drop3 = null;
+  exports._drop4 = 0;
+  const _drop5 = 0;
   class _Keep1 extends core.Object {}
   function _keep2() {
   }
@@ -12,34 +24,53 @@ dart_library.library('tree_shaking', null, /* Imports */[
   exports._keep3 = null;
   exports._keep4 = 0;
   const _keep5 = 0;
+  const _dropMethod1 = Symbol('_dropMethod1');
   const _keepMethod2 = Symbol('_keepMethod2');
   class _Foo extends core.Object {
     _Foo() {
     }
+    dropped() {
+    }
     keep() {
     }
+    [_dropMethod1]() {}
     keepMethod1() {}
-    [_keepMethod2]() {}
+    [_keepMethod2]() {
+      _Foo._keepStaticMethod2();
+    }
+    static dropStaticMethod1() {}
     static _keepStaticMethod1() {}
+    static _keepStaticMethod2() {}
   }
+  dart.defineNamedConstructor(_Foo, 'dropped');
   dart.defineNamedConstructor(_Foo, 'keep');
   dart.setSignature(_Foo, {
     constructors: () => ({
       _Foo: [_Foo, []],
+      dropped: [_Foo, []],
       keep: [_Foo, []]
     }),
     methods: () => ({
+      [_dropMethod1]: [dart.dynamic, []],
       keepMethod1: [dart.dynamic, []],
       [_keepMethod2]: [dart.dynamic, []]
     }),
-    statics: () => ({_keepStaticMethod1: [dart.dynamic, []]}),
-    names: ['_keepStaticMethod1']
+    statics: () => ({
+      dropStaticMethod1: [dart.dynamic, []],
+      _keepStaticMethod1: [dart.dynamic, []],
+      _keepStaticMethod2: [dart.dynamic, []]
+    }),
+    names: ['dropStaticMethod1', '_keepStaticMethod1', '_keepStaticMethod2']
   });
   class _Bar extends core.Object {
+    dropMethod1() {}
     keepMethod1() {}
   }
   dart.setSignature(_Bar, {
-    methods: () => ({keepMethod1: [dart.dynamic, []]})
+    methods: () => ({
+      dropMethod1: [dart.dynamic, []],
+      keepMethod1: [dart.dynamic, []]
+    })
   });
   function _testRefs(args) {
     new _Keep1();
@@ -59,6 +90,9 @@ dart_library.library('tree_shaking', null, /* Imports */[
   class _Base extends core.Object {
     _() {
     }
+    dropped() {
+      this._();
+    }
     kept() {
       this._();
     }
@@ -70,10 +104,12 @@ dart_library.library('tree_shaking', null, /* Imports */[
     }
   }
   dart.defineNamedConstructor(_Base, '_');
+  dart.defineNamedConstructor(_Base, 'dropped');
   dart.defineNamedConstructor(_Base, 'kept');
   dart.setSignature(_Base, {
     constructors: () => ({
       _: [_Base, []],
+      dropped: [_Base, []],
       kept: [_Base, []]
     }),
     methods: () => ({
@@ -85,12 +121,19 @@ dart_library.library('tree_shaking', null, /* Imports */[
     _Sub() {
       super.kept();
     }
+    dropped() {
+      super.dropped();
+    }
     run() {
       return core.print('Sub');
     }
   }
+  dart.defineNamedConstructor(_Sub, 'dropped');
   dart.setSignature(_Sub, {
-    constructors: () => ({_Sub: [_Sub, []]}),
+    constructors: () => ({
+      _Sub: [_Sub, []],
+      dropped: [_Sub, []]
+    }),
     methods: () => ({run: [dart.dynamic, []]})
   });
   function _testInheritance(args) {

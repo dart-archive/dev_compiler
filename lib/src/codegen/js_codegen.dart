@@ -26,7 +26,7 @@ import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../compiler.dart'
     show AbstractCompiler, corelibOrder, getCorelibModuleName;
 import '../info.dart';
-import '../options.dart' show CodegenOptions;
+import '../options.dart' show CodegenOptions, TreeShakingMode;
 import '../utils.dart';
 
 import 'code_generator.dart';
@@ -877,12 +877,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var extensionMembers = new HashSet<String>();
     for (var t in types) {
       for (var m in [t.methods, t.accessors].expand((e) => e)) {
+        if (!_isReachable(m)) continue;
         if (!m.isStatic) extensionMembers.add(m.name);
       }
     }
 
     // Collect all of extension methods this type implements.
     for (var m in [type.methods, type.accessors].expand((e) => e)) {
+      if (!_isReachable(m)) continue;
       if (!m.isStatic && !m.isAbstract && extensionMembers.contains(m.name)) {
         members.add(m);
       }
@@ -3541,11 +3543,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 class JSGenerator extends CodeGenerator {
   final _extensionTypes = new HashSet<ClassElement>();
   final TypeProvider _types;
-  final UsageVisitor _usageVisitor;
   final _roots = new Set<Element>();
+  final _usageVisitor = new UsageVisitor();
+  final TreeShakingMode _treeShakingMode;
   JSGenerator(AbstractCompiler compiler)
       : _types = compiler.context.typeProvider,
-        _usageVisitor = new UsageVisitor(),
+        _treeShakingMode = compiler.options.codegenOptions.treeShakingMode,
         super(compiler) {
     // TODO(jacobr): determine the the set of types with extension methods from
     // the annotations rather than hard coding the list once the analyzer
@@ -3573,11 +3576,12 @@ class JSGenerator extends CodeGenerator {
   }
 
   void scanLibrary(LibraryUnit unit, {bool isMain}) {
-    var isMainOrSdk = isMain || unit.library.element.source.isInSystemLibrary;
+    if (_treeShakingMode == TreeShakingMode.none) return;
 
     unit.libraryThenParts.forEach((u) => u.accept(_usageVisitor));
 
-    if (isMainOrSdk) {
+    // assert(unit.library.element.source.isInSystemLibrary == (_treeShakingMode == TreeShakingMode.private));
+    if (isMain || _treeShakingMode == TreeShakingMode.private) {
       unit.libraryThenParts.forEach((u) {
         for (var d in u.declarations) {
           if (d is TopLevelVariableDeclaration) {
@@ -3625,7 +3629,9 @@ class JSGenerator extends CodeGenerator {
     var library = unit.library.element.library;
     var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
-    var isReachable = _usageVisitor.buildReachabilityPredicate(_roots);
+    var isReachable = _treeShakingMode == TreeShakingMode.none
+        ? (_) => true
+        : _usageVisitor.buildReachabilityPredicate(_roots);
     var codegen =
         new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, isReachable);
     var module = codegen.emitLibrary(unit);

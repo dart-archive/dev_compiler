@@ -19,10 +19,13 @@ class _Foo {
 
   _dropMethod1() {}
   keepMethod1() {}
-  _keepMethod2() {}
+  _keepMethod2() {
+    _keepStaticMethod2();
+  }
 
   static dropStaticMethod1() {}
   static _keepStaticMethod1() {}
+  static _keepStaticMethod2() {}
 }
 
 class _Bar {

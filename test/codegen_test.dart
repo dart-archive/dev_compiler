@@ -68,7 +68,8 @@ main(arguments) {
       {bool checkSdk: false,
       bool sourceMaps: false,
       bool closure: false,
-      ModuleFormat moduleFormat: ModuleFormat.legacy}) {
+      ModuleFormat moduleFormat: ModuleFormat.legacy,
+      TreeShakingMode treeShakingMode: TreeShakingMode.none}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
@@ -78,6 +79,7 @@ main(arguments) {
             emitSourceMaps: sourceMaps,
             closure: closure,
             forceCompile: checkSdk,
+            treeShakingMode: treeShakingMode,
             moduleFormat: moduleFormat),
         useColors: false,
         checkSdk: checkSdk,
@@ -151,6 +153,8 @@ $compilerMessages''';
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
+          var treeShakingMode = filename == 'tree_shaking'
+              ? TreeShakingMode.all : TreeShakingMode.none;
           var moduleFormat = filename == 'es6_modules'
               ? ModuleFormat.es6
               : filename == 'node_modules'
@@ -165,6 +169,7 @@ $compilerMessages''';
                   ? createCompiler(realSdkContext,
                       sourceMaps: sourceMaps,
                       closure: closure,
+                      treeShakingMode: treeShakingMode,
                       moduleFormat: moduleFormat)
                   : batchCompiler;
           success = compile(compiler, filePath);
