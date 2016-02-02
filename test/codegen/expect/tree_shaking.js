@@ -5,7 +5,16 @@ dart_library.library('tree_shaking', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  class _KeepAnnotation1 extends core.Object {
+    _KeepAnnotation1() {
+    }
+  }
+  dart.setSignature(_KeepAnnotation1, {
+    constructors: () => ({_KeepAnnotation1: [_KeepAnnotation1, []]})
+  });
+  const _keepAnnotation2 = dart.const(new _KeepAnnotation1());
   class _Keep1 extends core.Object {}
+  _Keep1[dart.metadata] = () => [dart.const(new _KeepAnnotation1()), _keepAnnotation2];
   function _keep2() {
   }
   dart.fn(_keep2);

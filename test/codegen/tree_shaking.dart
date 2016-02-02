@@ -1,3 +1,12 @@
+class _DropAnnotation1 {
+  const _DropAnnotation1();
+}
+const _dropAnnotation2 = const _DropAnnotation1();
+class _KeepAnnotation1 {
+  const _KeepAnnotation1();
+}
+const _keepAnnotation2 = const _KeepAnnotation1();
+
 class _Drop1 {
   keepMethod1() {}
 }
@@ -6,6 +15,8 @@ var _drop3;
 final _drop4 = 0;
 const _drop5 = 0;
 
+@_KeepAnnotation1()
+@_keepAnnotation2
 class _Keep1 {}
 _keep2() {}
 var _keep3;
