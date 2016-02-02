@@ -46,11 +46,34 @@ class _Foo {
   static dropStaticMethod1() {}
   static _keepStaticMethod1() {}
   static _keepStaticMethod2() {}
+  static _keepStaticMethod3() {}
+}
+
+class _Operators {
+  operator[](dynamic _) => _m1();
+  operator[]=(dynamic key, dynamic value) => _m2();
+  _m1() {}
+  _m2() {}
+  _m3() {}
 }
 
 class _Bar {
   dropMethod1() {}
   keepMethod1() {}
+}
+
+class _Statics<T> {
+  static void _keepStatic1() {}
+  static int _keepStatic2() {}
+  static int get _keepStatic3 => 0;
+  static int _keepStatic4 = 0;
+
+  _Statics() {
+    _keepStatic1();
+    _keepStatic2();
+    _keepStatic3;
+    _keepStatic4;
+  }
 }
 
 _testRefs(args) {
@@ -69,6 +92,12 @@ _testRefs(args) {
   fooBar.keepMethod1();
 
   _Foo._keepStaticMethod1();
+
+  new _Statics<int>();
+
+  var ops = new _Operators();
+  ops[1];
+  ops[1] = 2;
 }
 
 

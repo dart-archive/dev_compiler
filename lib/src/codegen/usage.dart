@@ -43,11 +43,24 @@ class UsageVisitor extends GeneralizingAstVisitor {
   }
 
   Element _normalize(Element e) {
+    // if (e.type.e)
+    if (e is PropertyAccessorElement) return _normalize(e.variable);
+    if (e is ClassElement) {
+      // var ee = e.type.element;
+      // if (e.type.typeArguments.any((t) => t is! TypeParameterType && !t.isDynamic && !t.isBottom)) {
+      //   stderr.writeln("WEIRD $e (${e.type.typeArguments.map((t) => '$t: ${t.runtimeType}')})");
+      // }
+      // if (ee != e) {
+      //   stderr.writeln("NORMALIZED $e -> $ee");
+      // }
+      // return ee;
+      // e.type.typeArguments;
+    }
     if (e is ConstructorElement) {
       // Normalize generic constructors (Map<dynamic, dynamic> -> Map<K, V>).
       var cls = e.enclosingElement;
       var ctor = e.isDefaultConstructor
-          ? cls.constructors.firstWhere((c) => c.isDefaultConstructor)
+          ? cls.type.lookUpConstructor(e.name, cls.library)//cls.constructors.firstWhere((c) => c.name == '')//isDefaultConstructor)
           : cls.getNamedConstructor(e.name);
       return ctor;
     }
@@ -59,15 +72,10 @@ class UsageVisitor extends GeneralizingAstVisitor {
       if (from == null || to == null) throw new ArgumentError('Invalid edge: $from -> $to');
       if (from == to) continue;
 
-      // if (to is TypeDefiningElement) {
-      //   to = to.type.element;
-      // }
-      //'$from' == '$to') throw new StateError('$from');
-      // stderr.writeln('Dep ${from} -> ${to}');
-      // var f = from is ConstructorElement ? (from.isDefaultConstructor ? from.name : '${from.enclosingElement.name}.${from.name}') : from.name;//'$from', t = '$to';
-      // isMap(s) => from is ConstructorElement && s.startsWith('Map') || s.endsWith('Map');
-      // if (isMap(f)) {//} || isMap(t)) {
-        // stderr.writeln('MAP EDGE(${node.runtimeType}): [${from.name}: ${from.runtimeType}] -> [${to.name}: ${to.runtimeType}]');
+      // if (to is Element && to.name == '_Manager') {
+      //   stderr.writeln('MAP EDGE(${node.runtimeType}): [${from.name}: ${from.runtimeType}] -> [${to.name}: ${to.runtimeType}]'
+      //     // '\n$node'
+      //   );
       // }
       _graph.addEdge(from, to);
     }
@@ -76,13 +84,8 @@ class UsageVisitor extends GeneralizingAstVisitor {
   _declareDep(AstNode node, to) {
     assert(to is Element || to is _UnresolvedElement);
 
-    if (to is Element) {
-      to = _normalize(to);
-      if (isSpecial(to)) {
-        stderr.writeln("REGISTERING SPECIAL: $to");
-        //return true;
-      }
-    }
+    if (to is Element) to = _normalize(to);
+
     var froms = _enclosingElement(node);
     // if (froms.isEmpty) throw new ArgumentError('No origin for destination $to ($node)');
     _addEdge(node, froms, to);
@@ -95,11 +98,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
       if (to.getter != null) _addEdge(node, froms, to.getter);
       if (to.setter != null) _addEdge(node, froms, to.setter);
     }
-    // else if (to is ClassTypeAlias) {
-    //   var e = to.name.bestElement;
-    //   stderr.writeln("ALIAS: $froms -> $to ($e)");
-    //   if (e != null) _addEdge(node, froms, e);
-    // }
   }
 
   // static ClassElement _getElement(InterfaceType type) => type.element;
@@ -116,7 +114,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
   visitTypeName(TypeName node) {
     var e = node?.type?.element;
     if (e != null) _declareDep(node, e);
-    // else stderr.writeln("NO TYPE: $node");
     super.visitTypeName(node);
   }
 
@@ -193,7 +190,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
   @override
   visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
-    _declareTargetPropertyDep(node, target.bestType.element, node.propertyName);
+    _declareTargetPropertyDep(node, target.bestType.element, node.propertyName.bestElement, node.propertyName.name);
     return super.visitPropertyAccess(node);
   }
 
@@ -205,6 +202,13 @@ class UsageVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitIndexExpression(IndexExpression node) {
+    var op = node.parent is AssignmentExpression ? '[]=' : '[]';
+    _declareTargetPropertyDep(node, node.realTarget?.bestType?.element, node.bestElement, op);
+    super.visitIndexExpression(node);
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     // stderr.writeln('NODE: ${node}');
     // stderr.writeln('FROM: ${_enclosingElement(node)}');
@@ -212,20 +216,20 @@ class UsageVisitor extends GeneralizingAstVisitor {
     // stderr.writeln('node.methodName.propagatedElement = ${node.methodName.propagatedElement}');
     // stderr.writeln('node.target?.propagatedType?.element = ${node.target?.propagatedType?.element}');
     var target = node.target?.bestType?.element;
-    _declareTargetPropertyDep(node, target, node.methodName);
+    _declareTargetPropertyDep(node, target, node.methodName.bestElement, node.methodName.name);
     super.visitMethodInvocation(node);
   }
 
-  void _declareTargetPropertyDep(AstNode node, Element target, Identifier name) {
-    var e = name.bestElement;
-    if (e != null) {
-      _declareDep(node, e);
+  void _declareTargetPropertyDep(AstNode node, Element target, Element memberElement, String propertyName) {//Identifier name) {
+    // var e = name.bestElement;
+    if (memberElement != null) {
+      _declareDep(node, memberElement);
     }
     if (target is! ClassElement) {
-      if (e == null) _declareDep(node, new _UnresolvedElement(null, name.name));
+      if (memberElement == null) _declareDep(node, new _UnresolvedElement(null, propertyName));
     } else {
       for (var ancestor in _collectHierarchy(target)) {
-        _declareDep(node, new _UnresolvedElement(ancestor, name.name));
+        _declareDep(node, new _UnresolvedElement(ancestor, propertyName));
       }
     }
   }
@@ -241,19 +245,17 @@ class UsageVisitor extends GeneralizingAstVisitor {
       if (ancestor == e) continue;
       _declareDep(node, ancestor);
     }
+
+    //var defaultCtor = e.constructors.firstWhere((c) => c.name == '', orElse: () => null);
+    var defaultCtor = e.type.lookUpConstructor('', e.library);
+    if (defaultCtor != null) {
+      _addEdge(node, [e], defaultCtor);
+    }
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     _visitClassElement(node, node.element);
-    // stderr.writeln("ALIAS: ${node.element}: ${node.element.runtimeType}");
-    // if (node.superclass != null) visitTypeName(node.superclass);
-    // if (node.implementsClause != null) node.implementsClause.interfaces.forEach(visitTypeName);
-    // if (node.withClause != null) node.withClause.mixinTypes.forEach(visitTypeName);
-    //
-    // for (var tparam in node.typeParameters.typeParameters) {
-    //   if (tparam.bound != null) visitTypeName(tparam.bound);
-    // }
     super.visitClassTypeAlias(node);
   }
 
@@ -304,7 +306,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
         return a is ClassDeclaration || a is ClassTypeAlias;
       });
       if (enclosingClass != null) {
-        _declareTargetPropertyDep(node, enclosingClass.element, node);
+        _declareTargetPropertyDep(node, enclosingClass.element, node.bestElement, node.name);
       }
     }
     super.visitIdentifier(node);
@@ -312,8 +314,8 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   bool isSpecial(Element e) {
     return
-      false;
-      // e.name == 'startRootIsolate' ||
+      e.name == 'startRootIsolate' ||
+      e.name == 'registerDevtoolsFormatter' ||
       // e.name == 'topEventLoop' ||
       // e.name == 'globalPostMessageDefined' ||
       // e.name == '_global' || e.name == 'globalWindow' || e.name == 'globalWorker' ||
@@ -321,8 +323,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
       // e.name == 'controlPort' ||
       // e.name == 'RawReceivePortImpl' || e.name == '_controlPort' ||
       // // e.name == 'toString' ||
-      // e.name == '_nativeDetectEnvironment' ||
-      // e.name == 'registerDevtoolsFormatter' || // dart:_debugger
+      e.name == '_nativeDetectEnvironment' || // dart:_debugger
       // // e.name.endsWith('MapMixin') || e.name.endsWith('MapView') ||
       // e.name == '_StreamController' ||
       // e.name == '_LinkedHashMap' ||
@@ -334,22 +335,23 @@ class UsageVisitor extends GeneralizingAstVisitor {
       // e.name == 'Capability' || e.name == 'CapabilityImpl' ||
       // e.name == 'random64' || e.name == '_internal' ||
       // e.name == 'SendPort' ||
-      // e.name == 'LinkedHashSetCell' || e.name == 'LinkedHashMapCell' ||
+      e.name == 'LinkedHashSetCell' || e.name == 'LinkedHashMapCell' ||
       // // e.name == '_isStringElement' || e.name == '_isNumericElement' || e.name == '_newHashTable' ||
       // e.name == '_MainManagerStub' ||
       // e.name == '_nativeInitWorkerMessageHandler' ||
       // e.name == 'IsolateNatives' ||
       // e.name == '_globalState' || // for setter
       // e.name == 'ListQueue' ||
-      // e is ClassMemberElement && (
-      //     e.enclosingElement.name == 'ListQueue' ||
+      e is ClassMemberElement && (// e.isStatic && (
+          e.enclosingElement.name == 'ListQueue' ||
       //     e.enclosingElement.name == 'JSArray' ||
       //     e.enclosingElement.name == '_Manager' ||
       //     e.enclosingElement.name == '_EventLoop' ||
-      //     e.enclosingElement.name == '_LinkedHashSet' ||
-      //     e.enclosingElement.name == '_LinkedHashMap' ||
+          e.enclosingElement.name == '_LinkedHashSet' ||
+          e.enclosingElement.name == '_LinkedHashMap' ||
       //     e.enclosingElement.name == '_IsolateContext'
-      // ) ||
+          false
+      ) ||
       // // e.name.endsWith('ListMixin') || e.name.endsWith('ListView') || e.name == 'ListBase' ||
       // // e.name == '_isPowerOf2' ||
       // // '$e'.contains('_isPowerOf2') ||
@@ -358,6 +360,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
       // e.name == '_SyncStreamControllerDispatch' ||
       // e.name == '_NoCallbacks' ||
       // e.name == '_NoCallbackSyncStreamController';
+      false;
   }
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
     var accessible = _graph.getTransitiveClosure(roots);
@@ -366,54 +369,58 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
       if (e == null) throw new ArgumentError.notNull('e');
       if (accessible.contains(e)) return true;
-      if (e is PropertyAccessorElement && accessible.contains(e.variable)) return true;
 
       if (isSpecial(e)) {
-        // stderr.writeln("SPECIAL: $e");
+      //   stderr.writeln("SPECIAL: $e");
+      //   stderr.writeln('INCOMING($e): ${_graph.getIncoming(e)}');
+      //   // if (e.name.contains('_Manager')) {
+      //     var path;
+      //     for (var root in roots) {
+      //       path = _graph.getSomePath(roots, e);
+      //       if (path != null) {
+      //         stderr.writeln('FOUND PATH from $root to $e:\n\t' + path.join('\n\t'));
+      //         break;
+      //       }
+      //     }
+      //     if (path == null) stderr.writeln('FOUND NO PATH $e');
+      //   // }
         return true;
       }
-      // if (e.name == 'MapMixin') {
-      //   for (var n in accessible.map((e) => e.name).toSet().toList()..sort()) {
-      //     stderr.writeln('  $n');
-      //   }
-      //   // for (var x in accessible.toList()..sort((a, b) => a.name.compar)) {
-      //   //   if (x.name == 'MapMixin') {
-      //   //     throw new StateError('$e vs. $x: ${e == x}');
-      //   //   }
-      //   //   print('  ')
-      //   // }
-      //   throw new StateError('FAILED TO FIND MapMixin (roots = $roots)!');
-      //   //
-      //     // if (node.name.name == 'MapMixin') throw new Error();
-      // }
-      if (e is FunctionElement) {
-        return accessible.contains(new _UnresolvedElement(null, e.name));
-      }
-      // if (e is ClassMemberElement && !isReachable(e.enclosingElement)) {
-      //   return false;
-      // }
-      if (e is ClassMemberElement || e is PropertyAccessorElement) {
-        var enclosingClass = e.getAncestor((a) => a is ClassElement);
-        if (enclosingClass != null) {
-          return _collectHierarchy(enclosingClass)
-              .any((ClassElement parent) {
-                var parentMemberElement;
-                if (e is PropertyAccessorElement) {
-                  parentMemberElement = parent.getField(e.variable.name);
-                } else if (e is PropertyInducingElement) {
-                  parentMemberElement = parent.getField(e.name);
-                } else if (e is MethodElement) {
-                  parentMemberElement = parent.getMethod(e.name);
-                }
-                return parentMemberElement != null && accessible.contains(parentMemberElement) ||
-                    accessible.contains(new _UnresolvedElement(parent, e.name));
-              });
-        } else {
+
+      bool containsUnresolved() {
+        if (e is FunctionElement) {
           return accessible.contains(new _UnresolvedElement(null, e.name));
         }
+        // if (e is ClassMemberElement && !isReachable(e.enclosingElement)) {
+        //   return false;
+        // }
+        if (e is ClassMemberElement || e is PropertyAccessorElement) {
+          var enclosingClass = e.getAncestor((a) => a is ClassElement);
+          if (enclosingClass != null) {
+            return _collectHierarchy(enclosingClass)
+                .any((ClassElement parent) {
+                  var parentMemberElement;
+                  if (e is PropertyAccessorElement) {
+                    parentMemberElement = parent.getField(e.variable.name);
+                  } else if (e is PropertyInducingElement) {
+                    parentMemberElement = parent.getField(e.name);
+                  } else if (e is MethodElement) {
+                    parentMemberElement = parent.getMethod(e.name);
+                  }
+                  return parentMemberElement != null && accessible.contains(parentMemberElement) ||
+                      accessible.contains(new _UnresolvedElement(parent, e.name));
+                });
+          } else {
+            return accessible.contains(new _UnresolvedElement(null, e.name));
+          }
+        }
+        // stderr.writeln('Unreachable by default: $e: ${e.runtimeType}');
+        return false;
       }
-      // stderr.writeln('Unreachable by default: $e: ${e.runtimeType}');
-      return false;
+      var res = containsUnresolved();
+      // if (e.name.contains('Map') && res) stderr.writeln("CONTAINS UNRESOLVED: $e");
+      return res;
+      // return false;
     }
     return isReachable;
   }

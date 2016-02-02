@@ -61,12 +61,61 @@ dart_library.library('tree_shaking', null, /* Imports */[
     }),
     names: ['_keepStaticMethod1', '_keepStaticMethod2']
   });
+  const _m1 = Symbol('_m1');
+  const _m2 = Symbol('_m2');
+  class _Operators extends core.Object {
+    get(_) {
+      return this[_m1]();
+    }
+    set(key, value) {
+      (() => {
+        return this[_m2]();
+      })();
+      return value;
+    }
+    [_m1]() {}
+    [_m2]() {}
+  }
+  dart.setSignature(_Operators, {
+    methods: () => ({
+      get: [dart.dynamic, [dart.dynamic]],
+      set: [dart.dynamic, [dart.dynamic, dart.dynamic]],
+      [_m1]: [dart.dynamic, []],
+      [_m2]: [dart.dynamic, []]
+    })
+  });
   class _Bar extends core.Object {
     keepMethod1() {}
   }
   dart.setSignature(_Bar, {
     methods: () => ({keepMethod1: [dart.dynamic, []]})
   });
+  const _Statics$ = dart.generic(function(T) {
+    class _Statics extends core.Object {
+      static _keepStatic1() {}
+      static _keepStatic2() {}
+      static get _keepStatic3() {
+        return 0;
+      }
+      _Statics() {
+        _Statics$()._keepStatic1();
+        _Statics$()._keepStatic2();
+        _Statics$()._keepStatic3;
+        _Statics$()._keepStatic4;
+      }
+    }
+    dart.setSignature(_Statics, {
+      constructors: () => ({_Statics: [_Statics$(T), []]}),
+      statics: () => ({
+        _keepStatic1: [dart.void, []],
+        _keepStatic2: [core.int, []]
+      }),
+      names: ['_keepStatic1', '_keepStatic2']
+    });
+    _Statics._keepStatic4 = 0;
+    return _Statics;
+  });
+  let _Statics = _Statics$();
   function _testRefs(args) {
     new _Keep1(null);
     _keep2();
@@ -80,6 +129,10 @@ dart_library.library('tree_shaking', null, /* Imports */[
     let fooBar = dart.equals(dart.dload(args, 'length'), 1) ? new _Foo() : new _Bar();
     dart.dsend(fooBar, 'keepMethod1');
     _Foo._keepStaticMethod1();
+    new (_Statics$(core.int))();
+    let ops = new _Operators();
+    ops.get(1);
+    ops.set(1, 2);
   }
   dart.fn(_testRefs);
   class _RetainedByArg1 extends core.Object {}
