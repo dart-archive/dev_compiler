@@ -112,12 +112,29 @@ dart_library.library('tree_shaking', null, /* Imports */[
     try {
       _testRefs(args);
       _testInheritance(args);
+      _MyMap.new();
     } catch (e) {
       if (dart.is(e, _KeepEx)) core.print(e);
     }
 
   }
   dart.fn(main);
+  const _MyMap$ = dart.generic(function(K, V) {
+    class _MyMap extends core.Object {}
+    return _MyMap;
+  });
+  let _MyMap = _MyMap$();
+  const _MyMapMixin$ = dart.generic(function(K, V) {
+    class _MyMapMixin extends core.Object {}
+    _MyMapMixin[dart.implements] = () => [_MyMap$(K, V)];
+    return _MyMapMixin;
+  });
+  let _MyMapMixin = _MyMapMixin$();
+  const _MyMapBase$ = dart.generic(function(K, V) {
+    class _MyMapBase extends dart.mixin(core.Object, _MyMapMixin$(K, V)) {}
+    return _MyMapBase;
+  });
+  let _MyMapBase = _MyMapBase$();
   // Exports:
   exports.main = main;
 });

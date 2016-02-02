@@ -81,7 +81,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   Iterable<ClassElement> _collectHierarchy(ClassElement e) sync* {
     yield e;
-    yield* e.allSupertypes.map((InterfaceType t) => t.element);
+    yield* e.allSupertypes.expand((InterfaceType t) => _collectHierarchy(t.element));
     // if (e.supertype != null) yield e.supertype.element;
     // if (e.interfaces != null) yield* e.interfaces.map(_getElement);
     // if (e.mixins != null) yield* e.mixins.map(_getElement);

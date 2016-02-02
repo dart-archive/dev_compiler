@@ -82,7 +82,18 @@ main(args) {
   try {
     _testRefs(args);
     _testInheritance(args);
+    new _MyMap();
   } catch (e) {
     if (e is _KeepEx) print(e);
   }
 }
+
+class _MyMap<K, V> {
+  factory _MyMap() => new _MyMapImpl<K, V>();
+}
+
+class _MyMapImpl<K, V> extends _MyMapBase<K, V> implements _MyMap<K, V> {}
+
+abstract class _MyMapMixin<K, V> implements _MyMap<K, V> {}
+
+abstract class _MyMapBase<K, V> = Object with _MyMapMixin<K, V>;
