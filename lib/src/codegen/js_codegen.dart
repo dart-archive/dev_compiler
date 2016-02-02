@@ -3580,13 +3580,16 @@ class JSGenerator extends CodeGenerator {
 
     unit.libraryThenParts.forEach((u) => u.accept(_usageVisitor));
 
-    // assert(unit.library.element.source.isInSystemLibrary == (_treeShakingMode == TreeShakingMode.private));
-    if (isMain || _treeShakingMode == TreeShakingMode.private) {
+    var isRuntime =
+        unit.library.element.source.uri.toString() == 'dart:_runtime';
+
+    if (isRuntime || isMain || _treeShakingMode == TreeShakingMode.private) {
       unit.libraryThenParts.forEach((u) {
         for (var d in u.declarations) {
           if (d is TopLevelVariableDeclaration) {
             d.variables.variables.forEach((v) => _addRoot(v.element));
           } else {
+            // TODO(ochafik): Skip stuff like @JS, etc.
             _addRoot(d.element);
           }
         }

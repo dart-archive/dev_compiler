@@ -11,9 +11,6 @@ import '../utils.dart';
 
 typedef bool ReachabilityPredicate(Element e);
 
-final _treeShake = Platform.environment['TREE_SHAKE'] != '0';
-final _verbose = Platform.environment['VERBOSE'] == '1';
-
 class UsageVisitor extends GeneralizingAstVisitor {
   // TODO(ochafik): Detect reflect & reflectType.
   bool followReflection;
@@ -43,12 +40,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
   }
   _declareDep(AstNode node, Object to) {
     var froms = _enclosingElement(node);
-    if (froms == null) {
-      stderr.writeln("NO ENCLOSING ELEMENT: $node: ${node.runtimeType} (-> $to)\nparent: ${node.parent?.parent}: ${node.parent?.runtimeType}: ${node.parent is Declaration}");
-      return;
-    }
     // stderr.writeln('Dep ${node} -> ${to}');
-    if (_verbose) stderr.writeln('Dep ${froms} -> ${to}');
     _addEdge(froms, to);
     if (to is ClassMemberElement) {
       _addEdge(froms, to.enclosingElement);
@@ -61,11 +53,22 @@ class UsageVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  static ClassElement _getElement(InterfaceType type) => type.element;
+
   Iterable<ClassElement> _collectHierarchy(ClassElement e) sync* {
     yield e;
     if (e.supertype != null) yield e.supertype.element;
-    if (e.interfaces != null) yield* e.interfaces.map((i) => i.element);
+    if (e.interfaces != null) yield* e.interfaces.map(_getElement);
+    if (e.mixins != null) yield* e.mixins.map(_getElement);
   }
+
+  @override
+  visitTypeName(TypeName node) {
+    var e = node.type?.element;
+    if (e != null) _declareDep(node, e);
+    super.visitTypeName(node);
+  }
+
   @override
   visitAnnotatedNode(AnnotatedNode node) {
     for (var annotation in node.metadata) {
@@ -119,6 +122,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   @override
   visitCatchClause(CatchClause node) {
+    // TODO(ochafik): Redundant with visitTypeName?
     var e = node.exceptionType?.type?.element;
     if (e != null) _declareDep(node, e);
     super.visitCatchClause(node);
@@ -127,11 +131,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
   @override
   visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
-    if (target is Identifier) {
-      _declareTargetPropertyDep(node, target.bestElement, node.propertyName);
-    } else {
-      if (_verbose) stderr.writeln('ERROR: $target: ${target.runtimeType}');
-    }
+    _declareTargetPropertyDep(node, target.bestType.element, node.propertyName);
     return super.visitPropertyAccess(node);
   }
 
@@ -192,8 +192,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
   }
 
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
-    if (!_treeShake) return (_) => true;
-
     var accessible = _graph.getTransitiveClosure(roots);
     bool isReachable(Element e) {
       if (accessible.contains(e)) return true;
@@ -223,7 +221,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
           return accessible.contains(new _UnresolvedElement(null, e.name));
         }
       }
-      if (_verbose) stderr.writeln('Unreachable by default: $e: ${e.runtimeType}');
+      // stderr.writeln('Unreachable by default: $e: ${e.runtimeType}');
       return false;
     }
     return isReachable;

@@ -71,11 +71,18 @@ class _Sub extends _Base {
   run() => print('Sub');
 }
 
+class _KeepEx extends Error {}
+class _DropEx extends Error {}
+
 _testInheritance(args) {
   new _Sub().report();
 }
 
 main(args) {
-  _testRefs(args);
-  _testInheritance(args);
+  try {
+    _testRefs(args);
+    _testInheritance(args);
+  } catch (e) {
+    if (e is _KeepEx) print(e);
+  }
 }

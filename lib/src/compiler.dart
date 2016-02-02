@@ -148,7 +148,9 @@ class BatchCompiler extends AbstractCompiler {
     if (AnalysisEngine.isHtmlFileName(source.uri.path)) {
       _compileHtml(source, notifier);
     } else {
-      _compileLibrary(context.computeLibraryElement(source), notifier, isMain: true);
+      _compileLibrary(context.computeLibraryElement(source), notifier,
+          isMain: source.uri.scheme != 'dart');
+          // isMain: true);
     }
     _processPending();
     reporter.flush();

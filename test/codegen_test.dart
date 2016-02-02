@@ -165,13 +165,14 @@ $compilerMessages''';
           // overlap between test files, we may need separate ones for each
           // compiler.
           var compiler =
-              (sourceMaps || closure || moduleFormat != ModuleFormat.legacy)
-                  ? createCompiler(realSdkContext,
-                      sourceMaps: sourceMaps,
-                      closure: closure,
-                      treeShakingMode: treeShakingMode,
-                      moduleFormat: moduleFormat)
-                  : batchCompiler;
+              (sourceMaps || closure || moduleFormat != ModuleFormat.legacy ||
+                  treeShakingMode != TreeShakingMode.none)
+                      ? createCompiler(realSdkContext,
+                          sourceMaps: sourceMaps,
+                          closure: closure,
+                          treeShakingMode: treeShakingMode,
+                          moduleFormat: moduleFormat)
+                      : batchCompiler;
           success = compile(compiler, filePath);
 
           var outFile = new File(path.join(outDir.path, '$filename.js'));
