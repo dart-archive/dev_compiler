@@ -23,32 +23,16 @@ class UsageVisitor extends GeneralizingAstVisitor {
   AstNode getSameOrAncestor(AstNode node, bool predicate(AstNode node)) =>
       predicate(node) ? node : node.getAncestor(predicate);
 
-  List<Element> _currentEnclosingElement = const<Element>[];
-  @override
-  visitNode(AstNode node) {
-    if (node is Declaration && node.element != null && _isSpecial(node.element)) {
-      _specialRoots.add(node.element);
-    }
+  Element _currentEnclosingElement;
+
+  _withEnclosingElement(Element e, action()) {
+    if (e != null && _isSpecialRoot(e)) _specialRoots.add(e);
+
     var oldEnclosingElement = _currentEnclosingElement;
-    setEnclosing(Element e) {
-      _currentEnclosingElement = e == null ? [] : [e];
-    }
-    if (node is Declaration) {
-      if (node is ClassTypeAlias) {
-        var e = node.name.bestElement;
-        if (e != node.element) throw new Error();
-      }
-      setEnclosing(node.element);
-    } else if (node is VariableDeclarationList) {
-      _currentEnclosingElement = node.variables.map((v) => v.element).toList();
-    } else if (node is ClassTypeAlias) {
-      setEnclosing(node.name.bestElement);
-    }
-
-    // stderr.writeln("NODE: $node (${node.runtimeType})");
-    super.visitNode(node);
-
+    _currentEnclosingElement = e ?? oldEnclosingElement;
+    var res = action();
     _currentEnclosingElement = oldEnclosingElement;
+    return res;
   }
 
   Element _normalize(Element e) {
@@ -64,18 +48,19 @@ class UsageVisitor extends GeneralizingAstVisitor {
     return e;
   }
 
-  _addEdge(AstNode node, List<Element> froms, to) {
-    for (Element from in froms) {
-      if (from == null || to == null) throw new ArgumentError('Invalid edge: $from -> $to');
-      if (from == to) continue;
-
-      // if (to is Element && to.name == '_Manager') {
-      //   stderr.writeln('MAP EDGE(${node.runtimeType}): [${from.name}: ${from.runtimeType}] -> [${to.name}: ${to.runtimeType}]'
-      //     // '\n$node'
-      //   );
-      // }
-      _graph.addEdge(from, to);
+  _addEdge(AstNode node, Element from, to) {
+    if (from == null || to == null) {
+      var ancestor = node is Declaration ? node : node.getAncestor((a) => a is Declaration);
+      throw new ArgumentError('Invalid edge for $node (<- ${node?.parent} <- ${node?.parent?.parent}): $from -> $to (found ancestor: $ancestor (${ancestor.runtimeType}))');
     }
+    if (from == to) return;
+
+    // if (to is Element && to.name.contains('LinkedHashMap') && from.name.contains('LinkedHashMap')) {
+    //   stderr.writeln('MAP EDGE(${node.runtimeType}): [${from.name}: ${from.runtimeType}] -> [${to.name}: ${to.runtimeType}]'
+    //     '\n$node'
+    //   );
+    // }
+    _graph.addEdge(from, to);
   }
 
   _declareDep(AstNode node, to) {
@@ -83,17 +68,17 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
     if (to is Element) to = _normalize(to);
 
-    var froms = _currentEnclosingElement;
+    var from = _currentEnclosingElement;
     // if (froms.isEmpty) throw new ArgumentError('No origin for destination $to ($node)');
-    _addEdge(node, froms, to);
+    _addEdge(node, from, to);
     if (to is ClassMemberElement) {
-      _addEdge(node, froms, to.enclosingElement);
+      _addEdge(node, from, to.enclosingElement);
     } else if (to is PropertyAccessorElement) {
-      _addEdge(node, froms, to.variable);
+      _addEdge(node, from, to.variable);
     } else if (to is PropertyInducingElement) {
       // TODO(ochafik): Refine.
-      if (to.getter != null) _addEdge(node, froms, to.getter);
-      if (to.setter != null) _addEdge(node, froms, to.setter);
+      if (to.getter != null) _addEdge(node, from, to.getter);
+      if (to.setter != null) _addEdge(node, from, to.setter);
     }
   }
 
@@ -105,6 +90,31 @@ class UsageVisitor extends GeneralizingAstVisitor {
     // if (e.supertype != null) yield e.supertype.element;
     // if (e.interfaces != null) yield* e.interfaces.map(_getElement);
     // if (e.mixins != null) yield* e.mixins.map(_getElement);
+  }
+
+  @override
+  visitLibraryDirective(LibraryDirective node) {
+    // Do nothing.
+  }
+
+  @override
+  visitPartDirective(PartDirective node) {
+    // Do nothing.
+  }
+
+  @override
+  visitPartOfDirective(PartOfDirective node) {
+    // Do nothing.
+  }
+
+  @override
+  visitImportDirective(ImportDirective node) {
+    // Do nothing.
+  }
+
+  @override
+  visitExportDirective(ExportDirective node) {
+    // Do nothing.
   }
 
   @override
@@ -122,10 +132,42 @@ class UsageVisitor extends GeneralizingAstVisitor {
     super.visitAnnotatedNode(node);
   }
 
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    _withEnclosingElement(node.element, () {
+      super.visitDeclaredIdentifier(node);
+    });
+  }
+
+  // @override
+  // visitDeclaration(Declaration node) {
+  //   if (node is! DeclaredIdentifier &&
+  //       node is! MethodDeclaration &&
+  //       node is! FunctionDeclaration &&
+  //       node is! ClassDeclaration &&
+  //       node is! ConstructorDeclaration &&
+  //       node is! FieldDeclaration &&
+  //       node is! TopLevelVariableDeclaration &&
+  //       node is! VariableDeclaration &&
+  //       node is! ClassTypeAlias) {
+  //     stderr.writeln('DECL: $node (${node.runtimeType})');
+  //   }
+  //   super.visitDeclaration(node);
+  // }
+
+  @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    var e = node.element?.redirectedConstructor;
-    if (e != null) _declareDep(node, e);
-    super.visitConstructorDeclaration(node);
+    _withEnclosingElement(node.element, () {
+      var e = node.element?.redirectedConstructor;
+      if (e != null) _declareDep(node, e);
+      // if (node.element.enclosingElement.name.contains('LinkedHashMap')) {
+      //   stderr.writeln('CONSTRUCTOR: $node');
+      //   super.visitConstructorDeclaration(node);
+      //   stderr.writeln('CONSTRUCTOR DONE');
+      //   return;
+      // }
+      super.visitConstructorDeclaration(node);
+    });
   }
 
   @override
@@ -148,15 +190,36 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    var e = node.element.type.element;
-    if (e != null) _declareDep(node, e);
-    super.visitVariableDeclaration(node);
+    _withEnclosingElement(node.element, () {
+      var e = node.element.type.element;
+      if (e != null) _declareDep(node, e);
+      super.visitVariableDeclaration(node);
+    });
+  }
+
+  @override
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    visitVariableDeclarationList(node.variables);
+    // for (VariableDeclaration v in node.variables) {
+    //   _withEnclosingElement(v.element, () {
+    //     if (node.type != null) visitTypeName(node.type);
+    //     visitVariableDeclaration(v);
+    //   });
+    // }
+    // _withEnclosingElement(node.element, () {
+    //   super.visitTopLevelVariableDeclaration(node);
+    // });
   }
 
   @override
   visitVariableDeclarationList(VariableDeclarationList node) {
-    node.variables.forEach(visitVariableDeclaration);
-    super.visitVariableDeclarationList(node);
+    for (VariableDeclaration v in node.variables) {
+      _withEnclosingElement(v.element, () {
+        if (node.type != null) visitTypeName(node.type);
+        visitVariableDeclaration(v);
+      });
+    }
+    // super.visitVariableDeclarationList(node);
   }
 
   @override
@@ -183,12 +246,22 @@ class UsageVisitor extends GeneralizingAstVisitor {
   visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
     _declareTargetPropertyDep(node, target.bestType.element, node.propertyName.bestElement, node.propertyName.name);
-    return super.visitPropertyAccess(node);
+    super.visitPropertyAccess(node);
+  }
+
+  @override
+  visitExpression(Expression node) {
+    var e = node.bestType?.element;
+    if (e != null) _declareDep(node, e);
+    super.visitExpression(node);
   }
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _declareDep(node, node.constructorName.staticElement);
+    // if (node.bestType?.element?.name?.contains('LinkedHashMap') == true) {
+    //   stderr.writeln('INSTANCE CREATION: $node\n\t$_currentEnclosingElement\n\t${node.bestType?.element}\n\t${node.constructorName.staticElement}\n\t${node.staticElement}');
+    // }
+    // _declareDep(node, node.constructorName.staticElement);
     _declareDep(node, node.staticElement);
     super.visitInstanceCreationExpression(node);
   }
@@ -227,8 +300,10 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    _visitClassElement(node, node.element);
-    super.visitClassDeclaration(node);
+    _withEnclosingElement(node.element, () {
+      _visitClassElement(node, node.element);
+      super.visitClassDeclaration(node);
+    });
   }
 
   void _visitClassElement(AstNode node, ClassElement e) {
@@ -239,14 +314,16 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
     var defaultCtor = e.type.lookUpConstructor('', e.library);
     if (defaultCtor != null) {
-      _addEdge(node, [e], defaultCtor);
+      _addEdge(node, e, defaultCtor);
     }
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    _visitClassElement(node, node.element);
-    super.visitClassTypeAlias(node);
+    _withEnclosingElement(node.name.bestElement, () {
+      _visitClassElement(node, node.element);
+      super.visitClassTypeAlias(node);
+    });
   }
 
   @override
@@ -260,25 +337,38 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
-    if (node.returnType != null) visitTypeName(node.returnType);
-    if (node.parameters != null) visitFormalParameterList(node.parameters);
-    super.visitMethodDeclaration(node);
+    _withEnclosingElement(node.element, () {
+      if (node.returnType != null) visitTypeName(node.returnType);
+      if (node.parameters != null) visitFormalParameterList(node.parameters);
+      super.visitMethodDeclaration(node);
+    });
+  }
+
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    _withEnclosingElement(node.element, () {
+      super.visitFieldDeclaration(node);
+    });
   }
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.returnType != null) visitTypeName(node.returnType);
-    if (node.functionExpression.parameters != null) {
-      visitFormalParameterList(node.functionExpression.parameters);
-    }
-    super.visitFunctionDeclaration(node);
+    _withEnclosingElement(node.element, () {
+      if (node.returnType != null) visitTypeName(node.returnType);
+      if (node.functionExpression.parameters != null) {
+        visitFormalParameterList(node.functionExpression.parameters);
+      }
+      super.visitFunctionDeclaration(node);
+    });
   }
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (node.returnType != null) visitTypeName(node.returnType);
-    visitFormalParameterList(node.parameters);
-    super.visitFunctionTypeAlias(node);
+    _withEnclosingElement(node.element, () {
+      if (node.returnType != null) visitTypeName(node.returnType);
+      visitFormalParameterList(node.parameters);
+      super.visitFunctionTypeAlias(node);
+    });
   }
 
   // @override
@@ -302,17 +392,17 @@ class UsageVisitor extends GeneralizingAstVisitor {
     super.visitIdentifier(node);
   }
 
-  bool _isSpecial(Element e) {
+  bool _isSpecialRoot(Element e) {
     var uri = e.source.uri.toString();
+    // if (e.enclosingElement.name == 'JSNumber') {
+    //   stderr.writeln("URI for $e: $uri");
+    // }
     return
       uri == 'dart:_debugger' && (debug || e.name == 'registerDevtoolsFormatter') ||
       uri == 'dart:_isolate_helper' && e.name == 'startRootIsolate' ||
-      // uri == 'dart:_interceptors' ||
-      // e. /
-      // e.name == 'floor' ||
       e.name == 'iterator' ||
       e.name == 'values' ||
-      e is ClassMemberElement && (
+      uri.startsWith('dart:_interceptors/') && e is ClassMemberElement && (
         e.enclosingElement.name == 'JSNumber' ||
         e.enclosingElement.name == 'JSArray' ||
         e.enclosingElement.name == 'JSBool'
@@ -327,7 +417,8 @@ class UsageVisitor extends GeneralizingAstVisitor {
           e.enclosingElement.name == '_LinkedHashSet' ||
           e.enclosingElement.name == '_LinkedHashMap'
         )
-      );
+      ) ||
+      false;
   }
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
     var accessible = _graph.getTransitiveClosure(
@@ -339,14 +430,14 @@ class UsageVisitor extends GeneralizingAstVisitor {
       if (accessible.contains(e)) return true;
 
       // if (e is ClassMemberElement) {
-      //   if (_isSpecial(e) || _isSpecial(e.enclosingElement)) {
+      //   if (_isSpecialRoot(e) || _isSpecialRoot(e.enclosingElement)) {
       //     stderr.writeln("SPECIAL: $e");
       //   // if (_specialRoots.contains(e.enclosingElement)) {
       //   //   s
       //     return true;
       //   }
       // }
-      // if (_isSpecial(e)) {
+      // if (_isSpecialRoot(e)) {
       //   stderr.writeln("SPECIAL: $e");
       //   stderr.writeln('INCOMING($e): ${_graph.getIncoming(e)}');
       //   // if (e.name.contains('_Manager')) {

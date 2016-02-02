@@ -7,14 +7,16 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 function compile_and_run() {
   local file=$1
-  local name=`basename $file | sed 's/\.dart$//'`
+  local name=`basename $file | sed 's/\.dart$//' | sed 's/\.html$//'`
 
   ./tool/build_sdk.sh \
+    --modules=node \
     --tree-shaking=all \
     --destructure-named-params \
-    --modules=node \
     -o example/$name \
     $file
+
+  # cp lib/runtime/{dart_library,harmony_feature_check}.js example/$name
 
   NODE_PATH=example/$name \
     node \
@@ -25,3 +27,5 @@ function compile_and_run() {
 }
 
 compile_and_run test/codegen/language/hello_dart_test.dart
+compile_and_run test/codegen/DeltaBlue.dart
+# compile_and_run test/codegen/DeltaBlue.html
