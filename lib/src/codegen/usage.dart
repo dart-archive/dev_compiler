@@ -42,10 +42,26 @@ class UsageVisitor extends GeneralizingAstVisitor {
     return e == null ? const<Element>[] : <Element>[e];
   }
 
+  Element _normalize(Element e) {
+    if (e is ConstructorElement) {
+      // Normalize generic constructors (Map<dynamic, dynamic> -> Map<K, V>).
+      var cls = e.enclosingElement;
+      var ctor = e.isDefaultConstructor
+          ? cls.constructors.firstWhere((c) => c.isDefaultConstructor)
+          : cls.getNamedConstructor(e.name);
+      return ctor;
+    }
+    return e;
+  }
+
   _addEdge(AstNode node, List<Element> froms, to) {
     for (Element from in froms) {
       if (from == null || to == null) throw new ArgumentError('Invalid edge: $from -> $to');
       if (from == to) continue;
+
+      // if (to is TypeDefiningElement) {
+      //   to = to.type.element;
+      // }
       //'$from' == '$to') throw new StateError('$from');
       // stderr.writeln('Dep ${from} -> ${to}');
       // var f = from is ConstructorElement ? (from.isDefaultConstructor ? from.name : '${from.enclosingElement.name}.${from.name}') : from.name;//'$from', t = '$to';
@@ -56,8 +72,11 @@ class UsageVisitor extends GeneralizingAstVisitor {
       _graph.addEdge(from, to);
     }
   }
+
   _declareDep(AstNode node, to) {
     assert(to is Element || to is _UnresolvedElement);
+
+    if (to is Element) to = _normalize(to);
     var froms = _enclosingElement(node);
     // if (froms.isEmpty) throw new ArgumentError('No origin for destination $to ($node)');
     _addEdge(node, froms, to);
@@ -174,6 +193,7 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _declareDep(node, node.constructorName.staticElement);
     _declareDep(node, node.staticElement);
     super.visitInstanceCreationExpression(node);
   }
@@ -232,15 +252,41 @@ class UsageVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (node.returnType != null) visitTypeName(node.returnType);
-
-    for (var param in node.parameters.parameters) {
+  visitFormalParameterList(FormalParameterList node) {
+    for (var param in node.parameters) {
       var e = param.element?.type?.element;
       if (e != null) _declareDep(node, e);
     }
+    super.visitFormalParameterList(node);
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    if (node.returnType != null) visitTypeName(node.returnType);
+    if (node.parameters != null) visitFormalParameterList(node.parameters);
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.returnType != null) visitTypeName(node.returnType);
+    if (node.functionExpression.parameters != null) {
+      visitFormalParameterList(node.functionExpression.parameters);
+    }
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    if (node.returnType != null) visitTypeName(node.returnType);
+    visitFormalParameterList(node.parameters);
     super.visitFunctionTypeAlias(node);
   }
+
+  // @override
+  // visitPrefixedIdentifier(PrefixedIdentifier node) {
+  //   super.visitPrefixedIdentifier(node);
+  // }
 
   @override
   visitIdentifier(Identifier node) {
@@ -261,18 +307,62 @@ class UsageVisitor extends GeneralizingAstVisitor {
   ReachabilityPredicate buildReachabilityPredicate(Set<Element> roots) {
     var accessible = _graph.getTransitiveClosure(roots);
     bool isReachable(Element e) {
+      e = _normalize(e);
+
       if (e == null) throw new ArgumentError.notNull('e');
       if (accessible.contains(e)) return true;
+      if (e is PropertyAccessorElement && accessible.contains(e.variable)) return true;
 
-      if (e is FunctionElement && e.name == 'startRootIsolate' ||
+      var isSpecial =
+          //e is FunctionElement &&
+          e.name == 'startRootIsolate' ||
+          e.name == 'topEventLoop' ||
+          e.name == 'globalPostMessageDefined' ||
+          e.name == '_global' || e.name == 'globalWindow' || e.name == 'globalWorker' ||
+          e.name == 'nextIsolateId' ||
+          e.name == 'controlPort' ||
+          e.name == 'RawReceivePortImpl' || e.name == '_controlPort' ||
+          e.name == 'toString' ||
           e.name == '_nativeDetectEnvironment' ||
+          e.name == 'registerDevtoolsFormatter' || // dart:_debugger
           e.name.endsWith('MapMixin') || e.name.endsWith('MapView') ||
           e.name == '_StreamController' ||
+          e.name == '_LinkedHashMap' ||
+          e.name == '_LinkedHashSet' ||
+          e.name == '_HashSetBase' ||
+          e.name == 'SetBase' ||
+          e.name == 'JS_CREATE_ISOLATE' ||
+          e.name == 'JS_SET_CURRENT_ISOLATE' ||
+          e.name == 'Capability' || e.name == 'CapabilityImpl' ||
+          e.name == 'random64' || e.name == '_internal' ||
+          e.name == 'SendPort' ||
+          e.name == 'LinkedHashSetCell' || e.name == 'LinkedHashMapCell' ||
+          // e.name == '_isStringElement' || e.name == '_isNumericElement' || e.name == '_newHashTable' ||
+          e.name == '_MainManagerStub' ||
+          e.name == '_nativeInitWorkerMessageHandler' ||
+          e.name == 'IsolateNatives' ||
+          e.name == '_globalState' || // for setter
+          e.name == 'ListQueue' ||
+          e is ClassMemberElement && (
+              e.enclosingElement.name == 'ListQueue' ||
+              e.enclosingElement.name == 'JSArray' ||
+              e.enclosingElement.name == '_Manager' ||
+              e.enclosingElement.name == '_EventLoop' ||
+              e.enclosingElement.name == '_LinkedHashSet' ||
+              e.enclosingElement.name == '_LinkedHashMap' ||
+              e.enclosingElement.name == '_IsolateContext'
+          ) ||
+          // e.name == '_isPowerOf2' ||
+          // '$e'.contains('_isPowerOf2') ||
+          // e.name == 'markFixedList' ||
           e.name == '_AsyncStreamControllerDispatch' ||
           e.name == '_SyncStreamControllerDispatch' ||
           e.name == '_NoCallbacks' ||
           e.name == '_NoCallbackSyncStreamController' ||
-          e.name.endsWith('ListMixin') || e.name.endsWith('ListView') || e.name == 'ListBase') {
+          e.name.endsWith('ListMixin') || e.name.endsWith('ListView') || e.name == 'ListBase';
+
+      if (isSpecial) {
+        stderr.writeln("SPECIAL: $e");
         return true;
       }
       // if (e.name == 'MapMixin') {

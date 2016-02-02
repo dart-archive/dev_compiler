@@ -64,12 +64,18 @@ _testRefs(args) {
   _Foo._keepStaticMethod1();
 }
 
+
+
+class _RetainedByArg1 {}
+class _RetainedByArg2 {}
+class _RetainedByRetType1 {}
+
 abstract class _Base {
   _Base._();
   _Base.dropped() : this._();
-  _Base.kept() : this._();
+  _Base.kept(_RetainedByArg1 arg) : this._();
 
-  report() {
+  _RetainedByRetType1 report(_RetainedByArg2 arg) {
     measure();
   }
   measure() {
@@ -79,7 +85,7 @@ abstract class _Base {
 }
 
 class _Sub extends _Base {
-  _Sub() : super.kept();
+  _Sub() : super.kept(null);
   _Sub.dropped() : super.dropped();
   run() => print('Sub');
 }
@@ -88,7 +94,7 @@ class _KeepEx extends Error {}
 class _DropEx extends Error {}
 
 _testInheritance(args) {
-  new _Sub().report();
+  new _Sub().report(null);
 }
 
 main(args) {

@@ -71,13 +71,16 @@ dart_library.library('tree_shaking', null, /* Imports */[
     _Foo._keepStaticMethod1();
   }
   dart.fn(_testRefs);
+  class _RetainedByArg1 extends core.Object {}
+  class _RetainedByArg2 extends core.Object {}
+  class _RetainedByRetType1 extends core.Object {}
   class _Base extends core.Object {
     _() {
     }
-    kept() {
+    kept(arg) {
       this._();
     }
-    report() {
+    report(arg) {
       this.measure();
     }
     measure() {
@@ -89,16 +92,16 @@ dart_library.library('tree_shaking', null, /* Imports */[
   dart.setSignature(_Base, {
     constructors: () => ({
       _: [_Base, []],
-      kept: [_Base, []]
+      kept: [_Base, [_RetainedByArg1]]
     }),
     methods: () => ({
-      report: [dart.dynamic, []],
+      report: [_RetainedByRetType1, [_RetainedByArg2]],
       measure: [dart.dynamic, []]
     })
   });
   class _Sub extends _Base {
     _Sub() {
-      super.kept();
+      super.kept(null);
     }
     run() {
       return core.print('Sub');
@@ -114,7 +117,7 @@ dart_library.library('tree_shaking', null, /* Imports */[
     }
   }
   function _testInheritance(args) {
-    new _Sub().report();
+    new _Sub().report(null);
   }
   dart.fn(_testInheritance);
   function main(args) {
@@ -129,7 +132,14 @@ dart_library.library('tree_shaking', null, /* Imports */[
   }
   dart.fn(main);
   const _MyMap$ = dart.generic(function(K, V) {
-    class _MyMap extends core.Object {}
+    class _MyMap extends core.Object {
+      static new() {
+        return new (_MyMapImpl$(K, V))();
+      }
+    }
+    dart.setSignature(_MyMap, {
+      constructors: () => ({new: [_MyMap$(K, V), []]})
+    });
     return _MyMap;
   });
   let _MyMap = _MyMap$();
@@ -144,6 +154,12 @@ dart_library.library('tree_shaking', null, /* Imports */[
     return _MyMapBase;
   });
   let _MyMapBase = _MyMapBase$();
+  const _MyMapImpl$ = dart.generic(function(K, V) {
+    class _MyMapImpl extends _MyMapBase$(K, V) {}
+    _MyMapImpl[dart.implements] = () => [_MyMap$(K, V)];
+    return _MyMapImpl;
+  });
+  let _MyMapImpl = _MyMapImpl$();
   // Exports:
   exports.main = main;
 });
