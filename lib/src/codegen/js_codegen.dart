@@ -41,6 +41,7 @@ import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
 import 'usage.dart';
+import 'dart:io';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -110,7 +111,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   bool _isDartRuntime;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
-      this._extensionTypes, this._fieldsNeedingStorage, this._isReachable)
+      this._extensionTypes, this._fieldsNeedingStorage, this._isReachable, this._treeShakingData)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
         _types = compiler.context.typeProvider {
@@ -127,6 +128,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   NullableExpressionPredicate _isNullable;
   ReachabilityPredicate _isReachable;
+  Function _treeShakingData;
 
   JS.Program emitLibrary(LibraryUnit library) {
     // Modify the AST to make coercions explicit.
@@ -441,6 +443,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         staticFields, methods, node.metadata, jsPeerName);
 
     var result = _finishClassDef(type, body);
+    result = _statement([new JS.Comment('/* ${_treeShakingData(classElem)} */'), result]);
 
     if (jsPeerName != null) {
       // This class isn't allowed to be lazy, because we need to set up
@@ -1588,6 +1591,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (accessor is PropertyAccessorElement) element = accessor.variable;
 
     _loader.declareBeforeUse(element);
+
+    // if (node is! FormalParameter && !_isReachable(element)) {
+    //   var enclosingDecl = node.getAncestor((n) => n is Declaration);
+    //   // if (enclosin)
+    //   stderr.writeln('enclosingDecl($node) = $enclosingDecl');
+    //   if (enclosingDecl?.element != null) _isReachable(enclosingDecl.element, throwIfNot: true);
+    //   _isReachable(element, throwIfNot: true);
+    // }
 
     // type literal
     if (element is ClassElement ||
@@ -3547,6 +3558,8 @@ class JSGenerator extends CodeGenerator {
   final _roots = new Set<Element>();
   UsageVisitor _usageVisitor;
   final TreeShakingMode _treeShakingMode;
+
+  ReachabilityPredicate _isReachable;
   JSGenerator(AbstractCompiler compiler)
       : _types = compiler.context.typeProvider,
         _treeShakingMode = compiler.options.codegenOptions.treeShakingMode,
@@ -3568,6 +3581,10 @@ class JSGenerator extends CodeGenerator {
     _addExtensionType(_types.doubleType);
 
     _usageVisitor = new UsageVisitor(_extensionTypes);
+
+    _isReachable = _treeShakingMode == TreeShakingMode.none
+        ? (_) => true
+        : _usageVisitor.buildReachabilityPredicate(_roots);
   }
 
   void _addExtensionType(InterfaceType t) {
@@ -3635,11 +3652,8 @@ class JSGenerator extends CodeGenerator {
     var library = unit.library.element.library;
     var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
-    var isReachable = _treeShakingMode == TreeShakingMode.none
-        ? (_) => true
-        : _usageVisitor.buildReachabilityPredicate(_roots);
     var codegen =
-        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, isReachable);
+        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, _isReachable, _usageVisitor.getTreeShakingData);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;

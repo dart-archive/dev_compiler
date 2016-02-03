@@ -287,9 +287,12 @@ registerExtension(jsType, dartExtType) => JS('', '''(() => {
     $copyTheseProperties(jsProto, extProto, $getOwnPropertySymbols(extProto));
     extProto = extProto.__proto__;
   }
-  let originalSigFn = $getOwnPropertyDescriptor($dartExtType, $_methodSig).get;
-  $assert_(originalSigFn);
-  $defineMemoizedGetter($jsType, $_methodSig, originalSigFn);
+  let desc = $getOwnPropertyDescriptor($dartExtType, $_methodSig);
+  if (desc) {
+    let originalSigFn = desc.get;
+    $assert_(originalSigFn);
+    $defineMemoizedGetter($jsType, $_methodSig, originalSigFn);
+  }
 })()''');
 
 ///
