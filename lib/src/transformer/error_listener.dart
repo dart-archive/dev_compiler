@@ -4,9 +4,12 @@
 
 library dev_compiler.src.transformer.error_listener;
 
-import 'package:barback/barback.dart' show TransformLogger;
+import 'package:barback/barback.dart' show TransformLogger, SourceSpan;
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, ErrorSeverity, AnalysisErrorListener;
+import 'package:source_span/source_span.dart';
+
+import 'uri_resolver.dart';
 
 class TransformAnalysisErrorListener extends AnalysisErrorListener {
   TransformLogger _logger;
@@ -14,17 +17,50 @@ class TransformAnalysisErrorListener extends AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) {
-    // TODO(ochafik): Proper location / span.
+    var content = error.source.contents.data;
+    var sourceUrl = error.source.uri.toString();
+    makeLocation(int offset) {
+      return _getLineAndColumn(content, offset, (line, column) {
+        return new SourceLocation(offset,
+            sourceUrl: sourceUrl, line: line, column: column);
+      });
+    }
+    int start = error.offset;
+    int end = error.offset + error.length;
+    var assetId = resolveAssetId(error.source.uri);
+    var span = new SourceSpan(
+        makeLocation(start), makeLocation(end), content.substring(start, end));
+
     switch (error.errorCode.errorSeverity) {
       case ErrorSeverity.ERROR:
-        _logger.error(error.message);
+        _logger.error(error.message, asset: assetId, span: span);
         break;
       case ErrorSeverity.WARNING:
-        _logger.warning(error.message);
+        _logger.warning(error.message, asset: assetId, span: span);
         break;
       default:
-        _logger.info(error.message);
+        _logger.info(error.message, asset: assetId, span: span);
         break;
     }
   }
+}
+
+dynamic _getLineAndColumn(
+    String content, int offset, dynamic callback(int line, int column)) {
+  int line = 1;
+  int column = 1;
+  for (int i = 0; i < offset; i++) {
+    switch (content[i]) {
+      case '\n':
+        line++;
+        column = 1;
+        break;
+      case '\r':
+        break;
+      default:
+        column++;
+        break;
+    }
+  }
+  return callback(line, column);
 }

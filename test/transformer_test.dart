@@ -89,8 +89,8 @@ export default exports;
         }),
         {},
         [
-          "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\'",
-          "error: Type check failed: '2' (String) is not of type int"
+          "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\' (package:foo/Foo.dart 3 19)",
+          "error: Type check failed: '2' (String) is not of type int (package:foo/Foo.dart 3 19)"
         ]);
   });
 }
