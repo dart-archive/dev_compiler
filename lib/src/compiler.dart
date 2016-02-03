@@ -162,9 +162,10 @@ class BatchCompiler extends AbstractCompiler {
     // _pendingLibraries was recorded in post-order.  Process from the end
     // to ensure reverse post-order.  This will ensure that we handle back
     // edges from the original depth-first search correctly.
-
-    for (var libUnit in _pendingLibraries) {
-      _jsGen.scanLibrary(libUnit, isMain: _mainLibs.contains(libUnit));
+    if (_jsGen != null) {
+      for (var libUnit in _pendingLibraries) {
+        _jsGen.scanLibrary(libUnit, isMain: _mainLibs.contains(libUnit));
+      }
     }
     while (_pendingLibraries.isNotEmpty) {
       var unit = _pendingLibraries.removeLast();

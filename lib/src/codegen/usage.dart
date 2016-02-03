@@ -12,13 +12,25 @@ import '../utils.dart';
 typedef bool ReachabilityPredicate(Element e);
 
 class UsageVisitor extends GeneralizingAstVisitor {
+  final _extensionMappings = <ClassElement, Set<ClassElement>>{};
   // TODO(ochafik): Detect reflect & reflectType.
   bool followReflection;
   bool debug;
   final _specialRoots = new Set<Element>();
   final _graph = new DirectedGraph<Object>();
 
-  UsageVisitor({this.followReflection : true, this.debug : true});
+  UsageVisitor(Set<ClassElement> extensionTypes, {this.followReflection : true, this.debug : true}) {
+    for (var t in extensionTypes) {
+      for (var a in _collectHierarchy(t, useExtensions: false)) {
+        if (t == a) continue;
+        _extensionMappings.putIfAbsent(a, () => new Set<ClassElement>()).add(t);
+      }
+    }
+    // stderr.writeln('ExtensionMappings:');
+    // _extensionMappings.forEach((from, tos) {
+    //     stderr.writeln('\t${from.name} -> ${tos.map((t) => t.name).join(", ")}');
+    // });
+  }
 
   AstNode getSameOrAncestor(AstNode node, bool predicate(AstNode node)) =>
       predicate(node) ? node : node.getAncestor(predicate);
@@ -84,9 +96,16 @@ class UsageVisitor extends GeneralizingAstVisitor {
 
   // static ClassElement _getElement(InterfaceType type) => type.element;
 
-  Iterable<ClassElement> _collectHierarchy(ClassElement e) sync* {
+  Iterable<ClassElement> _collectHierarchy(ClassElement e, {bool useExtensions: true}) sync* {
     yield e;
     yield* e.allSupertypes.expand((InterfaceType t) => _collectHierarchy(t.element));
+
+    if (useExtensions) {
+      yield* _extensionMappings[e] ?? [];
+    }
+    // if (_extensionTypes.contains(e)) {
+    //   stderr.writeln("EXT: $e");
+    // }
     // if (e.supertype != null) yield e.supertype.element;
     // if (e.interfaces != null) yield* e.interfaces.map(_getElement);
     // if (e.mixins != null) yield* e.mixins.map(_getElement);
@@ -200,15 +219,6 @@ class UsageVisitor extends GeneralizingAstVisitor {
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     visitVariableDeclarationList(node.variables);
-    // for (VariableDeclaration v in node.variables) {
-    //   _withEnclosingElement(v.element, () {
-    //     if (node.type != null) visitTypeName(node.type);
-    //     visitVariableDeclaration(v);
-    //   });
-    // }
-    // _withEnclosingElement(node.element, () {
-    //   super.visitTopLevelVariableDeclaration(node);
-    // });
   }
 
   @override
@@ -292,8 +302,28 @@ class UsageVisitor extends GeneralizingAstVisitor {
     if (target is! ClassElement) {
       if (memberElement == null) _declareDep(node, new _UnresolvedElement(null, propertyName));
     } else {
-      for (var ancestor in _collectHierarchy(target)) {
-        _declareDep(node, new _UnresolvedElement(ancestor, propertyName));
+      if (memberElement != null) {
+        for (var ancestor in _collectHierarchy(target)) {
+          var e;
+          if (ancestor == target) e = memberElement;
+          e ??= ancestor.getField(propertyName);
+          e ??= ancestor.getGetter(propertyName);
+          e ??= ancestor.getSetter(propertyName);
+          e ??= ancestor.getMethod(propertyName);
+          // if ((propertyName == 'floor' || propertyName == 'truncate')) {
+          //   if (e != null) {
+          //     stderr.writeln('RESOLVED ON ANCESTOR ${ancestor.name} of ${target.name}: ${e.name}');
+          //   } else {
+          //     stderr.writeln('NOT RESOLVED ON ANCESTOR ${ancestor.name} of ${target.name}: $propertyName');
+          //   }
+          // }
+          e ??= new _UnresolvedElement(ancestor, propertyName);
+          _declareDep(node, e);
+        }
+      } else {
+        for (var ancestor in _collectHierarchy(target)) {
+          _declareDep(node, new _UnresolvedElement(ancestor, propertyName));
+        }
       }
     }
   }
@@ -402,10 +432,16 @@ class UsageVisitor extends GeneralizingAstVisitor {
       uri == 'dart:_isolate_helper' && e.name == 'startRootIsolate' ||
       e.name == 'iterator' ||
       e.name == 'values' ||
-      uri.startsWith('dart:_interceptors/') && e is ClassMemberElement && (
-        e.enclosingElement.name == 'JSNumber' ||
-        e.enclosingElement.name == 'JSArray' ||
-        e.enclosingElement.name == 'JSBool'
+      uri.startsWith('dart:_interceptors/') && (
+          e.name == 'JSNumber' ||
+          e.name == 'JSArray' ||
+          e.name == 'JSBool' ||
+          e is ClassMemberElement && (
+            e.name == 'truncate'
+          )
+      //   e.enclosingElement.name == 'JSNumber' ||
+      //   e.enclosingElement.name == 'JSArray' ||
+      //   e.enclosingElement.name == 'JSBool'
       ) ||
       uri == 'dart:collection' && (
         e.name == 'LinkedHashSetCell' ||
@@ -426,10 +462,21 @@ class UsageVisitor extends GeneralizingAstVisitor {
     bool isReachable(Element e) {
       e = _normalize(e);
 
+      // isInExtensionType() {
+      //   if (e is ClassMemberElement) {
+      //     for (var p in _collectHierarchy(e.enclosingElement)) {
+      //       if (_extensionTypes.contains(p)) return true;
+      //     }
+      //   }
+      //   return false;
+      // }
       if (e == null) throw new ArgumentError.notNull('e');
-      if (accessible.contains(e)) return true;
+      if (accessible.contains(e)) {
+        // if (isInExtensionType() && (e.name == 'floor' || e.name == 'truncate')) stderr.writeln("EXT reachable: ${e.enclosingElement.name}.${e.name}");
+        return true;
+      }
 
-      // if (e is ClassMemberElement) {
+      // if (isInExtensionType() && (e.name == 'floor' || e.name == 'truncate')) stderr.writeln("EXT not reachable: ${e.enclosingElement.name}.${e.name}");
       //   if (_isSpecialRoot(e) || _isSpecialRoot(e.enclosingElement)) {
       //     stderr.writeln("SPECIAL: $e");
       //   // if (_specialRoots.contains(e.enclosingElement)) {

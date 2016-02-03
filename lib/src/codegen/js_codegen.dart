@@ -405,10 +405,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
-    if (!_isReachable(node.element)) {
-      // if (node.name.name == 'MapMixin') throw new Error();
-      return null;
-    }
+    if (!_isReachable(node.element)) return null;
 
     var classElem = node.element;
     var type = classElem.type;
@@ -3548,7 +3545,7 @@ class JSGenerator extends CodeGenerator {
   final _extensionTypes = new HashSet<ClassElement>();
   final TypeProvider _types;
   final _roots = new Set<Element>();
-  final _usageVisitor = new UsageVisitor();
+  UsageVisitor _usageVisitor;
   final TreeShakingMode _treeShakingMode;
   JSGenerator(AbstractCompiler compiler)
       : _types = compiler.context.typeProvider,
@@ -3569,6 +3566,8 @@ class JSGenerator extends CodeGenerator {
     // https://github.com/dart-lang/sdk/commit/d7cd11f86a02f55269fc8d9843e7758ebeeb81c8
     _addExtensionType(_types.intType);
     _addExtensionType(_types.doubleType);
+
+    _usageVisitor = new UsageVisitor(_extensionTypes);
   }
 
   void _addExtensionType(InterfaceType t) {
