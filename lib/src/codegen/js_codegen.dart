@@ -2271,7 +2271,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         isLoaded && (field.isConst || _constField.isFieldInitConstant(field));
 
     var fieldName = field.name.name;
-    if (eagerInit && !JS.invalidStaticFieldName(fieldName, options)) {
+    if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
       return annotateVariable(
           js.statement('#.# = #;', [
             classElem.name,
@@ -2331,7 +2331,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           field.element);
     }
 
-    if (eagerInit && !JS.invalidStaticFieldName(fieldName, options)) {
+    if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
       return annotateVariable(
           js.statement('# = #;', [_visit(field.name), jsInit]), field.element);
     }
