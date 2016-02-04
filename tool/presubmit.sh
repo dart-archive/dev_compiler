@@ -4,6 +4,7 @@ DIR=$(dirname "${BASH_SOURCE[0]}")
 
 tests=(
   build_sdk
+  codegen # duplicate: also in test; that's so that browser_test can run.
   test
   browser_test
   node_test
