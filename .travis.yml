@@ -22,9 +22,9 @@ env:
   # Make sure to only have 1 SKIP_TESTS entry (to avoid duplicates if anyone
   # edits presubmit.sh), and to have every skipped test in at least one of the
   # TEST_ONLY entries (to avoid skipping any test).
+  - COVERAGE=true SKIP_TESTS=codegen,browser_test,node_test,transformer_test,analyze,format
   - TEST_ONLY=analyze CHROME=0
   - TEST_ONLY=format CHROME=0
   - TEST_ONLY=build_sdk,codegen,browser_test
   - TEST_ONLY=node_test CHROME=0
   - TEST_ONLY=transformer_test CHROME=0
-  - COVERAGE=true SKIP_TESTS=codegen,browser_test,node_test,transformer_test,analyze,format
