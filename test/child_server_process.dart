@@ -21,7 +21,7 @@ class ChildServerProcess {
   static build(Future<Process> builder(String host, int port),
       {int defaultPort: 1024,
       int maxPort: 65535,
-      String host: 'localhost'}) async {
+      String host: '0.0.0.0'}) async {
     var port = await _findUnusedPort(defaultPort, maxPort);
     var p = (await builder(host, port))
       ..stdout.pipe(_consoleOut)
