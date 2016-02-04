@@ -9,7 +9,7 @@ import 'dart:async';
 
 import 'child_server_process.dart';
 
-main(List<String> args) {
+main() {
   group('DDC transformer in pub serve', () {
     WebDriver webdriver;
     ChildServerProcess selenium;
