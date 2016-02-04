@@ -4,7 +4,7 @@
 
 part of js_ast;
 
-abstract class NodeVisitor<T> {
+abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
   T visitProgram(Program node);
 
   T visitBlock(Block node);
@@ -92,6 +92,16 @@ abstract class NodeVisitor<T> {
   T visitArrayBindingPattern(ArrayBindingPattern node);
   T visitObjectBindingPattern(ObjectBindingPattern node);
   T visitDestructuredVariable(DestructuredVariable node);
+}
+
+abstract class TypeRefVisitor<T> {
+  T visitNamedTypeRef(NamedTypeRef node);
+  T visitGenericTypeRef(GenericTypeRef node);
+  T visitUnionTypeRef(UnionTypeRef node);
+  T visitRecordTypeRef(RecordTypeRef node);
+  T visitOptionalTypeRef(OptionalTypeRef node);
+  T visitFunctionTypeRef(FunctionTypeRef functionTypeRef);
+  T visitJsTypeRef(JsTypeRef node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -221,6 +231,15 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitObjectBindingPattern(ObjectBindingPattern node)
       => visitBindingPattern(node);
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
+
+  T visitTypeRef(TypeRef node) => visitNode(node);
+  T visitGenericTypeRef(GenericTypeRef node) => visitTypeRef(node);
+  T visitOptionalTypeRef(OptionalTypeRef node) => visitTypeRef(node);
+  T visitRecordTypeRef(RecordTypeRef node) => visitTypeRef(node);
+  T visitNamedTypeRef(NamedTypeRef node) => visitTypeRef(node);
+  T visitUnionTypeRef(UnionTypeRef node) => visitTypeRef(node);
+  T visitFunctionTypeRef(FunctionTypeRef node) => visitTypeRef(node);
+  T visitJsTypeRef(JsTypeRef node) => visitTypeRef(node);
 }
 
 abstract class Node {
@@ -688,6 +707,28 @@ abstract class Expression extends Node {
           [new VariableInitialization(name, this)]).toStatement();
 }
 
+/// Mutable placeholder expression that provides an entry point for simple
+/// AST transforms / expansions.
+///
+/// The data might not be JS [Node] but may contain JS nodes and be visitable.
+class PlaceholderExpression extends Expression {
+  var data;
+  PlaceholderExpression(this.data);
+
+  int get precedenceLevel =>
+      data is Expression ? (data as Expression).precedenceLevel : EXPRESSION;
+
+  @override
+  accept(NodeVisitor visitor) => visitor.visitPlaceholderExpression(this);
+
+  @override
+  void visitChildren(NodeVisitor visitor) {}
+
+  @override
+  Node _clone() =>
+      new PlaceholderExpression(data is Node ? (data as Node)._clone() : data);
+}
+
 class LiteralExpression extends Expression {
   final String template;
   final List<Expression> inputs;
@@ -1022,13 +1063,17 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-abstract class Parameter implements Expression, VariableBinding {}
+abstract class Parameter implements Expression, VariableBinding {
+  TypeRef get type;
+}
 
 class Identifier extends Expression implements Parameter, VariableBinding {
   final String name;
   final bool allowRename;
+  final TypeRef type;
 
-  Identifier(this.name, {this.allowRename: true}) {
+  // TODO(ochafik): Make type non-optional.
+  Identifier(this.name, {this.allowRename: true, this.type}) {
     assert(_identifierRE.hasMatch(name));
   }
   static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
@@ -1043,6 +1088,7 @@ class Identifier extends Expression implements Parameter, VariableBinding {
 // This is an expression for convenience in the AST.
 class RestParameter extends Expression implements Parameter {
   final Identifier parameter;
+  TypeRef get type => null;
 
   RestParameter(this.parameter);
 
@@ -1107,19 +1153,23 @@ class NamedFunction extends Expression {
 
 abstract class FunctionExpression extends Expression {
   List<Parameter> get params;
+
   get body; // Expression or block
+  TypeRef get returnType; // Type of the body or of its return type.
 }
 
 class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
+  final TypeRef returnType;
   /** Whether this is a JS generator (`function*`) that may contain `yield`. */
   final bool isGenerator;
 
   final AsyncModifier asyncModifier;
 
   Fun(this.params, this.body, {this.isGenerator: false,
-      this.asyncModifier: const AsyncModifier.sync()});
+      this.asyncModifier: const AsyncModifier.sync(),
+      this.returnType});
 
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
@@ -1137,8 +1187,9 @@ class Fun extends FunctionExpression {
 class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
+  final TypeRef returnType;
 
-  ArrowFun(this.params, this.body);
+  ArrowFun(this.params, this.body, {this.returnType});
 
   accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
 

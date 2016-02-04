@@ -4,11 +4,11 @@
 
 part of js_ast;
 
-
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
+  final TypeFormat typeFormat;
   final bool allowSingleLineIfStatements;
 
   /// True to allow keywords in properties, such as `obj.var` or `obj.function`
@@ -19,6 +19,7 @@ class JavaScriptPrintingOptions {
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
+       this.typeFormat, // null by default.
        this.allowKeywordsInProperties: false,
        this.allowSingleLineIfStatements: false});
 }
@@ -58,6 +59,7 @@ class Printer implements NodeVisitor {
   final bool shouldCompressOutput;
   final DanglingElseVisitor danglingElseVisitor;
   final LocalNamer localNamer;
+  TypePrinter _typePrinter;
 
   bool inForInit = false;
   bool atStatementBegin = false;
@@ -82,7 +84,9 @@ class Printer implements NodeVisitor {
         context = context,
         shouldCompressOutput = options.shouldCompressOutput,
         danglingElseVisitor = new DanglingElseVisitor(context),
-        localNamer = determineRenamer(localNamer, options);
+        localNamer = determineRenamer(localNamer, options) {
+    _typePrinter = new TypePrinter(options.typeFormat, out, visit);
+  }
 
   static LocalNamer determineRenamer(LocalNamer localNamer,
                                      JavaScriptPrintingOptions options) {
@@ -547,6 +551,7 @@ class Printer implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
+    outTypeAnnotation(fun.returnType);
     switch (fun.asyncModifier) {
       case const AsyncModifier.sync():
         break;
@@ -856,6 +861,7 @@ class Printer implements NodeVisitor {
 
   visitIdentifier(Identifier node) {
     out(localNamer.getName(node));
+    outTypeAnnotation(node.type);
   }
 
   visitRestParameter(RestParameter node) {
@@ -930,6 +936,7 @@ class Printer implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
       out(")");
     }
+    outTypeAnnotation(fun.returnType);
     spaceOut();
     out("=>");
     if (fun.body is Expression) {
@@ -1311,6 +1318,29 @@ class Printer implements NodeVisitor {
     out("await ");
     visit(node.expression);
   }
+
+  void outTypeAnnotation(TypeRef node) {
+    if (options.typeFormat == null) return;
+
+    out(": ");
+    visit(node);
+  }
+
+  visitOptionalTypeRef(OptionalTypeRef node) =>
+      _typePrinter.visitOptionalTypeRef(node);
+
+  visitRecordTypeRef(RecordTypeRef node) =>
+      _typePrinter.visitRecordTypeRef(node);
+
+  visitNamedTypeRef(NamedTypeRef node) =>
+      _typePrinter.visitNamedTypeRef(node);
+
+  visitUnionTypeRef(UnionTypeRef node) =>
+      _typePrinter.visitUnionTypeRef(node);
+
+  visitFunctionTypeRef(FunctionTypeRef node) =>
+      _typePrinter.visitFunctionTypeRef(node);
+
 }
 
 // Collects all the var declarations in the function.  We need to do this in a
