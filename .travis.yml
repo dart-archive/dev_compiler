@@ -18,14 +18,13 @@ before_script:
   - npm install
 script:
   #- ./tool/presubmit.sh && ./tool/coverage.sh
-  - ./tool/$TEST_TO_RUN.sh
+  - ./tool/$TEST.sh
 env:
-  - TEST_TO_RUN=check_expectations_were_built
-  - TEST_TO_RUN=coverage
-  - TEST_TO_RUN=test
-  - TEST_TO_RUN=browser_test
-  - TEST_TO_RUN=node_test
-  - TEST_TO_RUN=analyze
-  - TEST_TO_RUN=format
-  - TEST_TO_RUN=transformer_test
-  #- TEST_TO_RUN=transformer_e2e_test
+  - TEST=check_expectations_were_built
+  - TEST=coverage
+  - TEST=test
+  - TEST=browser_test
+  - TEST=node_test
+  - TEST=analyze
+  - TEST=format
+  - TEST=transformer_test
