@@ -14,8 +14,8 @@ import 'js/builder_test.dart' as builder_test;
 import 'end_to_end_test.dart' as e2e;
 import 'report_test.dart' as report_test;
 import 'dependency_graph_test.dart' as dependency_graph_test;
-import 'transformer/transformer_test.dart' as transformer_test;
-import 'transformer/transformer_e2e_test.dart' as transformer_e2e_test;
+import 'transformer_test.dart' as transformer_test;
+import 'transformer_e2e_test.dart' as transformer_e2e_test;
 import 'utils_test.dart' as utils_test;
 
 void main() {
