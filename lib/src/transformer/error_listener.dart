@@ -4,10 +4,10 @@
 
 library dev_compiler.src.transformer.error_listener;
 
-import 'package:barback/barback.dart' show TransformLogger, SourceSpan;
+import 'package:barback/barback.dart' show TransformLogger;
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, ErrorSeverity, AnalysisErrorListener;
-import 'package:source_span/source_span.dart';
+import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
 import 'uri_resolver.dart';
 
@@ -45,8 +45,8 @@ class TransformAnalysisErrorListener extends AnalysisErrorListener {
   }
 }
 
-dynamic _getLineAndColumn(
-    String content, int offset, dynamic callback(int line, int column)) {
+dynamic/*=T*/ _getLineAndColumn/*<T>*/(
+    String content, int offset, dynamic/*=T*/ callback(int line, int column)) {
   int line = 1;
   int column = 1;
   for (int i = 0; i < offset; i++) {
