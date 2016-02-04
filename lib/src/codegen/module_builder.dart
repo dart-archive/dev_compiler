@@ -6,7 +6,11 @@ import 'package:path/path.dart' as path;
 
 import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
+import 'js_names.dart' as JS;
+import 'js_metalet.dart' as JS;
 import '../options.dart' show ModuleFormat;
+
+typedef ModuleBuilder ModuleBuilderFactory();
 
 /// Helper that builds JS modules in a given [ModuleFormat].
 abstract class ModuleBuilder {
@@ -15,13 +19,15 @@ abstract class ModuleBuilder {
 
   ModuleBuilder._();
 
+  /// Name of the object on which items are exported.
+  /// Lazy variables and constants are assumed to be declared on this instance.
+  JS.Expression get exportsVar;
+
   /// Returns a [format]-specific [ModuleBuilder].
   /// - [jsPath] is the path of the module being built.
   /// - [jsModuleValue] is the default value to use for the library, in case of
   ///   js interop (comes from the @js.JS(jsModuleValue) annotation on the
   ///   library directive). It is null in any other case.
-  /// - [exportsVar] is the name of the object on which items are exported. Lazy
-  ///   variables and constants are assumed to be declared on this instance.
   factory ModuleBuilder(ModuleFormat format) {
     switch (format) {
       case ModuleFormat.legacy:
@@ -49,7 +55,7 @@ abstract class ModuleBuilder {
 
   /// Builds a program out of menu items.
   JS.Program build(String jsPath, String jsModuleValue,
-      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems);
+      Iterable<JS.ModuleItem> moduleItems);
 }
 
 class _ModuleImport {
@@ -65,9 +71,10 @@ class _ModuleImport {
 /// Generates modules for with DDC's `dart_library.js` loading mechanism.
 class LegacyModuleBuilder extends ModuleBuilder {
   LegacyModuleBuilder() : super._();
+  final exportsVar = new JS.TemporaryId('exports');
 
   JS.Program build(String jsPath, String jsModuleValue,
-      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
+      Iterable<JS.ModuleItem> moduleItems) {
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
@@ -123,9 +130,10 @@ String _relativeModuleName(String moduleName, {String from}) {
 // TODO(ochafik): Break strong dep cycles to accommodate the Closure Compiler.
 class ES6ModuleBuilder extends ModuleBuilder {
   ES6ModuleBuilder() : super._();
+  final exportsVar = new JS.TemporaryId('exports');
 
   JS.Program build(String jsPath, String jsModuleValue,
-      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
+      Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[
       js.statement("const # = {};", [exportsVar])
     ];
@@ -165,9 +173,11 @@ class ES6ModuleBuilder extends ModuleBuilder {
 /// Generates node modules.
 class NodeModuleBuilder extends ModuleBuilder {
   NodeModuleBuilder() : super._();
+  /// This is *not* a [JS.TemporaryId].
+  final exportsVar = new JS.Identifier('exports');
 
   JS.Program build(String jsPath, String jsModuleValue,
-      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
+      Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[js.statement("'use strict';"),];
 
     for (var i in _imports) {

@@ -32,7 +32,7 @@ import 'info.dart'
 import 'options.dart';
 import 'report.dart';
 import 'report/html_reporter.dart';
-import 'utils.dart' show isStrongModeError;
+import 'utils.dart' show FileSystem, isStrongModeError;
 
 /// Sets up the type checker logger to print a span that highlights error
 /// messages.
@@ -357,6 +357,9 @@ abstract class AbstractCompiler {
   final CompilerOptions options;
   final AnalysisContext context;
   final AnalysisErrorListener reporter;
+
+  // TODO(ochafik): Update transformer CL.
+  FileSystem fileSystem;
 
   AbstractCompiler(this.context, this.options, [AnalysisErrorListener listener])
       : reporter = listener ?? AnalysisErrorListener.NULL_LISTENER;

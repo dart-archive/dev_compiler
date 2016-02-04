@@ -5,28 +5,46 @@
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 
-import '../../js/js_ast.dart' as JS;
+import 'es6_backend.dart';
+import 'typescript_backend.dart';
+import 'module_builder.dart';
+
+import '../js/js_ast.dart' as JS;
+import '../options.dart';
+import '../utils.dart';
+import '../compiler.dart';
 
 abstract class Backend {
+  Backend.base();
+  factory Backend(AbstractCompiler compiler) {
+    moduleBuilderFactory() =>
+        new ModuleBuilder(compiler.options.codegenOptions.moduleFormat);
+
+    if (compiler.options.codegenOptions.closure) {
+      return new TypeScriptBackend(compiler, moduleBuilderFactory);
+    } else {
+      return new Es6Backend(compiler, moduleBuilderFactory);
+    }
+  }
+
   LibraryBuilder libraryBuilder(LibraryElement element);
   // JS.Expression buildTypeLiteral(JS.TypeRef typeRef);
 }
 
 abstract class LibraryBuilder {
+  String jsModuleValue;
   LibraryElement get element;
-  LibraryPartBuilder libraryPartBuilder(CompilationUnitElement element);
+  JS.Expression get exportsVar;
 
-  void build();
-}
-
-abstract class LibraryPartBuilder {
-  CompilationUnitElement get element;
   void buildTypedef(
       FunctionTypeAliasElement element,
       JS.TypeRef returnType, List<JS.TypeRef> paramTypes);
 
   ClassBuilder classBuilder(ClassElement element, ClassDeclaration node);
+
+  void build();
 }
+
 
 abstract class ClassBuilder {
   ClassElement get element;

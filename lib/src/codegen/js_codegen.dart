@@ -29,6 +29,7 @@ import '../info.dart';
 import '../options.dart' show CodegenOptions;
 import '../utils.dart';
 
+import 'backend.dart';
 import 'code_generator.dart';
 import 'js_field_storage.dart';
 import 'js_interop.dart';
@@ -56,7 +57,8 @@ const DSEND = 'dsend';
 class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final AbstractCompiler compiler;
   final CodegenOptions options;
-  final LibraryElement currentLibrary;
+  final LibraryBuilder libraryBuilder;
+  LibraryElement get currentLibrary => libraryBuilder.element;
   final StrongTypeSystemImpl rules;
 
   /// The global extension type table.
@@ -90,7 +92,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// The name for the library's exports inside itself.
   /// `exports` was chosen as the most similar to ES module patterns.
   final _dartxVar = new JS.Identifier('dartx');
-  final _exportsVar = new JS.TemporaryId('exports');
+  JS.Expression get _exportsVar => libraryBuilder.exportsVar;
   final _runtimeLibVar = new JS.Identifier('dart');
   final _namedArgTemp = new JS.TemporaryId('opts');
 
@@ -108,7 +110,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   bool _isDartRuntime;
 
-  JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
+  JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.libraryBuilder,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
@@ -213,7 +215,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return moduleBuilder.build(
         compiler.getModuleName(currentLibrary.source.uri),
         _jsModuleValue,
-        _exportsVar,
         items);
   }
 
@@ -3546,8 +3547,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 class JSGenerator extends CodeGenerator {
   final _extensionTypes = new HashSet<ClassElement>();
   final TypeProvider _types;
+  final Backend _backend;
   JSGenerator(AbstractCompiler compiler)
       : _types = compiler.context.typeProvider,
+        _backend = new Backend(compiler),
         super(compiler) {
     // TODO(jacobr): determine the the set of types with extension methods from
     // the annotations rather than hard coding the list once the analyzer
@@ -3580,8 +3583,11 @@ class JSGenerator extends CodeGenerator {
     var library = unit.library.element.library;
     var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
+    var libraryBuilder = _backend.libraryBuilder(library);
     var codegen =
-        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
+        new JSCodegenVisitor(compiler, rules, libraryBuilder, _extensionTypes, fields);
+    libraryBuilder.build();
+    // TODO(ochafik): Move the following lines to [LibraryBuilder.build]:
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;
