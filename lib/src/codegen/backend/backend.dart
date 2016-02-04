@@ -9,9 +9,7 @@ import '../../js/js_ast.dart' as JS;
 
 abstract class Backend {
   LibraryBuilder libraryBuilder(LibraryElement element);
-  MethodCallBuilder methodCallBuilder();
-
-  JS.Expression buildTypeLiteral(JS.TypeRef typeRef);
+  // JS.Expression buildTypeLiteral(JS.TypeRef typeRef);
 }
 
 abstract class LibraryBuilder {
@@ -81,22 +79,4 @@ abstract class DefaultClassBuilder extends ClassBuilder {
 
   addSetter(MethodElement element, JS.Expression name, JS.Fun body) =>
       setters.putIfAbsent(element, () => {})[name] = body;
-}
-
-enum DartMethodCallType {
-  dsend, dcall, directDispatch, staticDispatch
-}
-
-abstract class MethodCallBuilder {
-  /// Can be this, an expression or null (for global functions).
-  JS.Expression target;
-  JS.Expression memberName;
-  final arguments = <JS.Expression>[];
-  /// Prepare for generic method calls.
-  final typeArguments = <JS.TypeRef>[];
-  /// If true, some dynamic call will be needed (which might involve a reference
-  /// to the signature).
-  DartMethodCallType callType;
-
-  JS.Expression build();
 }

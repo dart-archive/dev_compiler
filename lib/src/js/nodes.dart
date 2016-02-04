@@ -233,10 +233,10 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
 
   T visitTypeRef(TypeRef node) => visitNode(node);
+  T visitNamedTypeRef(NamedTypeRef node) => visitTypeRef(node);
   T visitGenericTypeRef(GenericTypeRef node) => visitTypeRef(node);
   T visitOptionalTypeRef(OptionalTypeRef node) => visitTypeRef(node);
   T visitRecordTypeRef(RecordTypeRef node) => visitTypeRef(node);
-  T visitNamedTypeRef(NamedTypeRef node) => visitTypeRef(node);
   T visitUnionTypeRef(UnionTypeRef node) => visitTypeRef(node);
   T visitFunctionTypeRef(FunctionTypeRef node) => visitTypeRef(node);
   T visitJsTypeRef(JsTypeRef node) => visitTypeRef(node);
@@ -707,28 +707,6 @@ abstract class Expression extends Node {
           [new VariableInitialization(name, this)]).toStatement();
 }
 
-/// Mutable placeholder expression that provides an entry point for simple
-/// AST transforms / expansions.
-///
-/// The data might not be JS [Node] but may contain JS nodes and be visitable.
-class PlaceholderExpression extends Expression {
-  var data;
-  PlaceholderExpression(this.data);
-
-  int get precedenceLevel =>
-      data is Expression ? (data as Expression).precedenceLevel : EXPRESSION;
-
-  @override
-  accept(NodeVisitor visitor) => visitor.visitPlaceholderExpression(this);
-
-  @override
-  void visitChildren(NodeVisitor visitor) {}
-
-  @override
-  Node _clone() =>
-      new PlaceholderExpression(data is Node ? (data as Node)._clone() : data);
-}
-
 class LiteralExpression extends Expression {
   final String template;
   final List<Expression> inputs;
@@ -821,6 +799,8 @@ class DestructuredVariable extends Expression implements Parameter {
   final Identifier name;
   final BindingPattern structure;
   final Expression defaultValue;
+  // TODO(ochafik): How does this work?
+  TypeRef get type => null;
   DestructuredVariable({this.name, this.structure, this.defaultValue}) {
     assert(name != null || structure != null);
   }
@@ -1552,6 +1532,7 @@ class InterpolatedLiteral extends Literal with InterpolatedNode {
 class InterpolatedParameter extends Expression with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
+  TypeRef get type => null;
 
   String get name { throw "InterpolatedParameter.name must not be invoked"; }
   bool get allowRename => false;
@@ -1611,6 +1592,7 @@ class InterpolatedMethod extends Expression with InterpolatedNode
 class InterpolatedIdentifier extends Expression with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
+  TypeRef get type => null;
 
   InterpolatedIdentifier(this.nameOrPosition);
 

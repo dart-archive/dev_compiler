@@ -1341,6 +1341,11 @@ class Printer implements NodeVisitor {
   visitFunctionTypeRef(FunctionTypeRef node) =>
       _typePrinter.visitFunctionTypeRef(node);
 
+  visitGenericTypeRef(GenericTypeRef node) =>
+      _typePrinter.visitGenericTypeRef(node);
+
+  visitJsTypeRef(JsTypeRef node) =>
+      _typePrinter.visitJsTypeRef(node);
 }
 
 // Collects all the var declarations in the function.  We need to do this in a

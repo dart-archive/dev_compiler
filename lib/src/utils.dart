@@ -454,6 +454,13 @@ getEnumName(v) {
   return parts[1];
 }
 
+// TODO(ochafik): Drop after transformer CL.
+class FileSystem {
+  void writeAsStringSync(String file, String contents) {
+    new File(file).writeAsStringSync(contents);
+  }
+}
+
 /// Simplistic directed graph.
 class DirectedGraph<V> {
   final _adjacencyList = <V, Set<V>>{};

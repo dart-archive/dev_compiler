@@ -7,53 +7,16 @@ import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 
 import 'backend.dart';
 import '../../js/js_ast.dart' as JS;
-import '../../js/precedence.dart';
-import '../../closure/closure_type.dart';
-
-class FileSystem {}
+import '../module_builder.dart';
+import '../../utils.dart' show FileSystem;
 
 class Es6Backend extends Backend {
+  final ModuleBuilder _moduleBuilder;
   final FileSystem _fileSystem;
-  Es6Backend(this._fileSystem);
+  Es6Backend(this._moduleBuilder, this._fileSystem);
 
   LibraryBuilder libraryBuilder(LibraryElement element) =>
       new Es6LibraryBuilder(this, element);
-
-  MethodCallBuilder methodCallBuilder() => new Es6MethodCallBuilder(this);
-
-  TypeRef buildDartTypeRef(DartType type) {
-    // TODO(ochafik)
-  }
-
-  /// Used for interop (imported Closure libs) and for basic types.
-  /// TODO(ochafik): Merge [ClosureType] in this hierarchy.
-  TypeRef buildClosureTypeRef(ClosureType type) {
-    // TODO(ochafik)
-  }
-
-  /// Similar in mind to [MaybeQualifiedId], but not a JS [Node].
-  /// Note: the same type might be imported multiple times with different prefixes(?),
-  /// so a pass might just walk through the imported refs and coalesce them, maybe respecting
-  /// some of the original prefixes, then outputting modules as it wants / replacing
-  /// those refs as needed.
-  TypeRef buildImportedTypeRef(String library, String originalPrefix, String name) {
-    // TODO(ochafik)
-  }
-  /// Reference to a type parameter defined in a Dart class / method.
-  TypeRef buildTypeParamRef(ClassBuilder owner, String name) {
-    // TODO(ochafik)
-  }
-  TypeRef buildGenericTypeRef(TypeRef rawType, List<TypeRef> typeParams) {
-    // TODO(ochafik)
-  }
-  TypeRef buildOpaqueTypeRef(JS.Expression expression) {
-    // TODO(ochafik)
-  }
-}
-
-/// JavaScript type reference.
-class Es6TypeRef extends TypeRef {
-  int get precedenceLevel => EXPRESSION;
 }
 
 class Es6LibraryBuilder extends LibraryBuilder {
@@ -76,7 +39,7 @@ class Es6LibraryPartBuilder extends LibraryPartBuilder {
 
   void buildTypedef(
       FunctionTypeAliasElement element,
-      TypeRef returnType, List<TypeRef> paramTypes) {
+      JS.TypeRef returnType, List<JS.TypeRef> paramTypes) {
     // TODO(ochafik)
   }
 
@@ -92,19 +55,6 @@ class Es6ClassBuilder extends DefaultClassBuilder {
   Es6ClassBuilder(this._backend, this.element, this.node);
 
   void build() {
-    // TODO(ochafik)
-  }
-}
-
-enum DartMethodCallType {
-  dsend, dcall, directDispatch, staticDispatch
-}
-
-class Es6MethodCallBuilder extends MethodCallBuilder {
-  final Es6Backend _backend;
-  Es6MethodCallBuilder(this._backend);
-
-  JS.Expression build() {
     // TODO(ochafik)
   }
 }
