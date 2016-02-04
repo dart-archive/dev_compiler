@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:async';
 
 class ChildServerProcess {
-
   /// [IOSink]s like [stdout] don't like to be piped more than one [Stream], but
   /// we want to pipe many of them (basically, every standard output and error
   /// of every child process we open), so we pipe to an accommodating consumer.
@@ -19,24 +18,21 @@ class ChildServerProcess {
 
   get httpUri => Uri.parse('http://$host:$port');
 
-  static build(
-      Future<Process> builder(String host, int port),
+  static build(Future<Process> builder(String host, int port),
       {int defaultPort: 1024,
       int maxPort: 65535,
-      String host : 'localhost'}) async {
+      String host: 'localhost'}) async {
     var port = await _findUnusedPort(defaultPort, maxPort);
     var p = (await builder(host, port))
-        ..stdout.pipe(_consoleOut)
-        ..stderr.pipe(_consoleOut);
+      ..stdout.pipe(_consoleOut)
+      ..stderr.pipe(_consoleOut);
     await _waitForServer(host, port);
     return new ChildServerProcess._(p, host, port);
   }
 
-  static _waitForServer(
-      String host, int port,
+  static _waitForServer(String host, int port,
       {int attempts: 10,
       Duration retryDelay: const Duration(seconds: 1)}) async {
-
     var lastError;
     for (int i = 0; i < attempts; i++) {
       try {
@@ -53,11 +49,11 @@ class ChildServerProcess {
   }
 
   static Future<int> _findUnusedPort(int fromPort, int toPort) async {
-
     var lastError;
     for (int port = fromPort; port <= toPort; port++) {
       try {
-        await (await ServerSocket.bind(InternetAddress.ANY_IP_V4, port)).close();
+        await (await ServerSocket.bind(InternetAddress.ANY_IP_V4, port))
+            .close();
         return port;
       } catch (e) {
         lastError = e;

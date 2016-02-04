@@ -12,8 +12,7 @@ import 'child_server_process.dart';
 main() {
   group('DDC transformer in pub serve', () {
     WebDriver webdriver;
-    ChildServerProcess
-        selenium;
+    ChildServerProcess selenium;
     ChildServerProcess pubServe;
 
     setUp(() async {
@@ -25,16 +24,15 @@ main() {
       selenium = await _startSelenium();
       var seleniumUrl = '${selenium.httpUri}/wd/hub';
 
-      webdriver = await WebDriver.createDriver(
-          url: seleniumUrl,
-          desiredCapabilities: {
-            'browserName': 'chrome',
-            // 'chromeOptions': {
-            //   'binary': Platform.environment['DARTIUM_BIN'],
-            //   'args': ['--js-flags=--harmony'],
-            // },
-            'loggingPrefs': {'browser': 'ALL'}
-          });
+      webdriver =
+          await WebDriver.createDriver(url: seleniumUrl, desiredCapabilities: {
+        'browserName': 'chrome',
+        // 'chromeOptions': {
+        //   'binary': Platform.environment['DARTIUM_BIN'],
+        //   'args': ['--js-flags=--harmony'],
+        // },
+        'loggingPrefs': {'browser': 'ALL'}
+      });
       pubServe = await pubServeFut;
     });
 
@@ -45,8 +43,7 @@ main() {
     });
 
     test('serves functional hello world app', () async {
-      await webdriver.get(
-          '${pubServe.httpUri}/hello_app/web/');
+      await webdriver.get('${pubServe.httpUri}/hello_app/web/');
 
       var body = await webdriver.findElement(const By.tagName('body'));
       expect(await body.text, "'Hello, World!'");
@@ -54,11 +51,10 @@ main() {
   });
 }
 
-Future<ChildServerProcess> _startPubServe(
-    String directory, [List<String> args = const[]]) async {
+Future<ChildServerProcess> _startPubServe(String directory,
+    [List<String> args = const []]) async {
   assert(new Directory(directory).existsSync());
-  var result = await Process.run(
-      'pub', ['get'], workingDirectory: directory);
+  var result = await Process.run('pub', ['get'], workingDirectory: directory);
   if (result.exitCode != 0) {
     throw new StateError('Pub get failed: ${result.stderr}');
   }
@@ -70,12 +66,13 @@ Future<ChildServerProcess> _startPubServe(
       defaultPort: 8080);
 }
 
-Future<ChildServerProcess> _startSelenium() =>
-    ChildServerProcess.build(
-        (host, port) => Process.start(
-            'node', [
-                './node_modules/.bin/webdriver-manager',
-                'start',
-                '--seleniumPort=$port'
-            ], mode: ProcessStartMode.DETACHED_WITH_STDIO),
-        defaultPort: 4444);
+Future<ChildServerProcess> _startSelenium() => ChildServerProcess.build(
+    (host, port) => Process.start(
+        'node',
+        [
+          './node_modules/.bin/webdriver-manager',
+          'start',
+          '--seleniumPort=$port'
+        ],
+        mode: ProcessStartMode.DETACHED_WITH_STDIO),
+    defaultPort: 4444);

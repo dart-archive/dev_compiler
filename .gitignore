@@ -5,6 +5,7 @@ packages
 .packages
 
 # Ignore files created by tools.
+*.tmp
 *.dart.precompiled.js
 *.js_
 *.js.deps
