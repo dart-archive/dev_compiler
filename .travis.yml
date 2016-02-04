@@ -17,14 +17,14 @@ before_script:
   - nvm install 5.5.0
   - npm install
 script:
-  #- ./tool/presubmit.sh && ./tool/coverage.sh
-  - ./tool/$TEST.sh
+  - ./tool/presubmit.sh
 env:
-  - TEST=check_expectations_were_built
-  - TEST=coverage
-  - TEST=test
-  - TEST=browser_test
-  - TEST=node_test
-  - TEST=analyze
-  - TEST=format
-  - TEST=transformer_test
+  # Make sure to only have 1 SKIP_TESTS entry (to avoid duplicates if anyone
+  # edits presubmit.sh), and to have every skipped test in at least one of the
+  # TEST_ONLY entries (to avoid skipping any test).
+  - SKIP_TESTS=browser_test,node_test,transformer_test,analyze,format
+  - TEST_ONLY=test,browser_test
+  - TEST_ONLY=node_test
+  - TEST_ONLY=transformer_test
+  - TEST_ONLY=analyze
+  - TEST_ONLY=format
