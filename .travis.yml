@@ -9,10 +9,10 @@ cache:
     # - $HOME/.chrome/canary
     - node_modules
 before_install:
-  - pub global activate dart_coveralls
-  - export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
+  - [[ "$COVERAGE" == "true" ]] && pub global activate dart_coveralls
+  - [[ "$CHROME" != 0 ]] && export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
+  - [[ "$CHROME" != 0 ]] && export DISPLAY=:99.0
+  - [[ "$CHROME" != 0 ]] && sh -e /etc/init.d/xvfb start
 before_script:
   - nvm install 5.5.0
   - npm install
@@ -22,9 +22,9 @@ env:
   # Make sure to only have 1 SKIP_TESTS entry (to avoid duplicates if anyone
   # edits presubmit.sh), and to have every skipped test in at least one of the
   # TEST_ONLY entries (to avoid skipping any test).
-  - TEST_ONLY=analyze
-  - TEST_ONLY=format
+  - TEST_ONLY=analyze CHROME=0
+  - TEST_ONLY=format CHROME=0
   - TEST_ONLY=build_sdk,codegen,browser_test
-  - TEST_ONLY=node_test
-  - TEST_ONLY=transformer_test
+  - TEST_ONLY=node_test CHROME=0
+  - TEST_ONLY=transformer_test CHROME=0
   - COVERAGE=true SKIP_TESTS=codegen,browser_test,node_test,transformer_test,analyze,format
