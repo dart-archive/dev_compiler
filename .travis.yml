@@ -24,7 +24,7 @@ env:
   # TEST_ONLY entries (to avoid skipping any test).
   - TEST_ONLY=analyze
   - TEST_ONLY=format
-  - TEST_ONLY=codegen,browser_test
+  - TEST_ONLY=build_sdk,codegen,browser_test
   - TEST_ONLY=node_test
   - TEST_ONLY=transformer_test
   - COVERAGE=true SKIP_TESTS=codegen,browser_test,node_test,transformer_test,analyze,format
