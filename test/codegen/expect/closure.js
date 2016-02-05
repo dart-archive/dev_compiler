@@ -3,7 +3,7 @@ import dart from "./dart/_runtime";
 import core from "./dart/core";
 import js from "./dart/js";
 let dartx = dart.dartx;
-function generic_function(items: core.List<T>, seed: T): core.List<T> {
+function generic_function<T>(items: core.List<T>, seed: T): core.List<T> {
   let strings = items[dartx.map](dart.fn((i: T): string => `${i}`, core.String, [dart.dynamic]))[dartx.toList]();
   return items;
 }

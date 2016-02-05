@@ -42,6 +42,7 @@ import 'js_printer.dart' show writeJsLibrary;
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
+import 'dart:io';
 
 part 'js_typeref_codegen.dart';
 
@@ -1326,8 +1327,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var params = _visit(node.parameters) as List<JS.Parameter>;
     if (params == null) params = <JS.Parameter>[];
 
+    var typeArgs = _emitTypeArgs(node.element).toList();
     var returnType = emitTypeRef(node.element.returnType);
-    JS.Fun fn = _emitFunctionBody(params, node.body, returnType);
+    JS.Fun fn = _emitFunctionBody(params, node.body, typeArgs, returnType);
     if (node.operatorKeyword != null &&
         node.name.name == '[]=' &&
         params.isNotEmpty) {
@@ -1502,9 +1504,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var parent = node.parent;
     var inStmt = parent.parent is FunctionDeclarationStatement;
+    var typeArgs = _emitTypeArgs(node.element).toList();
     var returnType = emitTypeRef(node.element.returnType);
     if (parent is FunctionDeclaration) {
-      return _emitFunctionBody(params, node.body, returnType);
+      return _emitFunctionBody(params, node.body, typeArgs, returnType);
     } else {
       // Chrome Canary does not accept default values with destructuring in
       // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
@@ -1522,7 +1525,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       } else {
         jsBody = new JS.Block([_visit(body)]);
       }
-      var typeArgs = _emitTypeArgs(node.element).toList();
       var clos = canUseArrowFun
           ? new JS.ArrowFun(params, jsBody, typeArgs: typeArgs, returnType: returnType)
           : new JS.Fun(params, jsBody, typeArgs: typeArgs, returnType: returnType);
@@ -1536,7 +1538,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   JS.Fun _emitFunctionBody(
-      List<JS.Parameter> params, FunctionBody body, JS.TypeRef returnType) {
+      List<JS.Parameter> params, FunctionBody body,
+      List<JS.Identifier> typeArgs, JS.TypeRef returnType) {
     // sync*, async, async*
     if (body.isAsynchronous || body.isGenerator) {
       return new JS.Fun(
@@ -1546,7 +1549,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           returnType: returnType);
     }
     // normal function (sync)
-    return new JS.Fun(params, _visit(body), returnType: returnType);
+    return new JS.Fun(params, _visit(body),
+        typeArgs: typeArgs,
+        returnType: returnType);
   }
 
   JS.Expression _emitGeneratorFunctionBody(
