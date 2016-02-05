@@ -5,6 +5,7 @@
 /// Meta-test that runs all tests we have written.
 library dev_compiler.test.all_tests;
 
+@Timeout(const Duration(seconds: 60))
 import 'package:test/test.dart';
 
 import 'closure/closure_annotation_test.dart' as closure_annotation_test;
