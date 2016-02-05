@@ -4,7 +4,6 @@
 
 part of js_ast;
 
-final _listEquality = const ListEquality();
 final _any = new AnyTypeRef._();
 final _unknown = new UnknownTypeRef._();
 final _null = new NullTypeRef();
@@ -116,14 +115,6 @@ class GenericTypeRef extends TypeRef {
   final TypeRef rawType;
   final List<TypeRef> typeParams;
   GenericTypeRef(this.rawType, this.typeParams);
-
-  // @override operator==(other) =>
-  //     other is GenericTypeRef &&
-  //     rawType == other.rawType &&
-  //     _listEquality.equals(typeParams, other.typeParams);
-  // // TODO(ochafik): Use something else?
-  // @override get hashCode =>
-  //     ([rawType]..addAll(typeParams ?? [])).map((t) => t.hashCode).reduce((a, b) => a ^ b);
 
   accept(NodeVisitor visitor) => visitor.visitGenericTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
