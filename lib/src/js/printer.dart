@@ -1079,6 +1079,16 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   visitClassExpression(ClassExpression node) {
     out('class ');
     visit(node.name);
+    if (options.printTypes && node.typeParams.isNotEmpty) {
+      out("<");
+      var first = true;
+      for (var typeParam in node.typeParams) {
+        if (!first) out(", ");
+        first = false;
+        visit(typeParam);
+      }
+      out(">");
+    }
     if (node.heritage != null) {
       out(' extends ');
       visit(node.heritage);

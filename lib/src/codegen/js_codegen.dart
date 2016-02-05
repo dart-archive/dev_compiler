@@ -429,7 +429,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
         _classHeritage(classElem), _emitClassMethods(node, ctors, fields),
-        _emitFieldDeclarations(classElem, fields).toList());
+        _emitTypeParams(classElem).toList(),
+        _emitFieldDeclarations(classElem, fields, staticFields).toList());
 
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, isJsPeerInterface);
@@ -462,22 +463,36 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return result;
   }
 
+  Iterable<JS.Identifier> _emitTypeParams(TypeParameterizedElement e) sync* {
+    if (!options.closure) return;
+    for (var typeParam in e.typeParameters) {
+      yield new JS.Identifier(typeParam.name);
+    }
+  }
+
   /// Emit field declarations for TypeScript & Closure's ES6_TYPED
   /// (e.g. `class Foo { i: string; }`)
   Iterable<JS.VariableDeclarationList> _emitFieldDeclarations(
-      ClassElement classElem, List<FieldDeclaration> fields) sync* {
+      ClassElement classElem,
+      List<FieldDeclaration> fields,
+      List<FieldDeclaration> staticFields) sync* {
     if (!options.closure) return;
 
+    makeInitialization(VariableDeclaration decl) =>
+        new JS.VariableInitialization(
+            new JS.Identifier(
+                // TODO(ochafik): use a refactored _emitMemberName instead.
+                decl.name.name,
+                type: emitTypeRef(decl.element.type)),
+            null);
+
     for (var field in fields) {
-      yield new JS.VariableDeclarationList(
-          field.isStatic ? 'static' : null,
-          field.fields.variables.map((VariableDeclaration varDecl) =>
-              new JS.VariableInitialization(
-                  new JS.Identifier(
-                      // TODO(ochafik): use a refactored _emitMemberName instead.
-                      varDecl.name.name,
-                      type: emitTypeRef(varDecl.element.type)),
-                  null)).toList());
+      yield new JS.VariableDeclarationList(null,
+          field.fields.variables.map(makeInitialization).toList());
+    }
+    for (var field in staticFields) {
+      yield new JS.VariableDeclarationList('static',
+          field.fields.variables.map(makeInitialization).toList());
     }
   }
 
@@ -713,8 +728,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       var superVar = new JS.TemporaryId(cls.name.name + r'$super');
       return _statement([
         js.statement('const # = #;', [superVar, cls.heritage]),
-        new JS.ClassDeclaration(
-            new JS.ClassExpression(cls.name, superVar, cls.methods))
+        new JS.ClassDeclaration(new JS.ClassExpression(
+            cls.name, superVar, cls.methods, cls.typeParams, cls.fields))
       ]);
     }
     return new JS.ClassDeclaration(cls);

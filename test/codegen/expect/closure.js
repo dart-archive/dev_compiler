@@ -9,11 +9,14 @@ dart_library.library('closure', null, /* Imports */[
   /** @typedef */
   const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
   const Foo$ = dart.generic(function(T) {
-    class Foo extends core.Object {
+    class Foo<T> extends core.Object {
       i: number;
       b: boolean;
       s: string;
       v: T;
+      static some_static_constant: string;
+      static some_static_final: string;
+      static some_static_var: string;
       Foo(i: number, v: T) {
         this.i = i;
         this.v = v;
