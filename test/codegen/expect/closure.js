@@ -6,90 +6,49 @@ dart_library.library('closure', null, /* Imports */[
 ], function(exports, dart, core, js) {
   'use strict';
   let dartx = dart.dartx;
-  /** @typedef {function({i: (?number|undefined)}=)} */
+  /** @typedef */
   const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
   const Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
-      /**
-       * @param {?number} i
-       * @param {?} v
-       */
-      Foo(i, v) {
+      Foo(i: number|null, v: T) {
         this.i = i;
         this.v = v;
         this.b = null;
         this.s = null;
       }
-      /** @return {Foo} */
       static build() {
         return new (Foo$(T))(1, null);
       }
-      /**
-       * @param {?} a
-       * @param {?} b
-       */
-      untyped_method(a, b) {}
-      /** @param {?} t */
-      pass(t) {
+      untyped_method(a: any, b: any) {}
+      pass(t: T) {
         dart.as(t, T);
         return t;
       }
-      /**
-       * @param {Foo} foo
-       * @param {core.List} list
-       * @param {?number} i
-       * @param {?number} n
-       * @param {?number} d
-       * @param {?boolean} b
-       * @param {string} s
-       * @param {Array<?>} a
-       * @param {Object<*, *>} o
-       * @param {Function} f
-       * @return {string}
-       */
-      typed_method(foo, list, i, n, d, b, s, a, o, f) {
+      typed_method(foo: Foo<T>, list: core.List<E>, i: number|null, n: number|null, d: number|null, b: boolean|null, s: string, a: any[]<E>, o: Object, f: Function) {
         return '';
       }
-      /**
-       * @param {?} a
-       * @param {?=} b
-       * @param {?=} c
-       */
-      optional_params(a, b, c) {
+      optional_params(a: any, b: any, c: any) {
         if (b === void 0) b = null;
         if (c === void 0) c = null;
       }
-      /**
-       * @param {?} a
-       * @param {{b: (?|undefined), c: (?|undefined)}=} opts
-       */
-      static named_params(a, opts) {
+      static named_params(a: any, opts) {
         let b = opts && 'b' in opts ? opts.b : null;
         let c = opts && 'c' in opts ? opts.c : null;
       }
       nullary_method() {}
-      /**
-       * @param {function(?, ?=):?number} f
-       * @param {function(?, {y: (string|undefined), z: (?|undefined)}=):?} g
-       * @param {Callback} cb
-       */
-      function_params(f, g, cb) {
+      function_params(f: exports['']<T>, g: exports['']<T>, cb: Callback) {
         dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
         dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
         cb({i: this.i});
       }
-      /** @return {string} */
       get prop() {
         return null;
       }
-      /** @param {string} value */
-      set prop(value) {}
-      /** @return {string} */
+      set prop(value: string) {}
       static get staticProp() {
         return null;
       }
-      /** @param {string} value */
-      static set staticProp(value) {}
+      static set staticProp(value: string) {}
     }
     dart.setSignature(Foo, {
       constructors: () => ({
@@ -119,20 +78,18 @@ dart_library.library('closure', null, /* Imports */[
   class Bar extends core.Object {}
   const Baz$super = dart.mixin(Foo$(core.int), Bar);
   class Baz extends Baz$super {
-    /** @param {?number} i */
-    Baz(i) {
+    Baz(i: number|null) {
       super.Foo(i, 123);
     }
   }
   dart.setSignature(Baz, {
     constructors: () => ({Baz: [Baz, [core.int]]})
   });
-  /** @param {?} args */
-  function main(args) {
+  function main(args: any) {
   }
   dart.fn(main, dart.void, [dart.dynamic]);
   /** @final {string} */
-  const some_top_level_constant = "abc";
+  const some_top_level_constant: string = "abc";
   /** @final {string} */
   exports.some_top_level_final = "abc";
   /** @type {string} */

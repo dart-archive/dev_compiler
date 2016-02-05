@@ -15,8 +15,10 @@ abstract class TypeRef extends Expression {
   factory TypeRef.any() => _any;
   factory TypeRef.void_() => null;
   factory TypeRef.unknown() => null;
-  factory TypeRef.generic(TypeRef rawType, Iterable<TypeRef> typeParams) =>
-      typeParams.isEmpty ? rawType : new GenericTypeRef(rawType, typeParams.toList());
+  factory TypeRef.generic(TypeRef rawType, Iterable<TypeRef> typeParams) {
+    assert(typeParams.isNotEmpty);
+    return new GenericTypeRef(rawType, typeParams.toList());
+  }
   factory TypeRef.array([TypeRef elementType]) =>
       elementType == null ? new TypeRef.named('Array') : new ArrayTypeRef(elementType);
   factory TypeRef.object([TypeRef keyType, TypeRef valueType]) {

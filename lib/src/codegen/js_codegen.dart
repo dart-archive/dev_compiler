@@ -1164,7 +1164,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
       for (var p in ctor.parameters.parameters) {
         var element = p.element;
         if (element is FieldFormalParameterElement) {
-          fields[element.field] = _visit(p);
+          fields[element.field] = _emitFormalParameter(p, allowType: false);
         }
       }
 
@@ -1220,12 +1220,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
     var parameters = _parametersOf(node);
     if (parameters == null) return null;
 
+    var destructure = _canDestructureParams(parameters);
     var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
       var jsParam = _emitSimpleIdentifier(param.identifier, allowType: false);
 
       if (param.kind == ParameterKind.NAMED) {
-        if (!_isDestructurableNamedParam(param)) {
+        if (!destructure) {
           // Parameters will be passed using their real names, not the (possibly
           // renamed) local variable.
           var paramName = js.string(param.identifier.name, "'");
@@ -2057,12 +2058,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
   bool _isNamedParam(FormalParameter param) =>
       param.kind == ParameterKind.NAMED;
 
-  /// We cannot destructure named params that clash with JS reserved names:
-  /// see discussion in https://github.com/dart-lang/dev_compiler/issues/392.
-  bool _isDestructurableNamedParam(FormalParameter param) =>
-      _isNamedParam(param) &&
-      !invalidVariableName(param.identifier.name) &&
-      options.destructureNamedParams;
+  bool _canDestructureParams(FormalParameterList params) =>
+      canDestructureNamedParams(
+          params.parameters.where(_isNamedParam).map((p) => p.identifier.name),
+          options);
 
   @override
   List<JS.Parameter> visitFormalParameterList(FormalParameterList node) =>
@@ -2074,7 +2073,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
 
     var namedVars = <JS.DestructuredVariable>[];
     var destructure = allowDestructuring &&
-        node.parameters.where(_isNamedParam).every(_isDestructurableNamedParam);
+        _canDestructureParams(node.parameters);
     var hasNamedArgsConflictingWithObjectProperties = false;
     var needsOpts = false;
 
@@ -2757,8 +2756,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
       _visit(node.expression);
 
   @override
-  visitFormalParameter(FormalParameter node) {
-    var id = _emitSimpleIdentifier(node.identifier, allowType: true);
+  visitFormalParameter(FormalParameter node) =>
+      _emitFormalParameter(node);
+
+  _emitFormalParameter(FormalParameter node, {bool allowType: true}) {
+    var id = _emitSimpleIdentifier(node.identifier, allowType: allowType);
 
     var isRestArg = findAnnotation(node.element, isJsRestAnnotation) != null;
     return isRestArg ? new JS.RestParameter(id) : id;
@@ -3467,9 +3469,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
     // JS.TemporaryId id = _imports[type.library];
     // return id == null ? type.name : '${id.name}.${type.name}';
   }
-
-  @override
-  bool get shouldEmitTypes => options.closure;
 
   JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
     if (options.closure && element != null) {
