@@ -13,7 +13,7 @@ abstract class JsTypeRefCodegen {
   TypeProvider get types;
   JS.Identifier get _namedArgTemp;
   LibraryElement get currentLibrary;
-  String _libraryName(LibraryElement e);
+  JS.Identifier _libraryName(LibraryElement e);
   String _getJSExportName(Element e);
 
   /// Finds the qualified path to the type.
