@@ -3644,7 +3644,6 @@ class JSGenerator extends CodeGenerator {
     var rules = new StrongTypeSystemImpl();
     var codegen =
         new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
-    // TODO(ochafik): Move the following lines to [LibraryBuilder.build]:
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;

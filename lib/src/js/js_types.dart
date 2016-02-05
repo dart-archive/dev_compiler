@@ -10,42 +10,56 @@ final _null = new NullTypeRef();
 
 /// JavaScript type reference.
 abstract class TypeRef extends Expression {
+  static final _namedCache = <String, TypeRef>{};
+
   int get precedenceLevel => EXPRESSION;
 
   TypeRef();
+
   factory TypeRef.any() => _any;
+
   factory TypeRef.void_() => null;
+
   factory TypeRef.unknown() => _unknown;
+
   factory TypeRef.generic(TypeRef rawType, Iterable<TypeRef> typeParams) =>
     typeParams.isEmpty
         ? rawType
         : new GenericTypeRef(rawType, typeParams.toList());
+
   factory TypeRef.array([TypeRef elementType]) =>
       elementType == null ? new TypeRef.named('Array') : new ArrayTypeRef(elementType);
+
   factory TypeRef.object([TypeRef keyType, TypeRef valueType]) {
     var rawType = new TypeRef.named('Object');
     return keyType == null && valueType == null
         ? rawType
         : new GenericTypeRef(rawType, [keyType ?? _any, valueType ?? _any]);
   }
+
   factory TypeRef.function([TypeRef returnType, Map<Identifier, TypeRef> paramTypes]) =>
       returnType == null && paramTypes == null
           ? new TypeRef.named('Function')
           : new FunctionTypeRef(returnType, paramTypes);
+
   factory TypeRef.record(Map<Identifier, TypeRef> types) =>
       new RecordTypeRef(types);
+
   factory TypeRef.string() => new TypeRef.named('string');
+
   factory TypeRef.number() => new TypeRef.named('number');
+
   factory TypeRef.undefined() => new TypeRef.named('undefined');
+
   factory TypeRef.boolean() => new TypeRef.named('boolean');
 
-  static final _namedCache = <String, TypeRef>{};
   factory TypeRef.qualified(List<Identifier> path) =>
       _namedCache.putIfAbsent(
           path.map((p) => p.name).join('.'),
           () => new QualifiedTypeRef(path));
+
   factory TypeRef.named(String name) =>
-      new TypeRef.qualified([new Identifier(name)]);
+      new TypeRef.qualified(<Identifier>[new Identifier(name)]);
 
   bool get isAny => this is AnyTypeRef;
   bool get isUnknown => this is UnknownTypeRef;
@@ -93,15 +107,6 @@ class QualifiedTypeRef extends TypeRef {
   _clone() => new QualifiedTypeRef(path);
 }
 
-// class NamedTypeRef extends TypeRef {
-//   final Expression name;
-//   NamedTypeRef(this.name);
-//
-//   accept(NodeVisitor visitor) => visitor.visitNamedTypeRef(this);
-//   void visitChildren(NodeVisitor visitor) =>
-//       name.accept(visitor);
-//   _clone() => new NamedTypeRef(name);
-// }
 class ArrayTypeRef extends TypeRef {
   final TypeRef elementType;
   ArrayTypeRef(this.elementType);
@@ -111,6 +116,7 @@ class ArrayTypeRef extends TypeRef {
   }
   _clone() => new ArrayTypeRef(elementType);
 }
+
 class GenericTypeRef extends TypeRef {
   final TypeRef rawType;
   final List<TypeRef> typeParams;
