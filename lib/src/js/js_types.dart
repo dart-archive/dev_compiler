@@ -18,7 +18,7 @@ abstract class TypeRef extends Expression {
 
   factory TypeRef.any() => _any;
 
-  factory TypeRef.void_() => null;
+  factory TypeRef.void_() => new TypeRef.named('void');
 
   factory TypeRef.unknown() => _unknown;
 

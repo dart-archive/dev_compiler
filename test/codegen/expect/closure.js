@@ -96,7 +96,7 @@ class Baz extends Baz$super {
 dart.setSignature(Baz, {
   constructors: () => ({Baz: [Baz, [core.int]]})
 });
-function main(args) {
+function main(args): void {
 }
 dart.fn(main, dart.void, [dart.dynamic]);
 /** @final {string} */
