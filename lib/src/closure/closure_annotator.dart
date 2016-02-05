@@ -29,9 +29,12 @@ abstract class ClosureAnnotator {
         // Note: we don't set isConst here because Closure's constness and
         // Dart's are not really compatible.
         isFinal: e is VariableElement && (e.isFinal || e.isConst),
-        type: e is VariableElement ? emitTypeRef(e.type/*, forceTypeDefExpansion: true*/) : null,
+        type: e is VariableElement
+            ? emitTypeRef(e.type /*, forceTypeDefExpansion: true*/)
+            : null,
         superType: e is ClassElement ? emitTypeRef(e.supertype) : null,
-        interfaces: e is ClassElement ? e.interfaces.map(emitTypeRef).toList() : null,
+        interfaces:
+            e is ClassElement ? e.interfaces.map(emitTypeRef).toList() : null,
         isOverride: e.isOverride,
         isTypedef: e is FunctionTypeAliasElement);
   }

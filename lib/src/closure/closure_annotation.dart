@@ -69,8 +69,7 @@ class ClosureAnnotation {
   String __cachedString;
   String get _cachedString {
     if (__cachedString == null) {
-      bool isNonWildcard(JS.TypeRef t) =>
-          t != null && !t.isAny && !t.isUnknown;
+      bool isNonWildcard(JS.TypeRef t) => t != null && !t.isAny && !t.isUnknown;
 
       var lines = <String>[];
       if (comment != null) lines.addAll(comment.split('\n'));
@@ -110,7 +109,8 @@ class ClosureAnnotation {
 
       if (interfaces != null) {
         for (var interface in interfaces) {
-          if (isNonWildcard(interface)) lines.add('@implements {${_print(interface)}}');
+          if (isNonWildcard(interface))
+            lines.add('@implements {${_print(interface)}}');
         }
       }
 
@@ -120,8 +120,10 @@ class ClosureAnnotation {
           lines.add('@param {${_print(paramType)}} $paramName');
         });
       }
-      if (isNonWildcard(returnType)) lines.add('@return {${_print(returnType)}}');
-      if (isNonWildcard(throwsType)) lines.add('@throws {${_print(throwsType)}}');
+      if (isNonWildcard(returnType))
+        lines.add('@return {${_print(returnType)}}');
+      if (isNonWildcard(throwsType))
+        lines.add('@throws {${_print(throwsType)}}');
 
       if (lines.length == 0) return '';
       if (lines.length == 1) return '/** ${lines.single} */';

@@ -54,7 +54,8 @@ const DSETINDEX = 'dsetindex';
 const DCALL = 'dcall';
 const DSEND = 'dsend';
 
-class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, TypeRefs {
+class JSCodegenVisitor extends GeneralizingAstVisitor
+    with ClosureAnnotator, TypeRefs {
   final AbstractCompiler compiler;
   final CodegenOptions options;
   final LibraryElement currentLibrary;
@@ -355,7 +356,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
           js.string(name, "'"),
           _emitTypeName(type, lowerTypedef: true)
         ]),
-        node, node.element);
+        node,
+        node.element);
 
     return _finishClassDef(type, fnType);
   }
@@ -938,7 +940,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
     var name = _constructorName(node.element.unnamedConstructor);
     return annotate(
         new JS.Method(name, js.call('function() { #; }', body) as JS.Fun),
-        node, node.element);
+        node,
+        node.element);
   }
 
   JS.Method _emitConstructor(ConstructorDeclaration node, InterfaceType type,
@@ -960,11 +963,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
 
       var fun = new JS.Fun(
           params,
-          js.statement('{ return $newKeyword #(#); }', [_visit(redirect), params]),
+          js.statement(
+              '{ return $newKeyword #(#); }', [_visit(redirect), params]),
           returnType: returnType);
       return annotate(
-          new JS.Method(name, fun, isStatic: true),
-          node, node.element);
+          new JS.Method(name, fun, isStatic: true), node, node.element);
     }
 
     // Factory constructors are essentially static methods.
@@ -977,8 +980,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
           _visit(node.parameters) as List<JS.Parameter>, new JS.Block(body),
           returnType: returnType);
       return annotate(
-          new JS.Method(name, fun, isStatic: true),
-          node, node.element);
+          new JS.Method(name, fun, isStatic: true), node, node.element);
     }
 
     // Code generation for Object's constructor.
@@ -1014,9 +1016,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
     return annotate(
-        new JS.Method(name,
-            new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body, returnType: returnType)),
-        node, node.element);
+        new JS.Method(
+            name,
+            new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body,
+                returnType: returnType)),
+        node,
+        node.element);
   }
 
   JS.Expression _constructorName(ConstructorElement ctor) {
@@ -1298,8 +1303,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
         body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
       }
       // Rewrite the function to include the return.
-      fn = new JS.Fun(fn.params, new JS.Block([body, returnValue]), returnType: fn.returnType)
-        ..sourceInformation = fn.sourceInformation;
+      fn = new JS.Fun(fn.params, new JS.Block([body, returnValue]),
+          returnType: fn.returnType)..sourceInformation = fn.sourceInformation;
     }
 
     return annotate(
@@ -1307,7 +1312,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
-        node, node.element);
+        node,
+        node.element);
   }
 
   /// Returns the name value of the `JSExportName` annotation (when compiling
@@ -1387,7 +1393,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
         if (call.target is JS.ArrowFun && call.arguments.isEmpty) {
           JS.ArrowFun innerFun = call.target;
           if (innerFun.params.isEmpty) {
-            return new JS.Fun(fn.params, innerFun.body, returnType: fn.returnType);
+            return new JS.Fun(fn.params, innerFun.body,
+                returnType: fn.returnType);
           }
         }
       }
@@ -1400,7 +1407,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
     return annotate(
         new JS.Method(_propertyName(name), _visit(node.functionExpression),
             isGetter: node.isGetter, isSetter: node.isSetter),
-        node, node.element);
+        node,
+        node.element);
   }
 
   bool _executesAtTopLevel(AstNode node) {
@@ -1484,13 +1492,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
     }
   }
 
-  JS.Fun _emitFunctionBody(List<JS.Parameter> params, FunctionBody body, JS.TypeRef returnType) {
+  JS.Fun _emitFunctionBody(
+      List<JS.Parameter> params, FunctionBody body, JS.TypeRef returnType) {
     // sync*, async, async*
     if (body.isAsynchronous || body.isGenerator) {
       return new JS.Fun(
           params,
-          js.statement(
-              '{ return #; }', [_emitGeneratorFunctionBody(params, body, returnType)]),
+          js.statement('{ return #; }',
+              [_emitGeneratorFunctionBody(params, body, returnType)]),
           returnType: returnType);
     }
     // normal function (sync)
@@ -1542,7 +1551,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
       _asyncStarController = null;
       jsParams = params;
     }
-    JS.Expression gen = new JS.Fun(jsParams, _visit(body), isGenerator: true, returnType: returnType);
+    JS.Expression gen = new JS.Fun(jsParams, _visit(body),
+        isGenerator: true, returnType: returnType);
     if (JS.This.foundIn(gen)) {
       gen = js.call('#.bind(this)', gen);
     }
@@ -1586,7 +1596,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
 
   /// Writes a simple identifier. This can handle implicit `this` as well as
   /// going through the qualified library name if necessary.
-  JS.Expression _emitSimpleIdentifier(SimpleIdentifier node, {bool allowType: false}) {
+  JS.Expression _emitSimpleIdentifier(SimpleIdentifier node,
+      {bool allowType: false}) {
     var accessor = node.staticElement;
     if (accessor == null) {
       return js.commentExpression(
@@ -2235,7 +2246,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
       return _emitTopLevelField(node);
     }
 
-    var name = new JS.Identifier(node.name.name, type: emitTypeRef(node.element.type));
+    var name =
+        new JS.Identifier(node.name.name, type: emitTypeRef(node.element.type));
     return new JS.VariableInitialization(name, _visitInitializer(node));
   }
 
@@ -2277,7 +2289,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
             _emitMemberName(fieldName, isStatic: true),
             jsInit
           ]),
-          field, field.element);
+          field,
+          field.element);
     }
 
     // This means it should be treated as a lazy field.
@@ -2324,17 +2337,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
 
       if (isPublic(fieldName)) _addExport(fieldName, exportName);
       var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
-      return js.statement('#;', [annotate(
-          new JS.VariableDeclarationList(declKeyword, [
-            new JS.VariableInitialization(
-                new JS.Identifier(fieldName, type: emitTypeRef(field.element.type)), jsInit)
-          ]),
-          field, field.element)]);
+      return js.statement('#;', [
+        annotate(
+            new JS.VariableDeclarationList(declKeyword, [
+              new JS.VariableInitialization(
+                  new JS.Identifier(fieldName,
+                      type: emitTypeRef(field.element.type)),
+                  jsInit)
+            ]),
+            field,
+            field.element)
+      ]);
     }
 
     if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
-      return annotate(
-          js.statement('# = #;', [_visit(field.name), jsInit]), field, field.element);
+      return annotate(js.statement('# = #;', [_visit(field.name), jsInit]),
+          field, field.element);
     }
 
     return _emitLazyFields(currentLibrary, [field]);
@@ -2360,14 +2378,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
               js.call('function() { return #; }', _visit(node.initializer))
               as JS.Fun,
               isGetter: true),
-          node, _findAccessor(element, getter: true)));
+          node,
+          _findAccessor(element, getter: true)));
 
       // TODO(jmesserly): currently uses a dummy setter to indicate writable.
       if (!node.isFinal && !node.isConst) {
         methods.add(annotate(
             new JS.Method(access, js.call('function(_) {}') as JS.Fun,
                 isSetter: true),
-            node, _findAccessor(element, getter: false)));
+            node,
+            _findAccessor(element, getter: false)));
       }
     }
 
@@ -2755,8 +2775,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
       _visit(node.expression);
 
   @override
-  visitFormalParameter(FormalParameter node) =>
-      _emitFormalParameter(node);
+  visitFormalParameter(FormalParameter node) => _emitFormalParameter(node);
 
   _emitFormalParameter(FormalParameter node, {bool allowType: true}) {
     var id = _emitSimpleIdentifier(node.identifier, allowType: allowType);
@@ -3465,7 +3484,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
   JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
     if (options.closure && element != null) {
       node = node.withClosureAnnotation(
-            closureAnnotationFor(node, original, element, _namedArgTemp.name));
+          closureAnnotationFor(node, original, element, _namedArgTemp.name));
     }
     return node..sourceInformation = original;
   }

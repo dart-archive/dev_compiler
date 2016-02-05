@@ -4,7 +4,8 @@
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:dev_compiler/src/js/js_ast.dart' as JS show TypeRef, Identifier, Expression;
+import 'package:dev_compiler/src/js/js_ast.dart' as JS
+    show TypeRef, Identifier, Expression;
 import 'package:dev_compiler/src/options.dart';
 
 abstract class TypeRefs {
@@ -55,15 +56,15 @@ abstract class TypeRefs {
           });
           args.add(new JS.TypeRef.record(namedArgs).toOptional());
         }
-        rawType = new JS.TypeRef.function(
-            emitTypeRef(type.returnType), args);
+        rawType = new JS.TypeRef.function(emitTypeRef(type.returnType), args);
       } else {
-        rawType = _getDartJsTypeRef(type)
-            ?? new JS.TypeRef.qualifiedNamed(emitTopLevelName(type.element));
+        rawType = _getDartJsTypeRef(type) ??
+            new JS.TypeRef.qualifiedNamed(emitTopLevelName(type.element));
       }
       return type.typeParameters.isEmpty
           ? rawType
-          : new JS.TypeRef.generic(rawType, type.typeParameters.map((p) => emitTypeRef(p.type)));
+          : new JS.TypeRef.generic(
+              rawType, type.typeParameters.map((p) => emitTypeRef(p.type)));
     }
     return new JS.TypeRef.unknown();
   }

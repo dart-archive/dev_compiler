@@ -299,6 +299,5 @@ bool invalidStaticFieldName(String name) {
 /// We cannot destructure named params that clash with JS reserved names:
 /// see discussion in https://github.com/dart-lang/dev_compiler/issues/392.
 bool canDestructureNamedParams(Iterable<String> names, CodegenOptions options) {
-  return options.destructureNamedParams &&
-      !names.any(invalidVariableName);
+  return options.destructureNamedParams && !names.any(invalidVariableName);
 }
