@@ -4,8 +4,6 @@
 
 library js_ast;
 
-import 'package:collection/equality.dart';
-
 import 'precedence.dart';
 import 'characters.dart' as charCodes;
 import '../closure/closure_annotation.dart';

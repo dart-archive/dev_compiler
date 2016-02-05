@@ -428,7 +428,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
 
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
+        _classHeritage(classElem), _emitClassMethods(node, ctors, fields),
+        _emitFieldDeclarations(classElem, fields).toList());
 
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, isJsPeerInterface);
@@ -459,6 +460,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return _statement([result, copyMembers]);
     }
     return result;
+  }
+
+  /// Emit field declarations for TypeScript & Closure's ES6_TYPED
+  /// (e.g. `class Foo { i: string; }`)
+  Iterable<JS.VariableDeclarationList> _emitFieldDeclarations(
+      ClassElement classElem, List<FieldDeclaration> fields) sync* {
+    if (!options.closure) return;
+
+    for (var field in fields) {
+      yield new JS.VariableDeclarationList(
+          field.isStatic ? 'static' : null,
+          field.fields.variables.map((VariableDeclaration varDecl) =>
+              new JS.VariableInitialization(
+                  new JS.Identifier(
+                      // TODO(ochafik): use a refactored _emitMemberName instead.
+                      varDecl.name.name,
+                      type: emitTypeRef(varDecl.element.type)),
+                  null)).toList());
+    }
   }
 
   @override

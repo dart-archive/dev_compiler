@@ -1460,9 +1460,12 @@ class ClassDeclaration extends Statement {
 class ClassExpression extends Expression {
   final Identifier name;
   final Expression heritage; // Can be null.
+  /// Field declarations in TypeScript & Closure's ES6_TYPED.
+  final List<VariableDeclarationList> fields;
   final List<Method> methods;
 
-  ClassExpression(this.name, this.heritage, this.methods);
+  ClassExpression(this.name, this.heritage, this.methods,
+      [this.fields = const[]]);
 
   accept(NodeVisitor visitor) => visitor.visitClassExpression(this);
 
@@ -1470,6 +1473,7 @@ class ClassExpression extends Expression {
     name.accept(visitor);
     if (heritage != null) heritage.accept(visitor);
     for (Method element in methods) element.accept(visitor);
+    for (var field in fields) field.accept(visitor);
   }
 
   ClassExpression _clone() => new ClassExpression(name, heritage, methods);

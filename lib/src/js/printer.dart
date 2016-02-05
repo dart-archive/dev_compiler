@@ -20,7 +20,7 @@ class JavaScriptPrintingOptions {
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
-       this.printTypes: true,
+       this.printTypes: false,
        this.allowKeywordsInProperties: false,
        this.allowSingleLineIfStatements: false});
 }
@@ -604,8 +604,11 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitVariableDeclarationList(VariableDeclarationList list) {
     outClosureAnnotation(list);
-    out(list.keyword);
-    out(" ");
+    // Note: keyword can be null for non-static field declarations.
+    if (list.keyword != null) {
+      out(list.keyword);
+      out(" ");
+    }
     visitCommaSeparated(list.declarations, ASSIGNMENT,
                         newInForInit: inForInit, newAtStatementBegin: false);
   }
@@ -1085,6 +1088,14 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out('{');
       lineOut();
       indentMore();
+      if (options.printTypes) {
+        for (var field in node.fields) {
+          indent();
+          visit(field);
+          out(";");
+          lineOut();
+        }
+      }
       for (var method in node.methods) {
         indent();
         visit(method);
