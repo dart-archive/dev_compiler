@@ -4,7 +4,7 @@
 
 part of js_ast;
 
-abstract class NodeVisitor<T> {
+abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
   T visitProgram(Program node);
 
   T visitBlock(Block node);
@@ -92,6 +92,17 @@ abstract class NodeVisitor<T> {
   T visitArrayBindingPattern(ArrayBindingPattern node);
   T visitObjectBindingPattern(ObjectBindingPattern node);
   T visitDestructuredVariable(DestructuredVariable node);
+}
+
+abstract class TypeRefVisitor<T> {
+  T visitNamedTypeRef(NamedTypeRef node);
+  T visitGenericTypeRef(GenericTypeRef node);
+  T visitUnionTypeRef(UnionTypeRef node);
+  T visitRecordTypeRef(RecordTypeRef node);
+  T visitOptionalTypeRef(OptionalTypeRef node);
+  T visitFunctionTypeRef(FunctionTypeRef node);
+  T visitAnyTypeRef(AnyTypeRef node);
+  T visitArrayTypeRef(ArrayTypeRef node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -221,6 +232,16 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitObjectBindingPattern(ObjectBindingPattern node)
       => visitBindingPattern(node);
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
+
+  T visitTypeRef(TypeRef node) => visitNode(node);
+  T visitNamedTypeRef(NamedTypeRef node) => visitTypeRef(node);
+  T visitGenericTypeRef(GenericTypeRef node) => visitTypeRef(node);
+  T visitOptionalTypeRef(OptionalTypeRef node) => visitTypeRef(node);
+  T visitRecordTypeRef(RecordTypeRef node) => visitTypeRef(node);
+  T visitUnionTypeRef(UnionTypeRef node) => visitTypeRef(node);
+  T visitFunctionTypeRef(FunctionTypeRef node) => visitTypeRef(node);
+  T visitAnyTypeRef(AnyTypeRef node) => visitTypeRef(node);
+  T visitArrayTypeRef(ArrayTypeRef node) => visitTypeRef(node);
 }
 
 abstract class Node {
@@ -780,6 +801,8 @@ class DestructuredVariable extends Expression implements Parameter {
   final Identifier name;
   final BindingPattern structure;
   final Expression defaultValue;
+  // TODO(ochafik): How does this work?
+  TypeRef get type => null;
   DestructuredVariable({this.name, this.structure, this.defaultValue}) {
     assert(name != null || structure != null);
   }
@@ -1022,14 +1045,19 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-abstract class Parameter implements Expression, VariableBinding {}
+abstract class Parameter implements Expression, VariableBinding {
+  TypeRef get type;
+}
 
 class Identifier extends Expression implements Parameter, VariableBinding {
   final String name;
   final bool allowRename;
+  final TypeRef type;
 
-  Identifier(this.name, {this.allowRename: true}) {
-    assert(_identifierRE.hasMatch(name));
+  Identifier(this.name, {this.allowRename: true, this.type}) {
+    if (!_identifierRE.hasMatch(name)) {
+      throw new ArgumentError.value(name, "name", "not a valid identifier");
+    }
   }
   static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
@@ -1043,6 +1071,7 @@ class Identifier extends Expression implements Parameter, VariableBinding {
 // This is an expression for convenience in the AST.
 class RestParameter extends Expression implements Parameter {
   final Identifier parameter;
+  TypeRef get type => null;
 
   RestParameter(this.parameter);
 
@@ -1107,19 +1136,23 @@ class NamedFunction extends Expression {
 
 abstract class FunctionExpression extends Expression {
   List<Parameter> get params;
+
   get body; // Expression or block
+  TypeRef get returnType; // Type of the body or of its return type.
 }
 
 class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
+  final TypeRef returnType;
   /** Whether this is a JS generator (`function*`) that may contain `yield`. */
   final bool isGenerator;
 
   final AsyncModifier asyncModifier;
 
   Fun(this.params, this.body, {this.isGenerator: false,
-      this.asyncModifier: const AsyncModifier.sync()});
+      this.asyncModifier: const AsyncModifier.sync(),
+      this.returnType});
 
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
@@ -1137,8 +1170,9 @@ class Fun extends FunctionExpression {
 class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
+  final TypeRef returnType;
 
-  ArrowFun(this.params, this.body);
+  ArrowFun(this.params, this.body, {this.returnType});
 
   accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
 
@@ -1501,6 +1535,7 @@ class InterpolatedLiteral extends Literal with InterpolatedNode {
 class InterpolatedParameter extends Expression with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
+  TypeRef get type => null;
 
   String get name { throw "InterpolatedParameter.name must not be invoked"; }
   bool get allowRename => false;
@@ -1560,6 +1595,7 @@ class InterpolatedMethod extends Expression with InterpolatedNode
 class InterpolatedIdentifier extends Expression with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
+  TypeRef get type => null;
 
   InterpolatedIdentifier(this.nameOrPosition);
 

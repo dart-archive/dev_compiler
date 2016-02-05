@@ -37,6 +37,7 @@ import 'js_metalet.dart' as JS;
 import 'js_module_item_order.dart';
 import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
+import 'js_typerefs.dart';
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
@@ -53,7 +54,7 @@ const DSETINDEX = 'dsetindex';
 const DCALL = 'dcall';
 const DSEND = 'dsend';
 
-class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
+class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, TypeRefs {
   final AbstractCompiler compiler;
   final CodegenOptions options;
   final LibraryElement currentLibrary;
@@ -348,13 +349,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var type = element.type;
     var name = element.name;
 
-    var fnType = annotateTypeDef(
+    var fnType = annotate(
         js.statement('const # = dart.typedef(#, () => #);', [
           name,
           js.string(name, "'"),
           _emitTypeName(type, lowerTypedef: true)
         ]),
-        node.element);
+        node, node.element);
 
     return _finishClassDef(type, fnType);
   }
@@ -935,9 +936,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       ];
     }
     var name = _constructorName(node.element.unnamedConstructor);
-    return annotateDefaultConstructor(
+    return annotate(
         new JS.Method(name, js.call('function() { #; }', body) as JS.Fun),
-        node.element);
+        node, node.element);
   }
 
   JS.Method _emitConstructor(ConstructorDeclaration node, InterfaceType type,
@@ -945,6 +946,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (_externalOrNative(node)) return null;
 
     var name = _constructorName(node.element);
+    var returnType = emitTypeRef(node.element.enclosingElement.type);
 
     // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
     var redirect = node.redirectedConstructor;
@@ -956,11 +958,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       var params =
           _emitFormalParameterList(node.parameters, allowDestructuring: false);
 
-      var fun = js.call('function(#) { return $newKeyword #(#); }',
-          [params, _visit(redirect), params]) as JS.Fun;
+      var fun = new JS.Fun(
+          params,
+          js.statement('{ return $newKeyword #(#); }', [_visit(redirect), params]),
+          returnType: returnType);
       return annotate(
-          new JS.Method(name, fun, isStatic: true)..sourceInformation = node,
-          node.element);
+          new JS.Method(name, fun, isStatic: true),
+          node, node.element);
     }
 
     // Factory constructors are essentially static methods.
@@ -970,10 +974,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       if (init != null) body.add(init);
       body.add(_visit(node.body));
       var fun = new JS.Fun(
-          _visit(node.parameters) as List<JS.Parameter>, new JS.Block(body));
+          _visit(node.parameters) as List<JS.Parameter>, new JS.Block(body),
+          returnType: returnType);
       return annotate(
-          new JS.Method(name, fun, isStatic: true)..sourceInformation = node,
-          node.element);
+          new JS.Method(name, fun, isStatic: true),
+          node, node.element);
     }
 
     // Code generation for Object's constructor.
@@ -1010,9 +1015,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // It also avoids V8 restrictions on `super` in default constructors.
     return annotate(
         new JS.Method(name,
-            new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body))
-          ..sourceInformation = node,
-        node.element);
+            new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body, returnType: returnType)),
+        node, node.element);
   }
 
   JS.Expression _constructorName(ConstructorElement ctor) {
@@ -1108,7 +1112,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var name = _constructorName(superCtor);
     var args = node != null ? _visit(node.argumentList) : [];
-    return js.statement('super.#(#);', [name, args])..sourceInformation = node;
+    return annotate(js.statement('super.#(#);', [name, args]), node);
   }
 
   bool _shouldCallUnnamedSuperCtor(ClassElement e) {
@@ -1218,7 +1222,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
-      var jsParam = _visit(param.identifier);
+      var jsParam = _emitSimpleIdentifier(param.identifier, allowType: false);
 
       if (param.kind == ParameterKind.NAMED) {
         if (!_isDestructurableNamedParam(param)) {
@@ -1276,7 +1280,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var params = _visit(node.parameters) as List<JS.Parameter>;
     if (params == null) params = <JS.Parameter>[];
 
-    JS.Fun fn = _emitFunctionBody(params, node.body);
+    var returnType = emitTypeRef(node.element.returnType);
+    JS.Fun fn = _emitFunctionBody(params, node.body, returnType);
     if (node.operatorKeyword != null &&
         node.name.name == '[]=' &&
         params.isNotEmpty) {
@@ -1292,7 +1297,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
       }
       // Rewrite the function to include the return.
-      fn = new JS.Fun(fn.params, new JS.Block([body, returnValue]))
+      fn = new JS.Fun(fn.params, new JS.Block([body, returnValue]), returnType: fn.returnType)
         ..sourceInformation = fn.sourceInformation;
     }
 
@@ -1301,7 +1306,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
-        node.element);
+        node, node.element);
   }
 
   /// Returns the name value of the `JSExportName` annotation (when compiling
@@ -1340,7 +1345,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
 
     var id = new JS.Identifier(name);
-    body.add(annotate(new JS.FunctionDeclaration(id, fn), node.element));
+    body.add(annotate(new JS.FunctionDeclaration(id, fn), node, node.element));
     if (!_isDartRuntime) {
       body.add(_emitFunctionTagged(id, node.element.type, topLevel: true)
           .toStatement());
@@ -1381,7 +1386,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         if (call.target is JS.ArrowFun && call.arguments.isEmpty) {
           JS.ArrowFun innerFun = call.target;
           if (innerFun.params.isEmpty) {
-            return new JS.Fun(fn.params, innerFun.body);
+            return new JS.Fun(fn.params, innerFun.body, returnType: fn.returnType);
           }
         }
       }
@@ -1394,7 +1399,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return annotate(
         new JS.Method(_propertyName(name), _visit(node.functionExpression),
             isGetter: node.isGetter, isSetter: node.isSetter),
-        node.element);
+        node, node.element);
   }
 
   bool _executesAtTopLevel(AstNode node) {
@@ -1446,8 +1451,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var parent = node.parent;
     var inStmt = parent.parent is FunctionDeclarationStatement;
+    var returnType = emitTypeRef(node.element.returnType);
     if (parent is FunctionDeclaration) {
-      return _emitFunctionBody(params, node.body);
+      return _emitFunctionBody(params, node.body, returnType);
     } else {
       // Chrome Canary does not accept default values with destructuring in
       // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
@@ -1460,7 +1466,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       JS.Node jsBody;
       var body = node.body;
       if (body.isGenerator || body.isAsynchronous) {
-        jsBody = _emitGeneratorFunctionBody(params, body);
+        jsBody = _emitGeneratorFunctionBody(params, body, returnType);
       } else if (body is ExpressionFunctionBody) {
         jsBody = _visit(body.expression);
       } else {
@@ -1477,20 +1483,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
-  JS.Fun _emitFunctionBody(List<JS.Parameter> params, FunctionBody body) {
+  JS.Fun _emitFunctionBody(List<JS.Parameter> params, FunctionBody body, JS.TypeRef returnType) {
     // sync*, async, async*
     if (body.isAsynchronous || body.isGenerator) {
       return new JS.Fun(
           params,
           js.statement(
-              '{ return #; }', [_emitGeneratorFunctionBody(params, body)]));
+              '{ return #; }', [_emitGeneratorFunctionBody(params, body, returnType)]),
+          returnType: returnType);
     }
     // normal function (sync)
-    return new JS.Fun(params, _visit(body));
+    return new JS.Fun(params, _visit(body), returnType: returnType);
   }
 
   JS.Expression _emitGeneratorFunctionBody(
-      List<JS.Parameter> params, FunctionBody body) {
+      List<JS.Parameter> params, FunctionBody body, JS.TypeRef returnType) {
     var kind = body.isSynchronous ? 'sync' : 'async';
     if (body.isGenerator) kind += 'Star';
 
@@ -1534,7 +1541,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       _asyncStarController = null;
       jsParams = params;
     }
-    JS.Expression gen = new JS.Fun(jsParams, _visit(body), isGenerator: true);
+    JS.Expression gen = new JS.Fun(jsParams, _visit(body), isGenerator: true, returnType: returnType);
     if (JS.This.foundIn(gen)) {
       gen = js.call('#.bind(this)', gen);
     }
@@ -1564,7 +1571,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
-    declareFn = annotate(declareFn, node.functionDeclaration.element);
+    declareFn = annotate(declareFn, node, node.functionDeclaration.element);
 
     return new JS.Block([
       declareFn,
@@ -1572,10 +1579,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     ]);
   }
 
+  @override
+  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) =>
+      _emitSimpleIdentifier(node);
+
   /// Writes a simple identifier. This can handle implicit `this` as well as
   /// going through the qualified library name if necessary.
-  @override
-  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
+  JS.Expression _emitSimpleIdentifier(SimpleIdentifier node, {bool allowType: false}) {
     var accessor = node.staticElement;
     if (accessor == null) {
       return js.commentExpression(
@@ -1599,7 +1609,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // library member
     if (element.enclosingElement is CompilationUnitElement) {
-      return _emitTopLevelName(element);
+      return emitTopLevelName(element);
     }
 
     var name = element.name;
@@ -1644,7 +1654,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    return new JS.Identifier(name);
+    return annotate(
+        new JS.Identifier(name,
+            type: allowType ? emitTypeRef(node.bestType) : null),
+        node);
   }
 
   JS.TemporaryId _getTemp(Element key, String name) =>
@@ -1771,15 +1784,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         jsArgs = [];
       }
       if (jsArgs != null) {
-        var genericName = _emitTopLevelName(element, suffix: '\$');
+        var genericName = emitTopLevelName(element, suffix: '\$');
         return js.call('#(#)', [genericName, jsArgs]);
       }
     }
 
-    return _emitTopLevelName(element);
+    return emitTopLevelName(element);
   }
 
-  JS.Expression _emitTopLevelName(Element e, {String suffix: ''}) {
+  JS.Expression emitTopLevelName(Element e, {String suffix: ''}) {
     var libName = _libraryName(e.library);
 
     // Always qualify:
@@ -2072,7 +2085,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
             hasNamedArgsConflictingWithObjectProperties = true;
           }
           namedVars.add(new JS.DestructuredVariable(
-              name: _visit(param.identifier),
+              name: _emitSimpleIdentifier(param.identifier),
               defaultValue: _defaultParamValue(param)));
         } else {
           needsOpts = true;
@@ -2224,7 +2237,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       return _emitTopLevelField(node);
     }
 
-    var name = new JS.Identifier(node.name.name);
+    var name = new JS.Identifier(node.name.name, type: emitTypeRef(node.element.type));
     return new JS.VariableInitialization(name, _visitInitializer(node));
   }
 
@@ -2260,13 +2273,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var fieldName = field.name.name;
     if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
-      return annotateVariable(
+      return annotate(
           js.statement('#.# = #;', [
             classElem.name,
             _emitMemberName(fieldName, isStatic: true),
             jsInit
           ]),
-          field.element);
+          field, field.element);
     }
 
     // This means it should be treated as a lazy field.
@@ -2313,15 +2326,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
       if (isPublic(fieldName)) _addExport(fieldName, exportName);
       var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
-      return annotateVariable(
-          js.statement(
-              '$declKeyword # = #;', [new JS.Identifier(fieldName), jsInit]),
-          field.element);
+      return js.statement('#;', [annotate(
+          new JS.VariableDeclarationList(declKeyword, [
+            new JS.VariableInitialization(
+                new JS.Identifier(fieldName, type: emitTypeRef(field.element.type)), jsInit)
+          ]),
+          field, field.element)]);
     }
 
     if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
-      return annotateVariable(
-          js.statement('# = #;', [_visit(field.name), jsInit]), field.element);
+      return annotate(
+          js.statement('# = #;', [_visit(field.name), jsInit]), field, field.element);
     }
 
     return _emitLazyFields(currentLibrary, [field]);
@@ -2347,14 +2362,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
               js.call('function() { return #; }', _visit(node.initializer))
               as JS.Fun,
               isGetter: true),
-          _findAccessor(element, getter: true)));
+          node, _findAccessor(element, getter: true)));
 
       // TODO(jmesserly): currently uses a dummy setter to indicate writable.
       if (!node.isFinal && !node.isConst) {
         methods.add(annotate(
             new JS.Method(access, js.call('function(_) {}') as JS.Fun,
                 isSetter: true),
-            _findAccessor(element, getter: false)));
+            node, _findAccessor(element, getter: false)));
       }
     }
 
@@ -2743,7 +2758,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   visitFormalParameter(FormalParameter node) {
-    var id = visitSimpleIdentifier(node.identifier);
+    var id = _emitSimpleIdentifier(node.identifier, allowType: true);
 
     var isRestArg = findAnnotation(node.element, isJsRestAnnotation) != null;
     return isRestArg ? new JS.RestParameter(id) : id;
@@ -3303,7 +3318,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   _visit(AstNode node) {
     if (node == null) return null;
     var result = node.accept(this);
-    if (result is JS.Node) result.sourceInformation = node;
+    if (result is JS.Node) result = annotate(result, node);
     return result;
   }
 
@@ -3447,32 +3462,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       e.staticType ?? DynamicTypeImpl.instance;
 
   @override
-  String getQualifiedName(TypeDefiningElement type) {
-    JS.TemporaryId id = _imports[type.library];
-    return id == null ? type.name : '${id.name}.${type.name}';
+  JS.Expression getQualifiedName(TypeDefiningElement type) {
+    return _emitTypeName(type.type);
+    // JS.TemporaryId id = _imports[type.library];
+    // return id == null ? type.name : '${id.name}.${type.name}';
   }
 
-  JS.Node annotate(JS.Node method, ExecutableElement e) =>
-      options.closure && e != null
-          ? method.withClosureAnnotation(
-              closureAnnotationFor(e, _namedArgTemp.name))
-          : method;
+  @override
+  bool get shouldEmitTypes => options.closure;
 
-  JS.Node annotateDefaultConstructor(JS.Node method, ClassElement e) =>
-      options.closure && e != null
-          ? method
-              .withClosureAnnotation(closureAnnotationForDefaultConstructor(e))
-          : method;
-
-  JS.Node annotateVariable(JS.Node node, VariableElement e) =>
-      options.closure && e != null
-          ? node.withClosureAnnotation(closureAnnotationForVariable(e))
-          : node;
-
-  JS.Node annotateTypeDef(JS.Node node, FunctionTypeAliasElement e) =>
-      options.closure && e != null
-          ? node.withClosureAnnotation(closureAnnotationForTypeDef(e))
-          : node;
+  JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
+    if (options.closure && element != null) {
+      node = node.withClosureAnnotation(
+            closureAnnotationFor(node, original, element, _namedArgTemp.name));
+    }
+    return node..sourceInformation = original;
+  }
 
   /// Returns true if this is any kind of object represented by `Number` in JS.
   ///
@@ -3582,6 +3587,7 @@ class JSGenerator extends CodeGenerator {
     var rules = new StrongTypeSystemImpl();
     var codegen =
         new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
+    // TODO(ochafik): Move the following lines to [LibraryBuilder.build]:
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;

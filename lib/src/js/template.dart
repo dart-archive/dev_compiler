@@ -827,6 +827,27 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitExportClause(ExportClause node) =>
       throw new UnimplementedError();
 
+  Instantiator visitAnyTypeRef(AnyTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitFunctionTypeRef(FunctionTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitGenericTypeRef(GenericTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitNamedTypeRef(NamedTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitOptionalTypeRef(OptionalTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitRecordTypeRef(RecordTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitUnionTypeRef(UnionTypeRef node) =>
+      throw new UnimplementedError();
+
   @override
   Instantiator visitDestructuredVariable(DestructuredVariable node) {
     Instantiator makeName = visit(node.name);

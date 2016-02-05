@@ -9,6 +9,7 @@ class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
+  final bool printTypes;
   final bool allowSingleLineIfStatements;
 
   /// True to allow keywords in properties, such as `obj.var` or `obj.function`
@@ -19,6 +20,7 @@ class JavaScriptPrintingOptions {
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
+       this.printTypes: true,
        this.allowKeywordsInProperties: false,
        this.allowSingleLineIfStatements: false});
 }
@@ -52,7 +54,7 @@ class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
 }
 
 
-class Printer implements NodeVisitor {
+class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   final JavaScriptPrintingOptions options;
   final JavaScriptPrintingContext context;
   final bool shouldCompressOutput;
@@ -547,6 +549,7 @@ class Printer implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
+    outTypeAnnotation(fun.returnType);
     switch (fun.asyncModifier) {
       case const AsyncModifier.sync():
         break;
@@ -856,6 +859,7 @@ class Printer implements NodeVisitor {
 
   visitIdentifier(Identifier node) {
     out(localNamer.getName(node));
+    outTypeAnnotation(node.type);
   }
 
   visitRestParameter(RestParameter node) {
@@ -930,6 +934,7 @@ class Printer implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
       out(")");
     }
+    outTypeAnnotation(fun.returnType);
     spaceOut();
     out("=>");
     if (fun.body is Expression) {
@@ -1310,6 +1315,18 @@ class Printer implements NodeVisitor {
   void visitAwait(Await node) {
     out("await ");
     visit(node.expression);
+  }
+
+  void outTypeAnnotation(TypeRef node) {
+    if (node == null || !options.printTypes) return;
+
+    if (node is OptionalTypeRef) {
+      out("?: ");
+      visit(node.type);
+    } else {
+      out(": ");
+      visit(node);
+    }
   }
 }
 
