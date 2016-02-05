@@ -7,6 +7,7 @@ part of js_ast;
 final _listEquality = const ListEquality();
 final _any = new AnyTypeRef._();
 final _unknown = new UnknownTypeRef._();
+final _null = new NullTypeRef();
 
 /// JavaScript type reference.
 abstract class TypeRef extends Expression {
@@ -37,7 +38,6 @@ abstract class TypeRef extends Expression {
   factory TypeRef.string() => new TypeRef.named('string');
   factory TypeRef.number() => new TypeRef.named('number');
   factory TypeRef.undefined() => new TypeRef.named('undefined');
-  factory TypeRef.null_() => new TypeRef.named('null');
   factory TypeRef.boolean() => new TypeRef.named('boolean');
 
   static final _namedCache = <String, TypeRef>{};
@@ -50,11 +50,12 @@ abstract class TypeRef extends Expression {
 
   bool get isAny => this is AnyTypeRef;
   bool get isUnknown => this is UnknownTypeRef;
+  bool get isNull => this is NullTypeRef;
 
   TypeRef or(TypeRef other) => new UnionTypeRef([this, other]);
 
   TypeRef orUndefined() => or(new TypeRef.undefined());
-  TypeRef orNull() => or(new TypeRef.null_());
+  TypeRef orNull() => or(_null);
 
   TypeRef toOptional() =>
       new OptionalTypeRef(this);
@@ -67,6 +68,11 @@ class AnyTypeRef extends TypeRef {
   accept(NodeVisitor visitor) => visitor.visitAnyTypeRef(this);
   void visitChildren(NodeVisitor visitor) {}
   _clone() => new AnyTypeRef();
+}
+
+class NullTypeRef extends QualifiedTypeRef {
+  NullTypeRef() : super([new Identifier("null")]);
+  _clone() => new NullTypeRef();
 }
 
 class UnknownTypeRef extends TypeRef {

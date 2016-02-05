@@ -10,7 +10,7 @@ dart_library.library('closure', null, /* Imports */[
   const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
   const Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
-      Foo(i: number|null, v: T) {
+      Foo(i: number, v: T) {
         this.i = i;
         this.v = v;
         this.b = null;
@@ -24,7 +24,7 @@ dart_library.library('closure', null, /* Imports */[
         dart.as(t, T);
         return t;
       }
-      typed_method(foo: Foo<T>, list: core.List<E>, i: number|null, n: number|null, d: number|null, b: boolean|null, s: string, a: any[]<E>, o: Object, f: Function) {
+      typed_method(foo: Foo<any>, list: core.List<any>, i: number, n: number, d: number, b: boolean, s: string, a: any[], o: Object, f: Function) {
         return '';
       }
       optional_params(a, b, c) {
@@ -36,12 +36,12 @@ dart_library.library('closure', null, /* Imports */[
         let c = opts && 'c' in opts ? opts.c : null;
       }
       nullary_method() {}
-      function_params(f: (any, any) => number|null, g: (any, {y?: string, z?: any}) => any, cb: Callback) {
+      function_params(f: (any, any) => number<T>, g: (any, {y?: string, z?: any}) => any<T>, cb: Callback) {
         dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
         dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
         cb({i: this.i});
       }
-      run(a: core.List<E>, b: string, c: (string) => core.List<E>, e: ((any) => any) => core.List<E>, opts) {
+      run(a: core.List<any>, b: string, c: (string) => core.List<any><T>, e: ((any) => any<T>) => core.List<number><T>, opts) {
         dart.as(c, dart.functionType(core.List, [core.String]));
         dart.as(e, dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])]));
         let h = opts && 'h' in opts ? opts.h : null;
@@ -84,7 +84,7 @@ dart_library.library('closure', null, /* Imports */[
   class Bar extends core.Object {}
   const Baz$super = dart.mixin(Foo$(core.int), Bar);
   class Baz extends Baz$super {
-    Baz(i: number|null) {
+    Baz(i: number) {
       super.Foo(i, 123);
     }
   }

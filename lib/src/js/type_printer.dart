@@ -21,12 +21,10 @@ abstract class _TypePrinterBase implements TypeRefVisitor {
     }
   }
 
-  @override
-  visitGenericTypeRef(GenericTypeRef node) {
-    visit(node.rawType);
-    if (node.typeParams.isNotEmpty) {
+  outTypeParams(Iterable<TypeRef> typeParams) {
+    if (typeParams.isNotEmpty) {
       out('<');
-      outSeparated(", ", node.typeParams);
+      outSeparated(", ", typeParams);
       out('>');
     }
   }
@@ -38,6 +36,17 @@ abstract class _TypePrinterBase implements TypeRefVisitor {
 }
 
 abstract class TypeScriptTypePrinter extends _TypePrinterBase {
+
+  @override
+  visitGenericTypeRef(GenericTypeRef node) {
+    if (node.rawType is FunctionTypeRef) {
+      visit(node.rawType);
+      outTypeParams(node.typeParams);
+    } else {
+      visit(node.rawType);
+      outTypeParams(node.typeParams);
+    }
+  }
 
   @override
   visitArrayTypeRef(ArrayTypeRef node) {
@@ -73,7 +82,7 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
 
   @override
   visitUnionTypeRef(UnionTypeRef node) {
-    outSeparated("|", node.types);
+    outSeparated("|", node.types.where((t) => !t.isNull));
   }
 
   @override
@@ -109,6 +118,12 @@ class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
   void visit(Node node) => node.accept(this);
 
   noSuchMethod(Invocation i) => super.noSuchMethod(i);
+
+  @override
+  visitGenericTypeRef(GenericTypeRef node) {
+    visit(node.rawType);
+    outTypeParams(node.typeParams);
+  }
 
   @override
   visitIdentifier(Identifier node) {

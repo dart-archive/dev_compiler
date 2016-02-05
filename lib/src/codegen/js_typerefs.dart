@@ -4,9 +4,9 @@
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:dev_compiler/src/js/js_ast.dart' as JS;
-import 'package:dev_compiler/src/options.dart';
-import 'dart:io';
+
+import '../js/js_ast.dart' as JS;
+import '../options.dart';
 
 abstract class TypeRefs {
   TypeProvider get types;
@@ -43,7 +43,6 @@ abstract class TypeRefs {
     if (type is TypeParameterType) return new JS.TypeRef.named(type.name);
     if (type is ParameterizedType) {
       JS.TypeRef rawType;
-      // Typedefs may have
       if (type is FunctionType && type.name == null) {
         var args = <JS.TypeRef>[]
           ..addAll(type.normalParameterTypes.map(emitTypeRef))
@@ -56,14 +55,17 @@ abstract class TypeRefs {
           });
           args.add(new JS.TypeRef.record(namedArgs).toOptional());
         }
-        return new JS.TypeRef.function(emitTypeRef(type.returnType), args);
+        rawType = new JS.TypeRef.function(emitTypeRef(type.returnType), args);
       } else {
-        rawType = _getDartJsTypeRef(type) ?? emitTopLevelTypeRef(type);
+        var jsTypeRef = _getDartJsTypeRef(type);
+        if (jsTypeRef != null) return jsTypeRef;
+
+        rawType = emitTopLevelTypeRef(type);
       }
       return type.typeParameters.isEmpty
           ? rawType
           : new JS.TypeRef.generic(
-              rawType, type.typeParameters.map((p) => emitTypeRef(p.type)));
+              rawType, type.typeArguments.map(emitTypeRef));
     }
     return new JS.TypeRef.unknown();
   }
