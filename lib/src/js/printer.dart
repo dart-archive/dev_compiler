@@ -1318,7 +1318,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   void outTypeAnnotation(TypeRef node) {
-    if (node == null || !options.printTypes) return;
+    if (!options.printTypes || node == null || node.isUnknown) return;
 
     if (node is OptionalTypeRef) {
       out("?: ");

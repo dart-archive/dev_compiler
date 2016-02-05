@@ -58,7 +58,8 @@ abstract class TypeRefs {
         rawType = new JS.TypeRef.function(
             emitTypeRef(type.returnType), args);
       } else {
-        rawType = _getDartJsTypeRef(type) ?? emitTopLevelName(type.element);
+        rawType = _getDartJsTypeRef(type)
+            ?? new JS.TypeRef.qualifiedNamed(emitTopLevelName(type.element));
       }
       return type.typeParameters.isEmpty
           ? rawType

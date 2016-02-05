@@ -19,7 +19,7 @@ dart_library.library('closure', null, /* Imports */[
       static build() {
         return new (Foo$(T))(1, null);
       }
-      untyped_method(a: any, b: any) {}
+      untyped_method(a, b) {}
       pass(t: T) {
         dart.as(t, T);
         return t;
@@ -27,11 +27,11 @@ dart_library.library('closure', null, /* Imports */[
       typed_method(foo: Foo<T>, list: core.List<E>, i: number|null, n: number|null, d: number|null, b: boolean|null, s: string, a: any[]<E>, o: Object, f: Function) {
         return '';
       }
-      optional_params(a: any, b: any, c: any) {
+      optional_params(a, b, c) {
         if (b === void 0) b = null;
         if (c === void 0) c = null;
       }
-      static named_params(a: any, opts) {
+      static named_params(a, opts) {
         let b = opts && 'b' in opts ? opts.b : null;
         let c = opts && 'c' in opts ? opts.c : null;
       }
@@ -85,7 +85,7 @@ dart_library.library('closure', null, /* Imports */[
   dart.setSignature(Baz, {
     constructors: () => ({Baz: [Baz, [core.int]]})
   });
-  function main(args: any) {
+  function main(args) {
   }
   dart.fn(main, dart.void, [dart.dynamic]);
   /** @final {string} */
