@@ -37,11 +37,11 @@ import 'js_metalet.dart' as JS;
 import 'js_module_item_order.dart';
 import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
-import 'js_typerefs.dart';
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
-import 'dart:io';
+
+part 'js_typerefs.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the

@@ -29,7 +29,7 @@ abstract class TypeRef extends Expression {
         ? rawType
         : new GenericTypeRef(rawType, [keyType ?? _any, valueType ?? _any]);
   }
-  factory TypeRef.function([TypeRef returnType, List<TypeRef> paramTypes]) =>
+  factory TypeRef.function([TypeRef returnType, Map<Identifier, TypeRef> paramTypes]) =>
       returnType == null && paramTypes == null
           ? new TypeRef.named('Function')
           : new FunctionTypeRef(returnType, paramTypes);
@@ -177,13 +177,16 @@ class RecordTypeRef extends TypeRef {
 
 class FunctionTypeRef extends TypeRef {
   final TypeRef returnType;
-  final List<TypeRef> paramTypes;
+  final Map<Identifier, TypeRef> paramTypes;
   FunctionTypeRef(this.returnType, this.paramTypes);
 
   accept(NodeVisitor visitor) => visitor.visitFunctionTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
     returnType.accept(visitor);
-    paramTypes.forEach((p) => p.accept(visitor));
+    paramTypes.forEach((n, t) {
+      n.accept(visitor);
+      t.accept(visitor);
+    });
   }
   _clone() => new FunctionTypeRef(returnType, paramTypes);
 }

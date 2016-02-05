@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-
-import '../js/js_ast.dart' as JS;
-import '../options.dart';
+part of js_codegen;
 
 abstract class TypeRefs {
   TypeProvider get types;
+  JS.Identifier get _namedArgTemp;
+  CodegenOptions get options;
+  JS.TypeRef emitTopLevelTypeRef(DartType type);
 
   Map<DartType, JS.TypeRef> __commonTypes;
   Map<DartType, JS.TypeRef> get _commonTypes {
@@ -26,9 +25,6 @@ abstract class TypeRefs {
     return __commonTypes;
   }
 
-  CodegenOptions get options;
-  JS.TypeRef emitTopLevelTypeRef(DartType type);
-
   JS.TypeRef emitTypeRef(DartType type) {
     // _loader.declareBeforeUse(type.element);
     if (!options.closure) return null;
@@ -44,16 +40,17 @@ abstract class TypeRefs {
     if (type is ParameterizedType) {
       JS.TypeRef rawType;
       if (type is FunctionType && type.name == null) {
-        var args = <JS.TypeRef>[]
-          ..addAll(type.normalParameterTypes.map(emitTypeRef))
-          ..addAll(type.optionalParameterTypes
-              .map((t) => emitTypeRef(t).toOptional()));
+        var args = <JS.Identifier, JS.TypeRef>{};
+        for (var param in type.parameters) {
+          if (param.parameterKind == ParameterKind.NAMED) break;
+          args[new JS.Identifier(param.name)] = emitTypeRef(param.type);
+        }
         if (type.namedParameterTypes.isNotEmpty) {
           var namedArgs = <JS.Identifier, JS.TypeRef>{};
           type.namedParameterTypes.forEach((n, t) {
             namedArgs[new JS.Identifier(n)] = emitTypeRef(t).toOptional();
           });
-          args.add(new JS.TypeRef.record(namedArgs).toOptional());
+          args[_namedArgTemp] = new JS.TypeRef.record(namedArgs).toOptional();
         }
         rawType = new JS.TypeRef.function(emitTypeRef(type.returnType), args);
       } else {

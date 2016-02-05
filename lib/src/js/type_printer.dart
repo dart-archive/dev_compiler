@@ -37,6 +37,16 @@ abstract class _TypePrinterBase implements TypeRefVisitor {
 
 abstract class TypeScriptTypePrinter extends _TypePrinterBase {
 
+  void _outTypeAnnotation(TypeRef type) {
+    if (type is OptionalTypeRef) {
+      out("?: ");
+      visit(type.type);
+    } else {
+      out(": ");
+      visit(type);
+    }
+  }
+
   @override
   visitGenericTypeRef(GenericTypeRef node) {
     if (node.rawType is FunctionTypeRef) {
@@ -69,13 +79,7 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
     outSeparated(", ", node.types.keys, (Identifier name) {
       var type = node.types[name];
       visit(name);
-      if (type is OptionalTypeRef) {
-        out("?: ");
-        visit(type.type);
-      } else {
-        out(": ");
-        visit(type);
-      }
+      _outTypeAnnotation(type);
     });
     out('}');
   }
@@ -91,7 +95,11 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
       out('Function');
     } else {
       out('(');
-      outSeparated(", ", node.paramTypes);
+      outSeparated(", ", node.paramTypes.keys, (name) {
+        var paramType = node.paramTypes[name];
+        visit(name);
+        _outTypeAnnotation(paramType);
+      });
       out(') => ');
       visit(node.returnType);
     }
@@ -197,7 +205,7 @@ class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
     if (node.paramTypes == null) {
       out("...*");
     } else {
-      outSeparated(", ", node.paramTypes);
+      outSeparated(", ", node.paramTypes.values);
     }
     out(')');
     if (node.returnType != null) {
