@@ -62,12 +62,26 @@ abstract class TypeRefs {
 
         rawType = emitTopLevelTypeRef(type);
       }
-      return type.typeParameters.isEmpty
-          ? rawType
-          : new JS.TypeRef.generic(
-              rawType, type.typeArguments.map(emitTypeRef));
+      return new JS.TypeRef.generic(
+          rawType, _getOwnTypeArguments(type).map(emitTypeRef));
     }
     return new JS.TypeRef.unknown();
+  }
+
+  /// Gets the "own" type arguments of [type].
+  ///
+  /// Method argument with adhoc unnamed [FunctionType] inherit any type params
+  /// from their enclosing class:
+  ///
+  ///      class Foo<T> {
+  ///        void method(f()); // f has [T] as type arguments,
+  ///      }                   // but [] as its "own" type arguments.
+  Iterable<DartType> _getOwnTypeArguments(ParameterizedType type) sync* {
+    for (int i = 0, n = type.typeParameters.length; i < n; i++) {
+      if (type.typeParameters[i].enclosingElement == type.element) {
+        yield type.typeArguments[i];
+      }
+    }
   }
 
   /// Special treatment of types from dart:js

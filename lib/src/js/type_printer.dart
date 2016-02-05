@@ -40,8 +40,8 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
   @override
   visitGenericTypeRef(GenericTypeRef node) {
     if (node.rawType is FunctionTypeRef) {
-      visit(node.rawType);
       outTypeParams(node.typeParams);
+      visit(node.rawType);
     } else {
       visit(node.rawType);
       outTypeParams(node.typeParams);
