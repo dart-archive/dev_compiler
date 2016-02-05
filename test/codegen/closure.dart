@@ -15,7 +15,7 @@ class Foo<T> {
   factory Foo.build() => new Foo(1, null);
 
   untyped_method(a, b) {}
-  
+
   T pass(T t) => t;
 
   String typed_method(
@@ -34,6 +34,8 @@ class Foo<T> {
   function_params(int f(x, [y]), g(x, {String y, z}), Callback cb) {
     cb(i: i);
   }
+
+  run(List a, String b, List c(String d), List<int> e(f(g)), {Map<Map, Map> h}) {}
 
   String get prop => null;
   set prop(String value) {}

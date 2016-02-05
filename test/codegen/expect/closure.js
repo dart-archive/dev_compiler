@@ -41,6 +41,11 @@ dart_library.library('closure', null, /* Imports */[
         dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
         cb({i: this.i});
       }
+      run(a: core.List<E>, b: string, c: exports['']<T>, e: exports['']<T>, opts) {
+        dart.as(c, dart.functionType(core.List, [core.String]));
+        dart.as(e, dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])]));
+        let h = opts && 'h' in opts ? opts.h : null;
+      }
       get prop() {
         return null;
       }
@@ -61,7 +66,8 @@ dart_library.library('closure', null, /* Imports */[
         typed_method: [core.String, [Foo$(), core.List, core.int, core.num, core.double, core.bool, core.String, js.JsArray, js.JsObject, js.JsFunction]],
         optional_params: [dart.dynamic, [dart.dynamic], [dart.dynamic, dart.dynamic]],
         nullary_method: [dart.dynamic, []],
-        function_params: [dart.dynamic, [dart.functionType(core.int, [dart.dynamic], [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}), Callback]]
+        function_params: [dart.dynamic, [dart.functionType(core.int, [dart.dynamic], [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}), Callback]],
+        run: [dart.dynamic, [core.List, core.String, dart.functionType(core.List, [core.String]), dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])])], {h: core.Map$(core.Map, core.Map)}]
       }),
       statics: () => ({named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: dart.dynamic}]}),
       names: ['named_params']

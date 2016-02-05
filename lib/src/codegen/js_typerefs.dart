@@ -26,7 +26,7 @@ abstract class TypeRefs {
   }
 
   CodegenOptions get options;
-  JS.Expression emitTopLevelName(Element e, {String suffix});
+  JS.Expression emitTopLevelName(Element e, {String suffix: ''});
 
   JS.TypeRef emitTypeRef(DartType type) {
     // _loader.declareBeforeUse(type.element);
