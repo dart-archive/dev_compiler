@@ -803,9 +803,8 @@ class DestructuredVariable extends Expression implements Parameter {
   final Identifier name;
   final BindingPattern structure;
   final Expression defaultValue;
-  // TODO(ochafik): How does this work?
-  TypeRef get type => null;
-  DestructuredVariable({this.name, this.structure, this.defaultValue}) {
+  final TypeRef type;
+  DestructuredVariable({this.name, this.structure, this.defaultValue, this.type}) {
     assert(name != null || structure != null);
   }
 

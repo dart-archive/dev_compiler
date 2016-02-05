@@ -636,6 +636,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       }
       visit(node.structure);
     }
+    outTypeAnnotation(node.type);
     if (node.defaultValue != null) {
       spaceOut();
       out("=");

@@ -2151,6 +2151,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           : js.call('{}');
       result.add(new JS.DestructuredVariable(
           structure: new JS.ObjectBindingPattern(namedVars),
+          type: emitNamedParamsArgType(node.parameterElements),
           defaultValue: defaultOpts));
     }
     return result;

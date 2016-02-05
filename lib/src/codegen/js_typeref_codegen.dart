@@ -53,13 +53,11 @@ abstract class JsTypeRefCodegen {
             if (param.parameterKind == ParameterKind.NAMED) break;
             args[new JS.Identifier(param.name)] = emitTypeRef(param.type);
           }
-          if (type.namedParameterTypes.isNotEmpty) {
-            var namedArgs = <JS.Identifier, JS.TypeRef>{};
-            type.namedParameterTypes.forEach((n, t) {
-              namedArgs[new JS.Identifier(n)] = emitTypeRef(t).toOptional();
-            });
-            args[_namedArgTemp] = new JS.TypeRef.record(namedArgs).toOptional();
+          var namedParamType = emitNamedParamsArgType(type.parameters);
+          if (namedParamType != null) {
+            args[_namedArgTemp] = namedParamType.toOptional();
           }
+
           rawType = new JS.TypeRef.function(emitTypeRef(type.returnType), args);
         } else {
           var jsTypeRef = _getDartJsTypeRef(type);
@@ -72,6 +70,16 @@ abstract class JsTypeRefCodegen {
       }
       return new JS.TypeRef.unknown();
     });
+  }
+
+  JS.TypeRef emitNamedParamsArgType(List<ParameterElement> params) {
+    var namedArgs = <JS.Identifier, JS.TypeRef>{};
+    for (ParameterElement param in params) {
+      if (param.parameterKind != ParameterKind.NAMED) continue;
+      namedArgs[new JS.Identifier(param.name)] = emitTypeRef(param.type).toOptional();
+    }
+    if (namedArgs.isEmpty) return null;
+    return new JS.TypeRef.record(namedArgs);
   }
 
   /// Gets the "own" type arguments of [type].
