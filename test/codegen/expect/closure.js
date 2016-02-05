@@ -38,20 +38,16 @@ dart_library.library('closure', null, /* Imports */[
         if (b === void 0) b = null;
         if (c === void 0) c = null;
       }
-      static named_params(a, opts) {
-        let b = opts && 'b' in opts ? opts.b : null;
-        let c = opts && 'c' in opts ? opts.c : null;
-      }
+      static named_params(a, {b = null, c = null} = {}) {}
       nullary_method() {}
       function_params(f: (x: any, y: any) => number, g: (x: any, opts?: {y?: string, z?: any}) => any, cb: Callback) {
         dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
         dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
         cb({i: this.i});
       }
-      run(a: core.List<any>, b: string, c: (d: string) => core.List<any>, e: (f: (g: any) => any) => core.List<number>, opts) {
+      run(a: core.List<any>, b: string, c: (d: string) => core.List<any>, e: (f: (g: any) => any) => core.List<number>, {h = null} = {}) {
         dart.as(c, dart.functionType(core.List, [core.String]));
         dart.as(e, dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])]));
-        let h = opts && 'h' in opts ? opts.h : null;
       }
       get prop() {
         return null;

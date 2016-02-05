@@ -78,6 +78,7 @@ main(arguments) {
             emitSourceMaps: sourceMaps,
             closure: closure,
             forceCompile: checkSdk,
+            destructureNamedParams: closure,
             moduleFormat: moduleFormat),
         useColors: false,
         checkSdk: checkSdk,
@@ -151,7 +152,7 @@ $compilerMessages''';
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
-          var moduleFormat = filename == 'es6_modules'
+          var moduleFormat = filename == 'es6_modules' || closure
               ? ModuleFormat.es6
               : filename == 'node_modules'
                   ? ModuleFormat.node
