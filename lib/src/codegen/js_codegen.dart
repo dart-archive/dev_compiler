@@ -427,8 +427,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
     }
 
-    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        _classHeritage(classElem), _emitClassMethods(node, ctors, fields),
+    var classExpr = new JS.ClassExpression(
+        new JS.Identifier(type.name),
+        _classHeritage(classElem),
+        _emitClassMethods(node, ctors, fields),
         _emitTypeParams(classElem).toList(),
         _emitFieldDeclarations(classElem, fields, staticFields).toList());
 
@@ -487,12 +489,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
             null);
 
     for (var field in fields) {
-      yield new JS.VariableDeclarationList(null,
-          field.fields.variables.map(makeInitialization).toList());
+      yield new JS.VariableDeclarationList(
+          null, field.fields.variables.map(makeInitialization).toList());
     }
     for (var field in staticFields) {
-      yield new JS.VariableDeclarationList('static',
-          field.fields.variables.map(makeInitialization).toList());
+      yield new JS.VariableDeclarationList(
+          'static', field.fields.variables.map(makeInitialization).toList());
     }
   }
 
