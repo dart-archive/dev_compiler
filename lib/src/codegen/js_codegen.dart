@@ -42,7 +42,6 @@ import 'js_printer.dart' show writeJsLibrary;
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
-import 'dart:io';
 
 part 'js_typeref_codegen.dart';
 
@@ -1437,8 +1436,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           JS.ArrowFun innerFun = call.target;
           if (innerFun.params.isEmpty) {
             return new JS.Fun(fn.params, innerFun.body,
-                typeArgs: fn.typeArgs,
-                returnType: fn.returnType);
+                typeArgs: fn.typeArgs, returnType: fn.returnType);
           }
         }
       }
@@ -1526,8 +1524,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         jsBody = new JS.Block([_visit(body)]);
       }
       var clos = canUseArrowFun
-          ? new JS.ArrowFun(params, jsBody, typeArgs: typeArgs, returnType: returnType)
-          : new JS.Fun(params, jsBody, typeArgs: typeArgs, returnType: returnType);
+          ? new JS.ArrowFun(params, jsBody,
+              typeArgs: typeArgs, returnType: returnType)
+          : new JS.Fun(params, jsBody,
+              typeArgs: typeArgs, returnType: returnType);
       if (!inStmt) {
         var type = getStaticType(node);
         return _emitFunctionTagged(clos, type,
@@ -1537,8 +1537,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
   }
 
-  JS.Fun _emitFunctionBody(
-      List<JS.Parameter> params, FunctionBody body,
+  JS.Fun _emitFunctionBody(List<JS.Parameter> params, FunctionBody body,
       List<JS.Identifier> typeArgs, JS.TypeRef returnType) {
     // sync*, async, async*
     if (body.isAsynchronous || body.isGenerator) {
@@ -1550,8 +1549,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
     // normal function (sync)
     return new JS.Fun(params, _visit(body),
-        typeArgs: typeArgs,
-        returnType: returnType);
+        typeArgs: typeArgs, returnType: returnType);
   }
 
   JS.Expression _emitGeneratorFunctionBody(
