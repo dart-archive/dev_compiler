@@ -73,6 +73,8 @@ abstract class JsTypeRefCodegen {
   }
 
   JS.TypeRef emitNamedParamsArgType(List<ParameterElement> params) {
+    if (!options.closure) return null;
+
     var namedArgs = <JS.Identifier, JS.TypeRef>{};
     for (ParameterElement param in params) {
       if (param.parameterKind != ParameterKind.NAMED) continue;

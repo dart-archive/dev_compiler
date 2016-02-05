@@ -1521,7 +1521,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       } else if (body is ExpressionFunctionBody) {
         jsBody = _visit(body.expression);
       } else {
-        jsBody = new JS.Block([_visit(body)]);
+        jsBody = _visit(body);
+      }
+      if (jsBody is JS.Expression && !canUseArrowFun) {
+        jsBody = js.statement("{ return #; }", [jsBody]);
       }
       var clos = canUseArrowFun
           ? new JS.ArrowFun(params, jsBody,
