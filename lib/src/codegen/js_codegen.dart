@@ -433,7 +433,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         new JS.Identifier(type.name),
         _classHeritage(classElem),
         _emitClassMethods(node, ctors, fields),
-        _emitTypeParams(classElem).toList(),
+        _emitTypeArgs(classElem).toList(),
         _emitFieldDeclarations(classElem, fields, staticFields).toList());
 
     String jsPeerName;
@@ -467,7 +467,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return result;
   }
 
-  Iterable<JS.Identifier> _emitTypeParams(TypeParameterizedElement e) sync* {
+  Iterable<JS.Identifier> _emitTypeArgs(TypeParameterizedElement e) sync* {
     if (!options.closure) return;
     for (var typeParam in e.typeParameters) {
       yield new JS.Identifier(typeParam.name);
@@ -733,7 +733,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return _statement([
         js.statement('const # = #;', [superVar, cls.heritage]),
         new JS.ClassDeclaration(new JS.ClassExpression(
-            cls.name, superVar, cls.methods, cls.typeParams, cls.fields))
+            cls.name, superVar, cls.methods, cls.typeArgs, cls.fields))
       ]);
     }
     return new JS.ClassDeclaration(cls);
@@ -1344,6 +1344,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
       // Rewrite the function to include the return.
       fn = new JS.Fun(fn.params, new JS.Block([body, returnValue]),
+          typeArgs: fn.typeArgs,
           returnType: fn.returnType)..sourceInformation = fn.sourceInformation;
     }
 
@@ -1434,6 +1435,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           JS.ArrowFun innerFun = call.target;
           if (innerFun.params.isEmpty) {
             return new JS.Fun(fn.params, innerFun.body,
+                typeArgs: fn.typeArgs,
                 returnType: fn.returnType);
           }
         }
@@ -1511,7 +1513,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       // TODO(ochafik): Simplify this code when Chrome Canary catches up.
       var canUseArrowFun = !node.parameters.parameters.any(_isNamedParam);
 
-      String code = canUseArrowFun ? '(#) => #' : 'function(#) { return # }';
       JS.Node jsBody;
       var body = node.body;
       if (body.isGenerator || body.isAsynchronous) {
@@ -1519,10 +1520,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       } else if (body is ExpressionFunctionBody) {
         jsBody = _visit(body.expression);
       } else {
-        code = canUseArrowFun ? '(#) => { #; }' : 'function(#) { #; }';
-        jsBody = _visit(body);
+        jsBody = new JS.Block([_visit(body)]);
       }
-      var clos = js.call(code, [params, jsBody]);
+      var typeArgs = _emitTypeArgs(node.element).toList();
+      var clos = canUseArrowFun
+          ? new JS.ArrowFun(params, jsBody, typeArgs: typeArgs, returnType: returnType)
+          : new JS.Fun(params, jsBody, typeArgs: typeArgs, returnType: returnType);
       if (!inStmt) {
         var type = getStaticType(node);
         return _emitFunctionTagged(clos, type,

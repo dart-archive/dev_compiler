@@ -3,6 +3,11 @@ import dart from "./dart/_runtime";
 import core from "./dart/core";
 import js from "./dart/js";
 let dartx = dart.dartx;
+function generic_function(items: core.List<T>, seed: T): core.List<T> {
+  let strings = items[dartx.map](dart.fn((i: T): string => `${i}`, core.String, [dart.dynamic]))[dartx.toList]();
+  return items;
+}
+dart.fn(generic_function, () => dart.definiteFunctionType(core.List, [core.List, dart.dynamic]));
 /** @typedef */
 const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
 const Foo$ = dart.generic(function(T) {
@@ -101,6 +106,7 @@ exports.some_top_level_final = "abc";
 /** @type {string} */
 exports.some_top_level_var = "abc";
 // Exports:
+exports.generic_function = generic_function;
 exports.Callback = Callback;
 exports.Foo$ = Foo$;
 exports.Foo = Foo;

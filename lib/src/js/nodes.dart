@@ -1139,12 +1139,16 @@ abstract class FunctionExpression extends Expression {
   List<Parameter> get params;
 
   get body; // Expression or block
-  TypeRef get returnType; // Type of the body or of its return type.
+  /// For TypeScript / Closure's ES6_TYPED.
+  List<Identifier> get typeArgs;
+  /// For TypeScript / Closure's ES6_TYPED.
+  TypeRef get returnType;
 }
 
 class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
+  final List<Identifier> typeArgs;
   final TypeRef returnType;
   /** Whether this is a JS generator (`function*`) that may contain `yield`. */
   final bool isGenerator;
@@ -1153,7 +1157,7 @@ class Fun extends FunctionExpression {
 
   Fun(this.params, this.body, {this.isGenerator: false,
       this.asyncModifier: const AsyncModifier.sync(),
-      this.returnType});
+      this.typeArgs, this.returnType});
 
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
@@ -1171,9 +1175,10 @@ class Fun extends FunctionExpression {
 class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
+  final List<Identifier> typeArgs;
   final TypeRef returnType;
 
-  ArrowFun(this.params, this.body, {this.returnType});
+  ArrowFun(this.params, this.body, {this.typeArgs, this.returnType});
 
   accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
 
@@ -1459,14 +1464,14 @@ class ClassDeclaration extends Statement {
 class ClassExpression extends Expression {
   final Identifier name;
   final Expression heritage; // Can be null.
-  /// For TypeScript.
-  final List<Identifier> typeParams;
-  /// Field declarations in TypeScript & Closure's ES6_TYPED.
-  final List<VariableDeclarationList> fields;
   final List<Method> methods;
+  /// For TypeScript / Closure's ES6_TYPED.
+  final List<Identifier> typeArgs;
+  /// For TypeScript / Closure's ES6_TYPED.
+  final List<VariableDeclarationList> fields;
 
   ClassExpression(this.name, this.heritage, this.methods,
-      [this.typeParams = const [], this.fields = const []]);
+      [this.typeArgs = const [], this.fields = const []]);
 
   accept(NodeVisitor visitor) => visitor.visitClassExpression(this);
 
@@ -1475,7 +1480,7 @@ class ClassExpression extends Expression {
     if (heritage != null) heritage.accept(visitor);
     for (Method element in methods) element.accept(visitor);
     for (var field in fields) field.accept(visitor);
-    for (var typeParam in typeParams) typeParam.accept(visitor);
+    for (var typeParam in typeArgs) typeParam.accept(visitor);
   }
 
   ClassExpression _clone() => new ClassExpression(name, heritage, methods);

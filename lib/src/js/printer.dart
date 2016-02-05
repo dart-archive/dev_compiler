@@ -543,6 +543,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
                             newInForInit: false, newAtStatementBegin: false);
     }
     localNamer.enterScope(fun);
+    outTypeArgs(fun.typeArgs);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -929,7 +930,8 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitArrowFun(ArrowFun fun) {
     localNamer.enterScope(fun);
-    if (fun.params.length == 1) {
+    if (fun.params.length == 1 &&
+        (fun.params.single.type == null || !options.printTypes)) {
       visitNestedExpression(fun.params.single, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
     } else {
@@ -1077,19 +1079,23 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     lineOut();
   }
 
-  visitClassExpression(ClassExpression node) {
-    out('class ');
-    visit(node.name);
-    if (options.printTypes && node.typeParams.isNotEmpty) {
+  outTypeArgs(List<Identifier> typeArgs) {
+    if (options.printTypes && typeArgs != null && typeArgs.isNotEmpty) {
       out("<");
       var first = true;
-      for (var typeParam in node.typeParams) {
+      for (var typeParam in typeArgs) {
         if (!first) out(", ");
         first = false;
         visit(typeParam);
       }
       out(">");
     }
+  }
+
+  visitClassExpression(ClassExpression node) {
+    out('class ');
+    visit(node.name);
+    outTypeArgs(node.typeArgs);
     if (node.heritage != null) {
       out(' extends ');
       visit(node.heritage);
