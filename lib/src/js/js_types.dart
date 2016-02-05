@@ -6,6 +6,7 @@ part of js_ast;
 
 final _listEquality = const ListEquality();
 final _any = new AnyTypeRef._();
+final _unknown = new UnknownTypeRef._();
 
 /// JavaScript type reference.
 abstract class TypeRef extends Expression {
@@ -14,7 +15,7 @@ abstract class TypeRef extends Expression {
   TypeRef();
   factory TypeRef.any() => _any;
   factory TypeRef.void_() => null;
-  factory TypeRef.unknown() => null;
+  factory TypeRef.unknown() => _unknown;
   factory TypeRef.generic(TypeRef rawType, Iterable<TypeRef> typeParams) {
     assert(typeParams.isNotEmpty);
     return new GenericTypeRef(rawType, typeParams.toList());
@@ -46,6 +47,7 @@ abstract class TypeRef extends Expression {
       new TypeRef.qualifiedNamed(new Identifier(name));
 
   bool get isAny => this is AnyTypeRef;
+  bool get isUnknown => this is UnknownTypeRef;
 
   TypeRef or(TypeRef other) => new UnionTypeRef([this, other]);
 
@@ -63,6 +65,15 @@ class AnyTypeRef extends TypeRef {
   accept(NodeVisitor visitor) => visitor.visitAnyTypeRef(this);
   void visitChildren(NodeVisitor visitor) {}
   _clone() => new AnyTypeRef();
+}
+
+class UnknownTypeRef extends TypeRef {
+  UnknownTypeRef._() : super();
+
+  factory UnknownTypeRef() => _unknown;
+  accept(NodeVisitor visitor) => visitor.visitUnknownTypeRef(this);
+  void visitChildren(NodeVisitor visitor) {}
+  _clone() => new UnknownTypeRef();
 }
 
 class NamedTypeRef extends TypeRef {

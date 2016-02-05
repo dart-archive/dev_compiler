@@ -2072,8 +2072,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
     var result = <JS.Parameter>[];
 
     var namedVars = <JS.DestructuredVariable>[];
-    var destructure = allowDestructuring &&
-        _canDestructureParams(node.parameters);
+    var destructure = allowDestructuring && _canDestructureParams(node);
     var hasNamedArgsConflictingWithObjectProperties = false;
     var needsOpts = false;
 
@@ -3462,13 +3461,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator, Typ
 
   DartType getStaticType(Expression e) =>
       e.staticType ?? DynamicTypeImpl.instance;
-
-  @override
-  JS.Expression getQualifiedName(TypeDefiningElement type) {
-    return _emitTypeName(type.type);
-    // JS.TemporaryId id = _imports[type.library];
-    // return id == null ? type.name : '${id.name}.${type.name}';
-  }
 
   JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
     if (options.closure && element != null) {

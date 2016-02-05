@@ -6,7 +6,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:dev_compiler/src/js/js_ast.dart' as JS show TypeRef, Identifier, Expression;
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/codegen/js_names.dart';
 
 abstract class TypeRefs {
   TypeProvider get types;
@@ -36,9 +35,8 @@ abstract class TypeRefs {
     var jsType = _commonTypes[type];
     if (jsType != null) return jsType;
 
-    if (type == null || type.isBottom || type.isDynamic) {
-      return new JS.TypeRef.any();
-    }
+    if (type == null) new JS.TypeRef.unknown();
+    if (type.isBottom || type.isDynamic) new JS.TypeRef.any();
     if (type.isVoid) return new JS.TypeRef.void_();
 
     if (type is TypeParameterType) return new JS.TypeRef.named(type.name);

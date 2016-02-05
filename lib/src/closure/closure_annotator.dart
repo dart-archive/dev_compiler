@@ -14,8 +14,7 @@ import 'closure_annotation.dart';
 abstract class ClosureAnnotator {
   TypeProvider get types;
 
-  JS.TypeRef emitTypeRef(DartType type,
-      {bool forceTypeDefExpansion: false});
+  JS.TypeRef emitTypeRef(DartType type);
 
   // TODO(ochafik): Handle destructured params when Closure supports it.
   ClosureAnnotation closureAnnotationFor(

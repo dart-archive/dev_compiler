@@ -830,6 +830,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitAnyTypeRef(AnyTypeRef node) =>
       throw new UnimplementedError();
 
+  Instantiator visitUnknownTypeRef(UnknownTypeRef node) =>
+      throw new UnimplementedError();
+
   Instantiator visitFunctionTypeRef(FunctionTypeRef node) =>
       throw new UnimplementedError();
 

@@ -102,6 +102,7 @@ abstract class TypeRefVisitor<T> {
   T visitOptionalTypeRef(OptionalTypeRef node);
   T visitFunctionTypeRef(FunctionTypeRef node);
   T visitAnyTypeRef(AnyTypeRef node);
+  T visitUnknownTypeRef(UnknownTypeRef node);
   T visitArrayTypeRef(ArrayTypeRef node);
 }
 
@@ -241,6 +242,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitUnionTypeRef(UnionTypeRef node) => visitTypeRef(node);
   T visitFunctionTypeRef(FunctionTypeRef node) => visitTypeRef(node);
   T visitAnyTypeRef(AnyTypeRef node) => visitTypeRef(node);
+  T visitUnknownTypeRef(UnknownTypeRef node) => visitTypeRef(node);
   T visitArrayTypeRef(ArrayTypeRef node) => visitTypeRef(node);
 }
 

@@ -92,6 +92,11 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
   visitAnyTypeRef(AnyTypeRef node) {
     out("any");
   }
+
+  @override
+  visitUnknownTypeRef(UnknownTypeRef node) {
+    out("any");
+  }
 }
 
 class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
@@ -109,6 +114,19 @@ class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
   visitIdentifier(Identifier node) {
     //out(localNamer.getName(node));
     out(node.name);
+  }
+
+  @override
+  visitAccess(PropertyAccess node) {
+    var selector = node.selector;
+    assert(selector is LiteralString);
+    if (selector is! LiteralString) {
+      out("?");
+      return;
+    }
+    visit(node.receiver);
+    out(".");
+    out(selector.valueWithoutQuotes);
   }
 
   @override toString() => _buffer.toString();
@@ -150,6 +168,11 @@ class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
   @override
   visitAnyTypeRef(AnyTypeRef node) {
     out("*");
+  }
+
+  @override
+  visitUnknownTypeRef(UnknownTypeRef node) {
+    out("?");
   }
 
   @override

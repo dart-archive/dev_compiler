@@ -70,7 +70,7 @@ class ClosureAnnotation {
   String get _cachedString {
     if (__cachedString == null) {
       bool isNonWildcard(JS.TypeRef t) =>
-          t != null && !t.isAny;
+          t != null && !t.isAny && !t.isUnknown;
 
       var lines = <String>[];
       if (comment != null) lines.addAll(comment.split('\n'));
