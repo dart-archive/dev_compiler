@@ -30,6 +30,11 @@ abstract class _TypePrinterBase implements TypeRefVisitor {
       out('>');
     }
   }
+
+  @override
+  visitQualifiedTypeRef(QualifiedTypeRef node) {
+    outSeparated(".", node.path);
+  }
 }
 
 abstract class TypeScriptTypePrinter extends _TypePrinterBase {
@@ -64,11 +69,6 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
       }
     });
     out('}');
-  }
-
-  @override
-  visitNamedTypeRef(NamedTypeRef node) {
-    visit(node.name);
   }
 
   @override
@@ -157,12 +157,6 @@ class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
       visit(type is OptionalTypeRef ? type.orUndefined() : type);
     });
     out('}');
-  }
-
-  @override
-  visitNamedTypeRef(NamedTypeRef node) {
-    if (node == new TypeRef.null_()) out("null");
-    else visit(node.name);
   }
 
   @override

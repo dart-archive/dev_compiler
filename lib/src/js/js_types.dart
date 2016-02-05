@@ -41,10 +41,12 @@ abstract class TypeRef extends Expression {
   factory TypeRef.boolean() => new TypeRef.named('boolean');
 
   static final _namedCache = <String, TypeRef>{};
-  factory TypeRef.qualifiedNamed(Expression name) =>
-      _namedCache.putIfAbsent(name.toString(), () => new NamedTypeRef(name));
+  factory TypeRef.qualified(List<Identifier> path) =>
+      _namedCache.putIfAbsent(
+          path.map((p) => p.name).join('.'),
+          () => new QualifiedTypeRef(path));
   factory TypeRef.named(String name) =>
-      new TypeRef.qualifiedNamed(new Identifier(name));
+      new TypeRef.qualified([new Identifier(name)]);
 
   bool get isAny => this is AnyTypeRef;
   bool get isUnknown => this is UnknownTypeRef;
@@ -76,15 +78,25 @@ class UnknownTypeRef extends TypeRef {
   _clone() => new UnknownTypeRef();
 }
 
-class NamedTypeRef extends TypeRef {
-  final Expression name;
-  NamedTypeRef(this.name);
+class QualifiedTypeRef extends TypeRef {
+  final List<Identifier> path;
+  QualifiedTypeRef(this.path);
 
-  accept(NodeVisitor visitor) => visitor.visitNamedTypeRef(this);
+  accept(NodeVisitor visitor) => visitor.visitQualifiedTypeRef(this);
   void visitChildren(NodeVisitor visitor) =>
-      name.accept(visitor);
-  _clone() => new NamedTypeRef(name);
+      path.forEach((p) => p.accept(visitor));
+  _clone() => new QualifiedTypeRef(path);
 }
+
+// class NamedTypeRef extends TypeRef {
+//   final Expression name;
+//   NamedTypeRef(this.name);
+//
+//   accept(NodeVisitor visitor) => visitor.visitNamedTypeRef(this);
+//   void visitChildren(NodeVisitor visitor) =>
+//       name.accept(visitor);
+//   _clone() => new NamedTypeRef(name);
+// }
 class ArrayTypeRef extends TypeRef {
   final TypeRef elementType;
   ArrayTypeRef(this.elementType);

@@ -36,12 +36,12 @@ dart_library.library('closure', null, /* Imports */[
         let c = opts && 'c' in opts ? opts.c : null;
       }
       nullary_method() {}
-      function_params(f: exports['']<T>, g: exports['']<T>, cb: Callback) {
+      function_params(f: (any, any) => number|null, g: (any, {y?: string, z?: any}) => any, cb: Callback) {
         dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
         dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
         cb({i: this.i});
       }
-      run(a: core.List<E>, b: string, c: exports['']<T>, e: exports['']<T>, opts) {
+      run(a: core.List<E>, b: string, c: (string) => core.List<E>, e: ((any) => any) => core.List<E>, opts) {
         dart.as(c, dart.functionType(core.List, [core.String]));
         dart.as(e, dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])]));
         let h = opts && 'h' in opts ? opts.h : null;

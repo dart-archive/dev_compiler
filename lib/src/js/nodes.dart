@@ -95,7 +95,7 @@ abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
 }
 
 abstract class TypeRefVisitor<T> {
-  T visitNamedTypeRef(NamedTypeRef node);
+  T visitQualifiedTypeRef(QualifiedTypeRef node);
   T visitGenericTypeRef(GenericTypeRef node);
   T visitUnionTypeRef(UnionTypeRef node);
   T visitRecordTypeRef(RecordTypeRef node);
@@ -235,7 +235,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
 
   T visitTypeRef(TypeRef node) => visitNode(node);
-  T visitNamedTypeRef(NamedTypeRef node) => visitTypeRef(node);
+  T visitQualifiedTypeRef(QualifiedTypeRef node) => visitTypeRef(node);
   T visitGenericTypeRef(GenericTypeRef node) => visitTypeRef(node);
   T visitOptionalTypeRef(OptionalTypeRef node) => visitTypeRef(node);
   T visitRecordTypeRef(RecordTypeRef node) => visitTypeRef(node);

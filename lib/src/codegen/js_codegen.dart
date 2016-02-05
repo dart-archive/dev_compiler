@@ -41,6 +41,7 @@ import 'js_typerefs.dart';
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
+import 'dart:io';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -1802,6 +1803,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
 
     return emitTopLevelName(element);
+  }
+
+  JS.TypeRef emitTopLevelTypeRef(DartType type) {
+    var e = type.element;
+    bool fromAnotherLibrary = e.library != currentLibrary;
+    String name =
+        fromAnotherLibrary ? (_getJSExportName(e) ?? type.name) : type.name;
+    if (name == null) throw new ArgumentError('$type is not a top-level type');
+    return new JS.TypeRef.qualified(fromAnotherLibrary
+        ? [_libraryName(e.library), new JS.Identifier(name)]
+        : [new JS.Identifier(name)]);
   }
 
   JS.Expression emitTopLevelName(Element e, {String suffix: ''}) {

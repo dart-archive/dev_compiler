@@ -7,7 +7,7 @@ library dev_compiler.test.closure_annotation_test;
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/closure/closure_annotation.dart';
-import 'package:dev_compiler/src/js/js_ast.dart' show TypeRef, PropertyAccess, Identifier, js;
+import 'package:dev_compiler/src/js/js_ast.dart' show TypeRef;
 
 void main() {
   group('ClosureAnnotation', () {
@@ -16,7 +16,7 @@ void main() {
     var numberType = new TypeRef.number();
     var stringType = new TypeRef.string();
     var booleanType = new TypeRef.boolean();
-    var fooType = new TypeRef.qualifiedNamed(new PropertyAccess(new Identifier("foo"), js.string("Foo")));
+    var fooType = new TypeRef.qualified(["foo", "Foo"]);
     var barType = new TypeRef.named("Bar");
     var bazType = new TypeRef.named("Baz");
     var bamType = new TypeRef.named("Bam");

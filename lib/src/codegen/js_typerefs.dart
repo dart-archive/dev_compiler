@@ -4,9 +4,9 @@
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:dev_compiler/src/js/js_ast.dart' as JS
-    show TypeRef, Identifier, Expression;
+import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/options.dart';
+import 'dart:io';
 
 abstract class TypeRefs {
   TypeProvider get types;
@@ -27,7 +27,7 @@ abstract class TypeRefs {
   }
 
   CodegenOptions get options;
-  JS.Expression emitTopLevelName(Element e, {String suffix: ''});
+  JS.TypeRef emitTopLevelTypeRef(DartType type);
 
   JS.TypeRef emitTypeRef(DartType type) {
     // _loader.declareBeforeUse(type.element);
@@ -44,7 +44,7 @@ abstract class TypeRefs {
     if (type is ParameterizedType) {
       JS.TypeRef rawType;
       // Typedefs may have
-      if (type is FunctionType && type.name == '') {
+      if (type is FunctionType && type.name == null) {
         var args = <JS.TypeRef>[]
           ..addAll(type.normalParameterTypes.map(emitTypeRef))
           ..addAll(type.optionalParameterTypes
@@ -56,10 +56,9 @@ abstract class TypeRefs {
           });
           args.add(new JS.TypeRef.record(namedArgs).toOptional());
         }
-        rawType = new JS.TypeRef.function(emitTypeRef(type.returnType), args);
+        return new JS.TypeRef.function(emitTypeRef(type.returnType), args);
       } else {
-        rawType = _getDartJsTypeRef(type) ??
-            new JS.TypeRef.qualifiedNamed(emitTopLevelName(type.element));
+        rawType = _getDartJsTypeRef(type) ?? emitTopLevelTypeRef(type);
       }
       return type.typeParameters.isEmpty
           ? rawType
