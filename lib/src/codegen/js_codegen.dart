@@ -41,7 +41,7 @@ import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
 
-part 'js_typerefs.dart';
+part 'js_typeref_codegen.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -56,7 +56,7 @@ const DCALL = 'dcall';
 const DSEND = 'dsend';
 
 class JSCodegenVisitor extends GeneralizingAstVisitor
-    with ClosureAnnotator, TypeRefs {
+    with ClosureAnnotator, JsTypeRefCodegen {
   final AbstractCompiler compiler;
   final CodegenOptions options;
   final LibraryElement currentLibrary;
@@ -1321,7 +1321,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   /// the SDK), or `null` if there's none. This is used to control the name
   /// under which functions are compiled and exported.
   String _getJSExportName(Element e) {
-    if (!currentLibrary.source.isInSystemLibrary) {
+    if (!e.source.isInSystemLibrary) {
       return null;
     }
     var jsName = findAnnotation(e, isJSExportNameAnnotation);
@@ -1622,7 +1622,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     // library member
     if (element.enclosingElement is CompilationUnitElement) {
-      return emitTopLevelName(element);
+      return _emitTopLevelName(element);
     }
 
     var name = element.name;
@@ -1797,26 +1797,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         jsArgs = [];
       }
       if (jsArgs != null) {
-        var genericName = emitTopLevelName(element, suffix: '\$');
+        var genericName = _emitTopLevelName(element, suffix: '\$');
         return js.call('#(#)', [genericName, jsArgs]);
       }
     }
 
-    return emitTopLevelName(element);
+    return _emitTopLevelName(element);
   }
 
-  JS.TypeRef emitTopLevelTypeRef(DartType type) {
-    var e = type.element;
-    bool fromAnotherLibrary = e.library != currentLibrary;
-    String name =
-        fromAnotherLibrary ? (_getJSExportName(e) ?? type.name) : type.name;
-    if (name == null) throw new ArgumentError('$type is not a top-level type');
-    return new JS.TypeRef.qualified(fromAnotherLibrary
-        ? [_libraryName(e.library), new JS.Identifier(name)]
-        : [new JS.Identifier(name)]);
-  }
-
-  JS.Expression emitTopLevelName(Element e, {String suffix: ''}) {
+  JS.Expression _emitTopLevelName(Element e, {String suffix: ''}) {
     var libName = _libraryName(e.library);
 
     // Always qualify:
