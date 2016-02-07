@@ -42,7 +42,7 @@ const Foo$ = dart.generic(function(T) {
     }
     static named_params(a, {b = null, c = null}: {b?: any, c?: any} = {}) {}
     nullary_method() {}
-    function_params(f: (x: any, y: any) => number, g: (x: any, opts?: {y?: string, z?: any}) => any, cb: Callback) {
+    function_params(f: (x: any, y?: any) => number, g: (x: any, opts?: {y?: string, z?: any}) => any, cb: Callback) {
       dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
       dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
       cb({i: this.i});
