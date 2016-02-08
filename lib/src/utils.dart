@@ -457,23 +457,61 @@ getEnumName(v) {
 /// Simplistic directed graph.
 class DirectedGraph<V> {
   final _adjacencyList = <V, Set<V>>{};
+  final _inverseAdjacencyList = <V, Set<V>>{};
+  final _vertices = new Set<V>();
+
+  Iterable<V> get vertices => _vertices;
 
   void addEdge(V from, V to) {
-    _adjacencyList.putIfAbsent(from, () => new Set<V>()).add(to);
+    _vertices..add(from)..add(to);
+    _adjacencyList.putIfAbsent(from, () => new Set<V>.identity()).add(to);
+    _inverseAdjacencyList.putIfAbsent(to, () => new Set<V>.identity()).add(from);
+  }
+
+  List<V> getSomePath(Set<V> froms, V to) {
+    final pathSet = new Set<V>.identity();
+    var path = <V>[];
+
+    bool visit(V e) {
+      if (froms.contains(e)) {
+        path.add(e);
+        return true;
+      }
+
+      if (pathSet.add(e)) {
+        path.add(e);
+        var origins = _inverseAdjacencyList[e];
+        // if ('$e'.contains('Map')) {
+        //   stderr.writeln('DESTINATIONS($e) = $origins');
+        // }
+        if (origins != null && origins.any(visit)) return true;
+        path.removeLast();
+        pathSet.remove(e);
+      }
+      return false;
+    }
+    return visit(to) ? path.reversed.toList() : null;
   }
 
   /// Get all the vertices reachable from the provided [roots].
   Set<V> getTransitiveClosure(Iterable<V> roots) {
-    final reached = new Set<V>();
+    final reached = new Set<V>.identity();
 
     visit(V e) {
       if (reached.add(e)) {
         var destinations = _adjacencyList[e];
+        // if (e is Element && '$e'.contains('registerWeak')) {
+        //   stderr.writeln('DESTINATIONS(${e.enclosingElement.name}.${e.name}) = $destinations');
+        // }
         if (destinations != null) destinations.forEach(visit);
       }
     }
     roots.forEach(visit);
 
     return reached;
+  }
+
+  Set<V> getIncoming(Element e) {
+    return _inverseAdjacencyList[e];
   }
 }

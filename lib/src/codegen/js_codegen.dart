@@ -40,7 +40,7 @@ import 'js_printer.dart' show writeJsLibrary;
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
-import 'usage.dart';
+import 'tree_shaker.dart';
 import 'dart:io';
 
 // Various dynamic helpers we call.
@@ -3556,7 +3556,7 @@ class JSGenerator extends CodeGenerator {
   final _extensionTypes = new HashSet<ClassElement>();
   final TypeProvider _types;
   final _roots = new Set<Element>();
-  UsageVisitor _usageVisitor;
+  TreeShakingVisitor _treeShakingVisitor;
   final TreeShakingMode _treeShakingMode;
 
   ReachabilityPredicate _isReachable;
@@ -3580,11 +3580,17 @@ class JSGenerator extends CodeGenerator {
     _addExtensionType(_types.intType);
     _addExtensionType(_types.doubleType);
 
-    _usageVisitor = new UsageVisitor(_extensionTypes);
+    _treeShakingVisitor = new TreeShakingVisitor(compiler.context)
+        ..registerExtensionTypes(_extensionTypes);
+  }
 
-    _isReachable = _treeShakingMode == TreeShakingMode.none
-        ? (_) => true
-        : _usageVisitor.buildReachabilityPredicate(_roots);
+  ReachabilityPredicate get isReachable {
+    if (_isReachable == null) {
+      _isReachable = _treeShakingMode == TreeShakingMode.none
+          ? (Element _, {bool throwIfNot}) => true
+          : _treeShakingVisitor.buildReachabilityPredicate(_roots);
+    }
+    return _isReachable;
   }
 
   void _addExtensionType(InterfaceType t) {
@@ -3598,7 +3604,7 @@ class JSGenerator extends CodeGenerator {
   void scanLibrary(LibraryUnit unit, {bool isMain}) {
     if (_treeShakingMode == TreeShakingMode.none) return;
 
-    unit.libraryThenParts.forEach((u) => u.accept(_usageVisitor));
+    unit.libraryThenParts.forEach((u) => u.accept(_treeShakingVisitor));
 
     var isRuntime =
         unit.library.element.source.uri.toString() == 'dart:_runtime';
@@ -3622,6 +3628,7 @@ class JSGenerator extends CodeGenerator {
     if (e != null) {
       for (var m in _getPublicElements(e)) {
         // stderr.writeln("ADDING ROOT: ${m.name} (${m.runtimeType})");
+        if (_isReachable != null) throw new StateError("Already built isReachable, can't add any new root!");
         _roots.add(m);
       }
     }
@@ -3653,7 +3660,7 @@ class JSGenerator extends CodeGenerator {
     var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
     var codegen =
-        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, _isReachable, _usageVisitor.getTreeShakingData);
+        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, isReachable, _treeShakingVisitor.getTreeShakingData);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;
