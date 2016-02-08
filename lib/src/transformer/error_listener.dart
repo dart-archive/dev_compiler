@@ -4,9 +4,12 @@
 
 library dev_compiler.src.transformer.error_listener;
 
-import 'package:barback/barback.dart' show TransformLogger, AssetId;
+import 'dart:math';
+
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, ErrorSeverity, AnalysisErrorListener;
+import 'package:barback/barback.dart' show TransformLogger, AssetId;
+import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
 import 'uri_resolver.dart';
@@ -14,15 +17,27 @@ import 'uri_resolver.dart';
 typedef void _LoggingFunction(String message, {AssetId asset, SourceSpan span});
 
 class TransformAnalysisErrorListener extends AnalysisErrorListener {
-  TransformLogger _logger;
+  final TransformLogger _logger;
+  LocationHelper _lastLocationHelper;
   TransformAnalysisErrorListener(this._logger);
+
+  /// Get a location helper for the provided [content] with [uri].
+  /// Multiple subsequent calls with the same [uri] will return the same cached
+  /// instance, to accommodate the use-case of a file having many messages.
+  LocationHelper _getLocationHelper(String content, String uri) {
+    if (_lastLocationHelper?.uri != uri) {
+      _lastLocationHelper = new LocationHelper(content, uri);
+    }
+    return _lastLocationHelper;
+  }
 
   @override
   void onError(AnalysisError error) {
     var content = error.source.contents.data;
     var sourceUrl = error.source.uri.toString();
+    var locationHelper = _getLocationHelper(content, sourceUrl);
     SourceLocation makeLocation(int offset) {
-      return _getLineAndColumn(content, offset, (line, column) {
+      return locationHelper.getLineAndColumn(offset, (line, column) {
         return new SourceLocation(
             offset, sourceUrl: sourceUrl, line: line, column: column);
       });
@@ -53,22 +68,39 @@ class TransformAnalysisErrorListener extends AnalysisErrorListener {
   }
 }
 
-dynamic/*=T*/ _getLineAndColumn/*<T>*/(
-    String content, int offset, dynamic/*=T*/ callback(int line, int column)) {
-  int line = 1;
-  int column = 1;
-  for (int i = 0; i < offset; i++) {
-    switch (content[i]) {
-      case '\n':
-        line++;
-        column = 1;
-        break;
-      case '\r':
-        break;
-      default:
-        column++;
-        break;
+// TODO(ochafik): Drop when https://github.com/dart-lang/sdk/issues/25717 fixed.
+/// Helper that computes line & column from an offset in log time.
+class LocationHelper {
+  final String _content;
+  final String uri;
+  final _lineOffsets = <int>[];
+
+  LocationHelper(String content, this.uri) : _content = content {
+    _lineOffsets.add(0);
+    for (int i = 0, length = content.length; i < length; i++) {
+      switch (content[i]) {
+        case '\n':
+          // Consume any trailing carriage return.
+          while (i < length - 1 && content[i + 1] == '\r') {
+            i++;
+          }
+          _lineOffsets.add(i + 1);
+          break;
+      }
     }
   }
-  return callback(line, column);
+
+  /// Gets the line and column that corresponds to the [offset] in this helper's
+  /// [_content] string, pass them to [callback] and return its result
+  /// (continuation-passing style callback).
+  dynamic/*=T*/ getLineAndColumn/*<T>*/(
+      int offset, dynamic/*=T*/ callback(int line, int column)) {
+    var lineIndex = lowerBound(_lineOffsets, offset);
+    lineIndex = min(lineIndex, _lineOffsets.length - 1);
+    if (_lineOffsets[lineIndex] > offset) lineIndex--;
+
+    int line = lineIndex + 1;
+    int column = offset - _lineOffsets[lineIndex] + 1;
+    return callback(line, column);
+  }
 }

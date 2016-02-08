@@ -2,9 +2,10 @@ library dev_compiler.test.transformer.transformer_test;
 
 import 'package:barback/barback.dart' show BarbackMode, BarbackSettings;
 import 'package:dev_compiler/transformer.dart';
+import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
+import 'package:dev_compiler/src/transformer/error_listener.dart';
 import 'package:test/test.dart';
 import 'package:transformer_test/utils.dart';
-import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
 
 makePhases([Map config = const {}]) => [
       [
@@ -92,5 +93,25 @@ export default exports;
           "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\' (package:foo/Foo.dart 3 19)",
           "error: Type check failed: '2' (String) is not of type int (package:foo/Foo.dart 3 19)"
         ]);
+  });
+
+  group('$LocationHelper', () {
+    getLineAndColumn(String content, int offset) =>
+        new LocationHelper(content, '')
+            .getLineAndColumn(offset, (line, column) => "$line:$column");
+
+    test('finds lines and columns', () {
+      expect(getLineAndColumn('', 0), "1:1");
+      expect(getLineAndColumn(' ', 1), "1:2");
+      expect(getLineAndColumn('\n', 0), "1:1");
+      expect(getLineAndColumn(' \n', 1), "1:2");
+      expect(getLineAndColumn('\n', 1), "2:1");
+      expect(getLineAndColumn(' \n', 2), "2:1");
+      expect(getLineAndColumn('\n\n', 1), "2:1");
+      expect(getLineAndColumn(' \n\n', 2), "2:1");
+      expect(getLineAndColumn(' \n \n', 2), "2:1");
+      expect(getLineAndColumn(' \n \n', 3), "2:2");
+      expect(getLineAndColumn(' \n \n', 4), "3:1");
+    });
   });
 }
