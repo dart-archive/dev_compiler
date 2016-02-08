@@ -5,7 +5,6 @@
 /// Meta-test that runs all tests we have written.
 library dev_compiler.test.all_tests;
 
-@Timeout(const Duration(seconds: 60))
 import 'package:test/test.dart';
 
 import 'closure/closure_annotation_test.dart' as closure_annotation_test;
@@ -25,7 +24,6 @@ void main() {
   group('dependency_graph', dependency_graph_test.main);
   group('codegen', () => codegen_test.main([]));
   group('transformer', transformer_test.main);
-  group('transformer_e2e', transformer_e2e_test.main);
   group('closure', () {
     closure_annotation_test.main();
     closure_type_test.main();
