@@ -3,7 +3,6 @@ library dev_compiler.test.transformer.transformer_test;
 import 'package:barback/barback.dart' show BarbackMode, BarbackSettings;
 import 'package:dev_compiler/transformer.dart';
 import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
-import 'package:dev_compiler/src/transformer/error_listener.dart';
 import 'package:test/test.dart';
 import 'package:transformer_test/utils.dart';
 
@@ -93,24 +92,5 @@ export default exports;
           "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\' (package:foo/Foo.dart 3 19)",
           "error: Type check failed: '2' (String) is not of type int (package:foo/Foo.dart 3 19)"
         ]);
-  });
-
-  group('$LocationHelper', () {
-    getLocation(String content, int offset) =>
-        new LocationHelper(content, '').getLocation(offset);
-
-    test('finds lines and columns', () {
-      expect(getLocation('', 0), new Location(1, 1));
-      expect(getLocation(' ', 1), new Location(1, 2));
-      expect(getLocation('\n', 0), new Location(1, 1));
-      expect(getLocation(' \n', 1), new Location(1, 2));
-      expect(getLocation('\n', 1), new Location(2, 1));
-      expect(getLocation(' \n', 2), new Location(2, 1));
-      expect(getLocation('\n\n', 1), new Location(2, 1));
-      expect(getLocation(' \n\n', 2), new Location(2, 1));
-      expect(getLocation(' \n \n', 2), new Location(2, 1));
-      expect(getLocation(' \n \n', 3), new Location(2, 2));
-      expect(getLocation(' \n \n', 4), new Location(3, 1));
-    });
   });
 }
