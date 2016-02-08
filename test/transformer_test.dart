@@ -96,22 +96,21 @@ export default exports;
   });
 
   group('$LocationHelper', () {
-    getLineAndColumn(String content, int offset) =>
-        new LocationHelper(content, '')
-            .getLineAndColumn(offset, (line, column) => "$line:$column");
+    getLocation(String content, int offset) =>
+        new LocationHelper(content, '').getLocation(offset);
 
     test('finds lines and columns', () {
-      expect(getLineAndColumn('', 0), "1:1");
-      expect(getLineAndColumn(' ', 1), "1:2");
-      expect(getLineAndColumn('\n', 0), "1:1");
-      expect(getLineAndColumn(' \n', 1), "1:2");
-      expect(getLineAndColumn('\n', 1), "2:1");
-      expect(getLineAndColumn(' \n', 2), "2:1");
-      expect(getLineAndColumn('\n\n', 1), "2:1");
-      expect(getLineAndColumn(' \n\n', 2), "2:1");
-      expect(getLineAndColumn(' \n \n', 2), "2:1");
-      expect(getLineAndColumn(' \n \n', 3), "2:2");
-      expect(getLineAndColumn(' \n \n', 4), "3:1");
+      expect(getLocation('', 0), new Location(1, 1));
+      expect(getLocation(' ', 1), new Location(1, 2));
+      expect(getLocation('\n', 0), new Location(1, 1));
+      expect(getLocation(' \n', 1), new Location(1, 2));
+      expect(getLocation('\n', 1), new Location(2, 1));
+      expect(getLocation(' \n', 2), new Location(2, 1));
+      expect(getLocation('\n\n', 1), new Location(2, 1));
+      expect(getLocation(' \n\n', 2), new Location(2, 1));
+      expect(getLocation(' \n \n', 2), new Location(2, 1));
+      expect(getLocation(' \n \n', 3), new Location(2, 2));
+      expect(getLocation(' \n \n', 4), new Location(3, 1));
     });
   });
 }

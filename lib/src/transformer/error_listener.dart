@@ -37,10 +37,9 @@ class TransformAnalysisErrorListener extends AnalysisErrorListener {
     var sourceUrl = error.source.uri.toString();
     var locationHelper = _getLocationHelper(content, sourceUrl);
     SourceLocation makeLocation(int offset) {
-      return locationHelper.getLineAndColumn(offset, (line, column) {
-        return new SourceLocation(
-            offset, sourceUrl: sourceUrl, line: line, column: column);
-      });
+      var location = locationHelper.getLocation(offset);
+      return new SourceLocation(offset,
+          sourceUrl: sourceUrl, line: location.line, column: location.column);
     }
     int start = error.offset;
     int end = error.offset + error.length;
@@ -68,6 +67,17 @@ class TransformAnalysisErrorListener extends AnalysisErrorListener {
   }
 }
 
+/// A simple source location.
+class Location {
+  final int line;
+  final int column;
+  Location(this.line, this.column);
+
+  operator==(other) =>
+      other is Location && line == other.line && column == other.column;
+  get hashCode => line.hashCode ^ column.hashCode;
+}
+
 // TODO(ochafik): Drop when https://github.com/dart-lang/sdk/issues/25717 fixed.
 /// Helper that computes line & column from an offset in log time.
 class LocationHelper {
@@ -90,17 +100,15 @@ class LocationHelper {
     }
   }
 
-  /// Gets the line and column that corresponds to the [offset] in this helper's
-  /// [_content] string, pass them to [callback] and return its result
-  /// (continuation-passing style callback).
-  dynamic/*=T*/ getLineAndColumn/*<T>*/(
-      int offset, dynamic/*=T*/ callback(int line, int column)) {
+  /// Gets the location that corresponds to the [offset] in this helper's
+  /// [_content] string.
+  Location getLocation(int offset) {
     var lineIndex = lowerBound(_lineOffsets, offset);
     lineIndex = min(lineIndex, _lineOffsets.length - 1);
     if (_lineOffsets[lineIndex] > offset) lineIndex--;
 
     int line = lineIndex + 1;
     int column = offset - _lineOffsets[lineIndex] + 1;
-    return callback(line, column);
+    return new Location(line, column);
   }
 }
