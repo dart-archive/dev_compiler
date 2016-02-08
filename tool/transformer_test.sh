@@ -2,8 +2,10 @@
 set -eu
 DIR=$(dirname "${BASH_SOURCE[0]}")
 
-# TODO(ochafik): Run pub serve + launch a browser on
-# http://localhost:8080/hello_app/web/
+echo "*** Testing pub serve + DDC transformer"
+pub run test test/transformer_e2e_test.dart
+
+echo "*** Testing pub build + DDC transformer"
 cd test/transformer/hello_app
 pub get
 pub build

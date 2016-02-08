@@ -8,4 +8,3 @@ $DIR/node_test.sh
 $DIR/analyze.sh
 $DIR/format.sh
 $DIR/transformer_test.sh
-$DIR/transformer_e2e_test.sh
