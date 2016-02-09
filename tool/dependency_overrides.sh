@@ -30,12 +30,14 @@ function checkout_dependency_override_from_github() {
   rm -fR dependency_overrides/$dependency_name
 
   if [[ "$path" == "/" ]]; then
+    # Checkout only the branch, with no history:
     git clone --depth 1 --branch $branch $url dependency_overrides/$dependency_name
   else
     (
       mkdir dependency_overrides/$dependency_name
       cd dependency_overrides/$dependency_name
 
+      # Sparse-checkout only the path + branch, with no history:
       git init
       git remote add origin $url
       git config core.sparsecheckout true
