@@ -515,3 +515,22 @@ class DirectedGraph<V> {
     return _inverseAdjacencyList[e];
   }
 }
+
+class FileSystem {
+  const FileSystem();
+
+  void _ensureParentExists(String file) {
+    var dir = new Directory(path.dirname(file));
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+  }
+
+  void copySync(String source, String destination) {
+    _ensureParentExists(destination);
+    new File(source).copySync(destination);
+  }
+
+  void writeAsStringSync(String file, String contents) {
+    _ensureParentExists(file);
+    new File(file).writeAsStringSync(contents);
+  }
+}

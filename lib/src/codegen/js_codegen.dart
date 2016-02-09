@@ -384,10 +384,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
-        new JS.Identifier(element.name), _classHeritage(element), body));
+    var classExpr = new JS.ClassExpression(
+        new JS.Identifier(element.name), _classHeritage(element), body);
 
-    return _finishClassDef(element.type, classDecl);
+    return _finishClassDef(
+        element.type, _emitClassHeritageWorkaround(classExpr));
   }
 
   JS.Statement _emitJsType(String dartClassName, DartObject jsName) {
@@ -686,6 +687,27 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
+  _isQualifiedPath(JS.Expression node) =>
+      node is JS.Identifier ||
+      node is JS.PropertyAccess &&
+          _isQualifiedPath(node.receiver) &&
+          node.selector is JS.LiteralString;
+
+  /// Workaround for Closure: super classes must be qualified paths.
+  JS.Statement _emitClassHeritageWorkaround(JS.ClassExpression cls) {
+    if (options.closure &&
+        cls.heritage != null &&
+        !_isQualifiedPath(cls.heritage)) {
+      var superVar = new JS.TemporaryId(cls.name.name + r'$super');
+      return _statement([
+        js.statement('const # = #;', [superVar, cls.heritage]),
+        new JS.ClassDeclaration(
+            new JS.ClassExpression(cls.name, superVar, cls.methods))
+      ]);
+    }
+    return new JS.ClassDeclaration(cls);
+  }
+
   /// Emit class members that need to come after the class declaration, such
   /// as static fields. See [_emitClassMethods] for things that are emitted
   /// inside the ES6 `class { ... }` node.
@@ -715,7 +737,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    body.add(new JS.ClassDeclaration(cls));
+    body.add(_emitClassHeritageWorkaround(cls));
 
     // TODO(jmesserly): we should really just extend native Array.
     if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
@@ -3239,7 +3261,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     JS.Expression emitMap() {
       var entries = node.entries;
       var mapArguments = null;
-      if (entries.isEmpty) {
+      var typeArgs = node.typeArguments;
+      if (entries.isEmpty && typeArgs == null) {
         mapArguments = [];
       } else if (entries.every((e) => e.key is StringLiteral)) {
         // Use JS object literal notation if possible, otherwise use an array.
@@ -3258,8 +3281,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         }
         mapArguments = new JS.ArrayInitializer(values);
       }
-      // TODO(jmesserly): add generic types args.
-      return js.call('dart.map(#)', [mapArguments]);
+      var types = <JS.Expression>[];
+      if (typeArgs != null) {
+        types.addAll(typeArgs.arguments.map((e) => _emitTypeName(e.type)));
+      }
+      return js.call('dart.map(#, #)', [mapArguments, types]);
     }
     if (node.constKeyword != null) return _emitConst(emitMap);
     return emitMap();
@@ -3669,7 +3695,7 @@ class JSGenerator extends CodeGenerator {
         : null;
     return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
         emitSourceMaps: options.emitSourceMaps,
-        arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
+        fileSystem: compiler.fileSystem);
   }
 }
 
