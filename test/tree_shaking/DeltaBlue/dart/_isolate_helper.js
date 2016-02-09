@@ -1,36 +1,36 @@
 'use strict';
-require("./_debugger");
-require("./html_common");
-require("./html");
-require("./_metadata");
-require("./js");
-require("./_js_mirrors");
-require("./mirrors");
-require("./convert");
-require("./_js_primitives");
-require("./_isolate_helper");
-require("./_native_typed_data");
-require("./typed_data");
-require("./isolate");
-require("./_js_helper");
-require("./_js_embedded_names");
-require("./_foreign_helper");
-require("./async");
-require("./_interceptors");
-require("./math");
-require("./_internal");
-require("./collection");
-require("./core");
-let dart = require("./_runtime");
-let core = require("./core");
-let _native_typed_data = require("./_native_typed_data");
-let _interceptors = require("./_interceptors");
-let _js_helper = require("./_js_helper");
-let isolate = require("./isolate");
-let _foreign_helper = require("./_foreign_helper");
-let _js_embedded_names = require("./_js_embedded_names");
-let collection = require("./collection");
-let async = require("./async");
+require("dart/_debugger");
+require("dart/html_common");
+require("dart/html");
+require("dart/_metadata");
+require("dart/js");
+require("dart/_js_mirrors");
+require("dart/mirrors");
+require("dart/convert");
+require("dart/_js_primitives");
+require("dart/_isolate_helper");
+require("dart/_native_typed_data");
+require("dart/typed_data");
+require("dart/isolate");
+require("dart/_js_helper");
+require("dart/_js_embedded_names");
+require("dart/_foreign_helper");
+require("dart/async");
+require("dart/_interceptors");
+require("dart/math");
+require("dart/_internal");
+require("dart/collection");
+require("dart/core");
+let dart = require("dart/_runtime");
+let core = require("dart/core");
+let _native_typed_data = require("dart/_native_typed_data");
+let _interceptors = require("dart/_interceptors");
+let _js_helper = require("dart/_js_helper");
+let isolate = require("dart/isolate");
+let _foreign_helper = require("dart/_foreign_helper");
+let _js_embedded_names = require("dart/_js_embedded_names");
+let collection = require("dart/collection");
+let async = require("dart/async");
 let dartx = dart.dartx;
 function _serializeMessage(message) {
   return new _Serializer().serialize(message);
@@ -52,6 +52,7 @@ const _isolateId = Symbol('_isolateId');
 const _receivePortId = Symbol('_receivePortId');
 const _id = Symbol('_id');
 const _receivePort = Symbol('_receivePort');
+// /* Incoming: _serializeMessage (FunctionElementImpl @ dart:_isolate_helper/isolate_serialization.dart), serializer (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _clone (FunctionElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Serializer. (ConstructorElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class _Serializer extends core.Object {
   _Serializer({serializeSendPorts = true} = {}) {
     this.serializedObjectIds = core.Map$(dart.dynamic, core.int).identity();
@@ -187,6 +188,7 @@ dart.setSignature(_Serializer, {
   })
 });
 const _adjustSendPorts = Symbol('_adjustSendPorts');
+// /* Incoming: _deserializeMessage (FunctionElementImpl @ dart:_isolate_helper/isolate_serialization.dart), deserializer (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _clone (FunctionElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Deserializer. (ConstructorElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class _Deserializer extends core.Object {
   _Deserializer({adjustSendPorts = true} = {}) {
     this.deserializedObjects = core.List.new();
@@ -443,6 +445,7 @@ dart.copyProperties(exports, {
 });
 const _nativeDetectEnvironment = Symbol('_nativeDetectEnvironment');
 const _nativeInitWorkerMessageHandler = Symbol('_nativeInitWorkerMessageHandler');
+// /* Incoming: _callInIsolate (FunctionElementImpl @ dart:_isolate_helper), enterJsAsync (FunctionElementImpl @ dart:_isolate_helper), leaveJsAsync (FunctionElementImpl @ dart:_isolate_helper), isWorker (FunctionElementImpl @ dart:_isolate_helper), _currentIsolate (FunctionElementImpl @ dart:_isolate_helper), startRootIsolate (FunctionElementImpl @ dart:_isolate_helper), _globalState (TopLevelVariableElementImpl @ dart:_isolate_helper), _Manager. (ConstructorElementImpl @ dart:_isolate_helper), _IsolateContext.id (ConstFieldElementImpl @ dart:_isolate_helper), _IsolateContext.removePause (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handlePing (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handleKill (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handleUncaughtError (MethodElementImpl @ dart:_isolate_helper), old (LocalVariableElementImpl @ dart:_isolate_helper), _IsolateContext.eval (MethodElementImpl @ dart:_isolate_helper), _IsolateContext._updateGlobalState (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.kill (MethodElementImpl @ dart:_isolate_helper), _EventLoop.checkOpenReceivePortsFromCommandLine (MethodElementImpl @ dart:_isolate_helper), _EventLoop.runIteration (MethodElementImpl @ dart:_isolate_helper), _EventLoop.run (MethodElementImpl @ dart:_isolate_helper), IsolateNatives.computeThisScript (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._processWorkerMessage (MethodElementImpl @ dart:_isolate_helper), entryPoint (LocalVariableElementImpl @ dart:_isolate_helper), IsolateNatives._log (MethodElementImpl @ dart:_isolate_helper), IsolateNatives.spawn (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._startWorker (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._startNonWorker (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._startIsolate (MethodElementImpl @ dart:_isolate_helper), workerId (LocalVariableElementImpl @ dart:_isolate_helper), IsolateNatives._spawnWorker (MethodElementImpl @ dart:_isolate_helper), isolate (LocalVariableElementImpl @ dart:_isolate_helper), _NativeJsSendPort.send (MethodElementImpl @ dart:_isolate_helper), _WorkerSendPort.send (MethodElementImpl @ dart:_isolate_helper), manager (LocalVariableElementImpl @ dart:_isolate_helper), RawReceivePortImpl. (ConstructorElementImpl @ dart:_isolate_helper), RawReceivePortImpl.weak (ConstructorElementImpl @ dart:_isolate_helper), RawReceivePortImpl.close (MethodElementImpl @ dart:_isolate_helper), RawReceivePortImpl.sendPort (FieldElementImpl @ dart:_isolate_helper), TimerImpl. (ConstructorElementImpl @ dart:_isolate_helper), workerId (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Deserializer.deserializeSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart), isolate (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class _Manager extends core.Object {
   get useWorkers() {
     return this.supportsWorkers;
@@ -519,6 +522,7 @@ const _updateGlobalState = Symbol('_updateGlobalState');
 const _setGlobals = Symbol('_setGlobals');
 const _addRegistration = Symbol('_addRegistration');
 const _close = Symbol('_close');
+// /* Incoming: _callInIsolate (FunctionElementImpl @ dart:_isolate_helper), result (LocalVariableElementImpl @ dart:_isolate_helper), _currentIsolate (FunctionElementImpl @ dart:_isolate_helper), rootContext (LocalVariableElementImpl @ dart:_isolate_helper), startRootIsolate (FunctionElementImpl @ dart:_isolate_helper), _Manager.currentContext (FieldElementImpl @ dart:_isolate_helper), _Manager.rootContext (FieldElementImpl @ dart:_isolate_helper), _Manager.isolates (FieldElementImpl @ dart:_isolate_helper), _Manager. (ConstructorElementImpl @ dart:_isolate_helper), _IsolateContext. (ConstructorElementImpl @ dart:_isolate_helper), _IsolateContext.setErrorsFatal (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handlePing (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handleKill (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handleUncaughtError (MethodElementImpl @ dart:_isolate_helper), old (LocalVariableElementImpl @ dart:_isolate_helper), _IsolateContext.eval (MethodElementImpl @ dart:_isolate_helper), _IsolateContext._updateGlobalState (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.kill (MethodElementImpl @ dart:_isolate_helper), _EventLoop.checkOpenReceivePortsFromCommandLine (MethodElementImpl @ dart:_isolate_helper), _IsolateEvent.isolate (FieldElementImpl @ dart:_isolate_helper), _IsolateEvent. (ConstructorElementImpl @ dart:_isolate_helper), _IsolateEvent.process (MethodElementImpl @ dart:_isolate_helper), context (LocalVariableElementImpl @ dart:_isolate_helper), IsolateNatives._processWorkerMessage (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._startNonWorker (MethodElementImpl @ dart:_isolate_helper), context (LocalVariableElementImpl @ dart:_isolate_helper), IsolateNatives.currentIsolate (FieldElementImpl @ dart:_isolate_helper), context (LocalVariableElementImpl @ dart:_isolate_helper), IsolateNatives._startIsolate (MethodElementImpl @ dart:_isolate_helper), runStartFunction (FunctionElementImpl @ dart:_isolate_helper), isolate (LocalVariableElementImpl @ dart:_isolate_helper), _NativeJsSendPort.send (MethodElementImpl @ dart:_isolate_helper), RawReceivePortImpl. (ConstructorElementImpl @ dart:_isolate_helper), RawReceivePortImpl.weak (ConstructorElementImpl @ dart:_isolate_helper), RawReceivePortImpl.close (MethodElementImpl @ dart:_isolate_helper), RawReceivePortImpl.sendPort (FieldElementImpl @ dart:_isolate_helper), TimerImpl. (ConstructorElementImpl @ dart:_isolate_helper), isolate (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Deserializer.deserializeSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart), receivePort (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class _IsolateContext extends core.Object {
   _IsolateContext() {
     this.id = (() => {
@@ -549,6 +553,74 @@ class _IsolateContext extends core.Object {
       this.isPaused = true;
     }
     this[_updateGlobalState]();
+  }
+  removePause(resume) {
+    if (!dart.notNull(this.isPaused)) return;
+    this.pauseTokens.remove(resume);
+    if (dart.notNull(this.pauseTokens.isEmpty)) {
+      while (dart.notNull(this.delayedEvents[dartx.isNotEmpty])) {
+        let event = this.delayedEvents[dartx.removeLast]();
+        exports._globalState.topEventLoop.prequeue(event);
+      }
+      this.isPaused = false;
+    }
+    this[_updateGlobalState]();
+  }
+  addDoneListener(responsePort) {
+    if (this.doneHandlers == null) {
+      this.doneHandlers = [];
+    }
+    if (dart.notNull(dart.as(dart.dsend(this.doneHandlers, 'contains', responsePort), core.bool))) return;
+    dart.dsend(this.doneHandlers, 'add', responsePort);
+  }
+  removeDoneListener(responsePort) {
+    if (this.doneHandlers == null) return;
+    dart.dsend(this.doneHandlers, 'remove', responsePort);
+  }
+  setErrorsFatal(authentification, errorsAreFatal) {
+    if (!dart.equals(this.terminateCapability, authentification)) return;
+    this.errorsAreFatal = errorsAreFatal;
+  }
+  handlePing(responsePort, pingType) {
+    if (pingType == isolate.Isolate.IMMEDIATE || pingType == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
+      responsePort.send(null);
+      return;
+    }
+    function respond() {
+      responsePort.send(null);
+    }
+    dart.fn(respond, dart.void, []);
+    if (pingType == isolate.Isolate.AS_EVENT) {
+      exports._globalState.topEventLoop.enqueue(this, respond, "ping");
+      return;
+    }
+    dart.assert(pingType == isolate.Isolate.BEFORE_NEXT_EVENT);
+    if (this[_scheduledControlEvents] == null) {
+      this[_scheduledControlEvents] = collection.Queue.new();
+    }
+    dart.dsend(this[_scheduledControlEvents], 'addLast', respond);
+  }
+  handleKill(authentification, priority) {
+    if (!dart.equals(this.terminateCapability, authentification)) return;
+    if (priority == isolate.Isolate.IMMEDIATE || priority == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
+      this.kill();
+      return;
+    }
+    if (priority == isolate.Isolate.AS_EVENT) {
+      exports._globalState.topEventLoop.enqueue(this, dart.bind(this, 'kill'), "kill");
+      return;
+    }
+    dart.assert(priority == isolate.Isolate.BEFORE_NEXT_EVENT);
+    if (this[_scheduledControlEvents] == null) {
+      this[_scheduledControlEvents] = collection.Queue.new();
+    }
+    dart.dsend(this[_scheduledControlEvents], 'addLast', dart.bind(this, 'kill'));
+  }
+  addErrorListener(port) {
+    this.errorPorts.add(port);
+  }
+  removeErrorListener(port) {
+    this.errorPorts.remove(port);
   }
   handleUncaughtError(error, stackTrace) {
     if (dart.notNull(this.errorPorts.isEmpty)) {
@@ -602,6 +674,56 @@ class _IsolateContext extends core.Object {
   [_setGlobals]() {
     _foreign_helper.JS_SET_CURRENT_ISOLATE(this.isolateStatics);
   }
+  handleControlMessage(message) {
+    switch (dart.dindex(message, 0)) {
+      case "pause":
+      {
+        this.addPause(dart.as(dart.dindex(message, 1), isolate.Capability), dart.as(dart.dindex(message, 2), isolate.Capability));
+        break;
+      }
+      case "resume":
+      {
+        this.removePause(dart.as(dart.dindex(message, 1), isolate.Capability));
+        break;
+      }
+      case 'add-ondone':
+      {
+        this.addDoneListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
+        break;
+      }
+      case 'remove-ondone':
+      {
+        this.removeDoneListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
+        break;
+      }
+      case 'set-errors-fatal':
+      {
+        this.setErrorsFatal(dart.as(dart.dindex(message, 1), isolate.Capability), dart.as(dart.dindex(message, 2), core.bool));
+        break;
+      }
+      case "ping":
+      {
+        this.handlePing(dart.as(dart.dindex(message, 1), isolate.SendPort), dart.as(dart.dindex(message, 2), core.int));
+        break;
+      }
+      case "kill":
+      {
+        this.handleKill(dart.as(dart.dindex(message, 1), isolate.Capability), dart.as(dart.dindex(message, 2), core.int));
+        break;
+      }
+      case "getErrors":
+      {
+        this.addErrorListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
+        break;
+      }
+      case "stopErrors":
+      {
+        this.removeErrorListener(dart.as(dart.dindex(message, 1), isolate.SendPort));
+        break;
+      }
+      default:
+    }
+  }
   lookup(portId) {
     return this.ports.get(portId);
   }
@@ -650,9 +772,18 @@ dart.setSignature(_IsolateContext, {
   constructors: () => ({_IsolateContext: [_IsolateContext, []]}),
   methods: () => ({
     addPause: [dart.void, [isolate.Capability, isolate.Capability]],
+    removePause: [dart.void, [isolate.Capability]],
+    addDoneListener: [dart.void, [isolate.SendPort]],
+    removeDoneListener: [dart.void, [isolate.SendPort]],
+    setErrorsFatal: [dart.void, [isolate.Capability, core.bool]],
+    handlePing: [dart.void, [isolate.SendPort, core.int]],
+    handleKill: [dart.void, [isolate.Capability, core.int]],
+    addErrorListener: [dart.void, [isolate.SendPort]],
+    removeErrorListener: [dart.void, [isolate.SendPort]],
     handleUncaughtError: [dart.void, [dart.dynamic, core.StackTrace]],
     eval: [dart.dynamic, [core.Function]],
     [_setGlobals]: [dart.void, []],
+    handleControlMessage: [dart.void, [dart.dynamic]],
     lookup: [RawReceivePortImpl, [core.int]],
     [_addRegistration]: [dart.void, [core.int, RawReceivePortImpl]],
     register: [dart.void, [core.int, RawReceivePortImpl]],
@@ -662,6 +793,7 @@ dart.setSignature(_IsolateContext, {
   })
 });
 const _runHelper = Symbol('_runHelper');
+// /* Incoming: _callInIsolate (FunctionElementImpl @ dart:_isolate_helper), enterJsAsync (FunctionElementImpl @ dart:_isolate_helper), leaveJsAsync (FunctionElementImpl @ dart:_isolate_helper), startRootIsolate (FunctionElementImpl @ dart:_isolate_helper), _Manager.topEventLoop (FieldElementImpl @ dart:_isolate_helper), _Manager. (ConstructorElementImpl @ dart:_isolate_helper), _Manager.maybeCloseWorker (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.removePause (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handlePing (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.handleKill (MethodElementImpl @ dart:_isolate_helper), _EventLoop. (ConstructorElementImpl @ dart:_isolate_helper), IsolateNatives._processWorkerMessage (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._startNonWorker (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._startIsolate (MethodElementImpl @ dart:_isolate_helper), _NativeJsSendPort.send (MethodElementImpl @ dart:_isolate_helper), TimerImpl. (ConstructorElementImpl @ dart:_isolate_helper) */
 class _EventLoop extends core.Object {
   _EventLoop() {
     this.events = collection.Queue$(_IsolateEvent).new();
@@ -669,6 +801,9 @@ class _EventLoop extends core.Object {
   }
   enqueue(isolate, fn, msg) {
     this.events.addLast(new _IsolateEvent(dart.as(isolate, _IsolateContext), dart.as(fn, core.Function), dart.as(msg, core.String)));
+  }
+  prequeue(event) {
+    this.events.addFirst(event);
   }
   dequeue() {
     if (dart.notNull(this.events.isEmpty)) return null;
@@ -720,6 +855,7 @@ dart.setSignature(_EventLoop, {
   constructors: () => ({_EventLoop: [_EventLoop, []]}),
   methods: () => ({
     enqueue: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
+    prequeue: [dart.void, [_IsolateEvent]],
     dequeue: [_IsolateEvent, []],
     checkOpenReceivePortsFromCommandLine: [dart.void, []],
     runIteration: [core.bool, []],
@@ -727,6 +863,7 @@ dart.setSignature(_EventLoop, {
     run: [dart.void, []]
   })
 });
+// /* Incoming: _IsolateContext.delayedEvents (FieldElementImpl @ dart:_isolate_helper), event (LocalVariableElementImpl @ dart:_isolate_helper), _IsolateContext.removePause (MethodElementImpl @ dart:_isolate_helper), _EventLoop.events (ConstFieldElementImpl @ dart:_isolate_helper), _EventLoop.enqueue (MethodElementImpl @ dart:_isolate_helper), _EventLoop.prequeue (MethodElementImpl @ dart:_isolate_helper), _EventLoop.dequeue (MethodElementImpl @ dart:_isolate_helper), event (LocalVariableElementImpl @ dart:_isolate_helper), _EventLoop.runIteration (MethodElementImpl @ dart:_isolate_helper), _IsolateEvent. (ConstructorElementImpl @ dart:_isolate_helper), _IsolateEvent.process (MethodElementImpl @ dart:_isolate_helper) */
 class _IsolateEvent extends core.Object {
   _IsolateEvent(isolate, fn, message) {
     this.isolate = isolate;
@@ -746,6 +883,7 @@ dart.setSignature(_IsolateEvent, {
   methods: () => ({process: [dart.void, []]})
 });
 const _global = typeof global == 'undefined' ? self : global;
+// /* Incoming: _Manager.mainManager (FieldElementImpl @ dart:_isolate_helper), _Manager. (ConstructorElementImpl @ dart:_isolate_helper), function (LocalVariableElementImpl @ dart:_isolate_helper), _Manager.maybeCloseWorker (MethodElementImpl @ dart:_isolate_helper), _EventLoop.run (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._processWorkerMessage (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._log (MethodElementImpl @ dart:_isolate_helper), IsolateNatives._startWorker (MethodElementImpl @ dart:_isolate_helper), _WorkerSendPort.send (MethodElementImpl @ dart:_isolate_helper) */
 class _MainManagerStub extends core.Object {
   postMessage(msg) {
     _global.postMessage(msg);
@@ -770,6 +908,7 @@ dart.copyProperties(exports, {
 const _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));
 const _MainFunctionArgs = dart.typedef('_MainFunctionArgs', () => dart.functionType(dart.dynamic, [dart.dynamic]));
 const _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+// /* Incoming: Isolate.spawn (MethodElementImpl @ dart:isolate), Isolate.spawnUri (MethodElementImpl @ dart:isolate), Isolate._currentIsolateCache (ConstFieldElementImpl @ dart:isolate), _Manager._nativeDetectEnvironment (MethodElementImpl @ dart:_isolate_helper), function (LocalVariableElementImpl @ dart:_isolate_helper), IsolateNatives.spawnFunction (MethodElementImpl @ dart:_isolate_helper), IsolateNatives.spawnUri (MethodElementImpl @ dart:_isolate_helper), name (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart), result (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class IsolateNatives extends core.Object {
   static computeThisScript() {
     let currentScript = document.currentScript;
@@ -907,16 +1046,6 @@ class IsolateNatives extends core.Object {
   static _getJSFunctionName(f) {
     return dart.as(f.$name, core.String);
   }
-  static spawnFunction(topLevelFunction, message, startPaused) {
-    IsolateNatives.enableSpawnWorker = true;
-    let name = IsolateNatives._getJSFunctionName(topLevelFunction);
-    if (name == null) {
-      dart.throw(new core.UnsupportedError("only top-level functions can be spawned."));
-    }
-    let isLight = false;
-    let isSpawnUri = false;
-    return IsolateNatives.spawn(name, null, null, message, isLight, isSpawnUri, startPaused);
-  }
   static spawn(functionName, uri, args, message, isLight, isSpawnUri, startPaused) {
     if (uri != null && dart.notNull(uri[dartx.endsWith](".dart"))) {
       uri = dart.notNull(uri) + ".js";
@@ -1030,7 +1159,6 @@ dart.setSignature(IsolateNatives, {
     _consoleLog: [dart.void, [dart.dynamic]],
     _getJSFunctionFromName: [dart.dynamic, [core.String]],
     _getJSFunctionName: [core.String, [core.Function]],
-    spawnFunction: [async.Future$(core.List), [dart.functionType(dart.void, [dart.dynamic]), dart.dynamic, core.bool]],
     spawn: [async.Future$(core.List), [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, core.bool]],
     _startWorker: [dart.void, [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
     _startNonWorker: [dart.void, [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort]],
@@ -1038,7 +1166,7 @@ dart.setSignature(IsolateNatives, {
     _spawnWorker: [dart.void, [dart.dynamic, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
     workerOnError: [core.bool, [dart.dynamic, core.String, dart.functionType(dart.void, [core.String])]]
   }),
-  names: ['computeThisScript', 'computeThisScriptJsshell', 'computeThisScriptD8', 'computeThisScriptFromTrace', '_getEventData', '_processWorkerMessage', 'handleSpawnWorkerRequest', '_log', '_consoleLog', '_getJSFunctionFromName', '_getJSFunctionName', 'spawnFunction', 'spawn', '_startWorker', '_startNonWorker', '_startIsolate', '_spawnWorker', 'workerOnError']
+  names: ['computeThisScript', 'computeThisScriptJsshell', 'computeThisScriptD8', 'computeThisScriptFromTrace', '_getEventData', '_processWorkerMessage', 'handleSpawnWorkerRequest', '_log', '_consoleLog', '_getJSFunctionFromName', '_getJSFunctionName', 'spawn', '_startWorker', '_startNonWorker', '_startIsolate', '_spawnWorker', 'workerOnError']
 });
 IsolateNatives.enableSpawnWorker = null;
 dart.defineLazyProperties(IsolateNatives, {
@@ -1050,6 +1178,7 @@ dart.defineLazyProperties(IsolateNatives, {
     return new (core.Expando$(core.int))();
   }
 });
+// /* Incoming: _BaseSendPort. (ConstructorElementImpl @ dart:_isolate_helper), _NativeJsSendPort (ClassElementImpl @ dart:_isolate_helper), _WorkerSendPort (ClassElementImpl @ dart:_isolate_helper) */
 class _BaseSendPort extends core.Object {
   _BaseSendPort(isolateId) {
     this[_isolateId] = isolateId;
@@ -1061,6 +1190,7 @@ dart.setSignature(_BaseSendPort, {
 });
 const _isClosed = Symbol('_isClosed');
 const _add = Symbol('_add');
+// /* Incoming: _BaseSendPort._checkReplyTo (MethodElementImpl @ dart:_isolate_helper), _NativeJsSendPort. (ConstructorElementImpl @ dart:_isolate_helper), _NativeJsSendPort.== (MethodElementImpl @ dart:_isolate_helper), RawReceivePortImpl.sendPort (FieldElementImpl @ dart:_isolate_helper), _Serializer.serialize (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Serializer.serializeJsSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Deserializer.deserializeSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class _NativeJsSendPort extends _BaseSendPort {
   _NativeJsSendPort(receivePort, isolateId) {
     this[_receivePort] = receivePort;
@@ -1075,14 +1205,11 @@ class _NativeJsSendPort extends _BaseSendPort {
       isolate.handleControlMessage(msg);
       return;
     }
-    exports._globalState.topEventLoop.enqueue(isolate, dart.fn((() => {
+    exports._globalState.topEventLoop.enqueue(isolate, dart.fn(() => {
       if (!dart.notNull(this[_receivePort][_isClosed])) {
         this[_receivePort][_add](msg);
       }
-    }).bind(this)), `receive ${message}`);
-  }
-  get hashCode() {
-    return this[_receivePort][_id];
+    }), `receive ${message}`);
   }
 }
 _NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
@@ -1090,6 +1217,7 @@ dart.setSignature(_NativeJsSendPort, {
   constructors: () => ({_NativeJsSendPort: [_NativeJsSendPort, [RawReceivePortImpl, core.int]]}),
   methods: () => ({send: [dart.void, [dart.dynamic]]})
 });
+// /* Incoming: _BaseSendPort._checkReplyTo (MethodElementImpl @ dart:_isolate_helper), _WorkerSendPort. (ConstructorElementImpl @ dart:_isolate_helper), workerMessage (LocalVariableElementImpl @ dart:_isolate_helper), _WorkerSendPort.== (MethodElementImpl @ dart:_isolate_helper), _Serializer.serialize (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Serializer.serializeWorkerSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Deserializer.deserializeSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class _WorkerSendPort extends _BaseSendPort {
   _WorkerSendPort(workerId, isolateId, receivePortId) {
     this[_workerId] = workerId;
@@ -1107,9 +1235,6 @@ class _WorkerSendPort extends _BaseSendPort {
       }
     }
   }
-  get hashCode() {
-    return dart.notNull(this[_workerId]) << 16 ^ dart.notNull(this[_isolateId]) << 8 ^ dart.notNull(this[_receivePortId]);
-  }
 }
 _WorkerSendPort[dart.implements] = () => [isolate.SendPort];
 dart.setSignature(_WorkerSendPort, {
@@ -1117,6 +1242,7 @@ dart.setSignature(_WorkerSendPort, {
   methods: () => ({send: [dart.void, [dart.dynamic]]})
 });
 const _handler = Symbol('_handler');
+// /* Incoming: RawReceivePort. (ConstructorElementImpl @ dart:isolate), _IsolateContext.ports (ConstFieldElementImpl @ dart:_isolate_helper), _IsolateContext.controlPort (ConstFieldElementImpl @ dart:_isolate_helper), _IsolateContext. (ConstructorElementImpl @ dart:_isolate_helper), _IsolateContext.lookup (MethodElementImpl @ dart:_isolate_helper), _IsolateContext._addRegistration (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.register (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.registerWeak (MethodElementImpl @ dart:_isolate_helper), port (LocalVariableElementImpl @ dart:_isolate_helper), _IsolateContext.kill (MethodElementImpl @ dart:_isolate_helper), _IsolateContext.unregister (MethodElementImpl @ dart:_isolate_helper), IsolateNatives.currentIsolate (FieldElementImpl @ dart:_isolate_helper), IsolateNatives._startIsolate (MethodElementImpl @ dart:_isolate_helper), _NativeJsSendPort._receivePort (FieldElementImpl @ dart:_isolate_helper), _NativeJsSendPort. (ConstructorElementImpl @ dart:_isolate_helper), _NativeJsSendPort.send (MethodElementImpl @ dart:_isolate_helper), _NativeJsSendPort.== (MethodElementImpl @ dart:_isolate_helper), _NativeJsSendPort.hashCode (FieldElementImpl @ dart:_isolate_helper), RawReceivePortImpl. (ConstructorElementImpl @ dart:_isolate_helper), RawReceivePortImpl.weak (ConstructorElementImpl @ dart:_isolate_helper), RawReceivePortImpl._controlPort (ConstructorElementImpl @ dart:_isolate_helper), RawReceivePortImpl.sendPort (FieldElementImpl @ dart:_isolate_helper), ReceivePortImpl. (ConstructorElementImpl @ dart:_isolate_helper), ReceivePortImpl.weak (ConstructorElementImpl @ dart:_isolate_helper), _Serializer.serializeJsSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart), receivePort (LocalVariableElementImpl @ dart:_isolate_helper/isolate_serialization.dart), _Deserializer.deserializeSendPort (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class RawReceivePortImpl extends core.Object {
   RawReceivePortImpl(handler) {
     this[_handler] = handler;
@@ -1133,18 +1259,13 @@ class RawReceivePortImpl extends core.Object {
     this[_id] = 0;
     this[_isClosed] = false;
   }
-  set handler(newHandler) {
-    this[_handler] = newHandler;
-  }
   [_close]() {
     this[_isClosed] = true;
     this[_handler] = null;
   }
-  close() {
+  [_add](dataEvent) {
     if (dart.notNull(this[_isClosed])) return;
-    this[_isClosed] = true;
-    this[_handler] = null;
-    exports._globalState.currentContext.unregister(this[_id]);
+    dart.dcall(this[_handler], dataEvent);
   }
   get sendPort() {
     return new _NativeJsSendPort(this, exports._globalState.currentContext.id);
@@ -1159,12 +1280,13 @@ dart.setSignature(RawReceivePortImpl, {
   }),
   methods: () => ({
     [_close]: [dart.void, []],
-    close: [dart.void, []]
+    [_add]: [dart.void, [dart.dynamic]]
   })
 });
 RawReceivePortImpl._nextFreeId = 1;
 const _rawPort = Symbol('_rawPort');
 const _controller = Symbol('_controller');
+// /* Incoming: ReceivePort. (ConstructorElementImpl @ dart:isolate), ReceivePort.fromRawReceivePort (ConstructorElementImpl @ dart:isolate), ReceivePortImpl. (ConstructorElementImpl @ dart:_isolate_helper), ReceivePortImpl.weak (ConstructorElementImpl @ dart:_isolate_helper), ReceivePortImpl.fromRawReceivePort (ConstructorElementImpl @ dart:_isolate_helper) */
 class ReceivePortImpl extends async.Stream {
   ReceivePortImpl() {
     this.fromRawReceivePort(new RawReceivePortImpl(null));
@@ -1176,15 +1298,9 @@ class ReceivePortImpl extends async.Stream {
     this[_controller] = async.StreamController.new({onCancel: dart.bind(this, 'close'), sync: true});
     this[_rawPort].handler = dart.bind(this[_controller], 'add');
   }
-  listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
-    return this[_controller].stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
-  }
   close() {
     this[_rawPort].close();
     this[_controller].close();
-  }
-  get sendPort() {
-    return this[_rawPort].sendPort;
   }
 }
 ReceivePortImpl[dart.implements] = () => [isolate.ReceivePort];
@@ -1194,14 +1310,12 @@ dart.setSignature(ReceivePortImpl, {
     ReceivePortImpl: [ReceivePortImpl, []],
     fromRawReceivePort: [ReceivePortImpl, [isolate.RawReceivePort]]
   }),
-  methods: () => ({
-    listen: [async.StreamSubscription, [dart.functionType(dart.void, [dart.dynamic])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
-    close: [dart.void, []]
-  })
+  methods: () => ({close: [dart.void, []]})
 });
 const _once = Symbol('_once');
 const _inEventLoop = Symbol('_inEventLoop');
 const _handle = Symbol('_handle');
+// /* Incoming: TimerImpl. (ConstructorElementImpl @ dart:_isolate_helper), TimerImpl.periodic (ConstructorElementImpl @ dart:_isolate_helper), Timer._createTimer (MethodElementImpl @ dart:async/timer.dart), Timer._createPeriodicTimer (MethodElementImpl @ dart:async/timer.dart) */
 class TimerImpl extends core.Object {
   TimerImpl(milliseconds, callback) {
     this[_once] = true;
@@ -1230,50 +1344,22 @@ class TimerImpl extends core.Object {
       dart.throw(new core.UnsupportedError("Timer greater than 0."));
     }
   }
-  cancel() {
-    if (dart.notNull(hasTimer())) {
-      if (dart.notNull(this[_inEventLoop])) {
-        dart.throw(new core.UnsupportedError("Timer in event loop cannot be canceled."));
-      }
-      if (this[_handle] == null) return;
-      leaveJsAsync();
-      if (dart.notNull(this[_once])) {
-        self.clearTimeout(this[_handle]);
-      } else {
-        self.clearInterval(this[_handle]);
-      }
-      this[_handle] = null;
-    } else {
-      dart.throw(new core.UnsupportedError("Canceling a timer."));
-    }
-  }
 }
 TimerImpl[dart.implements] = () => [async.Timer];
 dart.setSignature(TimerImpl, {
-  constructors: () => ({TimerImpl: [TimerImpl, [core.int, dart.functionType(dart.void, [])]]}),
-  methods: () => ({cancel: [dart.void, []]})
+  constructors: () => ({TimerImpl: [TimerImpl, [core.int, dart.functionType(dart.void, [])]]})
 });
 function hasTimer() {
   return self.setTimeout != null;
 }
 dart.fn(hasTimer, core.bool, []);
+// /* Incoming: Capability. (ConstructorElementImpl @ dart:isolate/capability.dart), CapabilityImpl. (ConstructorElementImpl @ dart:_isolate_helper), CapabilityImpl._internal (ConstructorElementImpl @ dart:_isolate_helper), CapabilityImpl.== (MethodElementImpl @ dart:_isolate_helper), _Serializer.serializeCapability (MethodElementImpl @ dart:_isolate_helper/isolate_serialization.dart) */
 class CapabilityImpl extends core.Object {
   CapabilityImpl() {
     this._internal(_js_helper.random64());
   }
   _internal(id) {
     this[_id] = id;
-  }
-  get hashCode() {
-    let hash = this[_id];
-    hash = dart.notNull(hash) >> 0 ^ (dart.notNull(hash) / 4294967296)[dartx.truncate]();
-    hash = ~dart.notNull(hash) + (dart.notNull(hash) << 15) & 4294967295;
-    hash = dart.notNull(hash) ^ dart.notNull(hash) >> 12;
-    hash = dart.notNull(hash) * 5 & 4294967295;
-    hash = dart.notNull(hash) ^ dart.notNull(hash) >> 4;
-    hash = dart.notNull(hash) * 2057 & 4294967295;
-    hash = dart.notNull(hash) ^ dart.notNull(hash) >> 16;
-    return hash;
   }
 }
 CapabilityImpl[dart.implements] = () => [isolate.Capability];

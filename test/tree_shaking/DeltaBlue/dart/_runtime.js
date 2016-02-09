@@ -1,9 +1,9 @@
 'use strict';
-let core = require("./core");
-let _interceptors = require("./_interceptors");
-let _js_helper = require("./_js_helper");
-let async = require("./async");
-let collection = require("./collection");
+let core = require("dart/core");
+let _interceptors = require("dart/_interceptors");
+let _js_helper = require("dart/_js_helper");
+let async = require("dart/async");
+let collection = require("dart/collection");
 function mixin(base, ...mixins) {
   class Mixin extends base {
     [base.name](...args) {
@@ -189,9 +189,12 @@ function registerExtension(jsType, dartExtType) {
     copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
     extProto = extProto.__proto__;
   }
-  let originalSigFn = getOwnPropertyDescriptor(dartExtType, _methodSig).get;
-  assert_(originalSigFn);
-  defineMemoizedGetter(jsType, _methodSig, originalSigFn);
+  let desc = getOwnPropertyDescriptor(dartExtType, _methodSig);
+  if (desc) {
+    let originalSigFn = desc.get;
+    assert_(originalSigFn);
+    defineMemoizedGetter(jsType, _methodSig, originalSigFn);
+  }
 }
 function defineExtensionMembers(type, methodNames) {
   let proto = type.prototype;
@@ -234,6 +237,8 @@ function throwAssertionError() {
 function throwNullValueError() {
   throw_(new core.NoSuchMethodError(null, new core.Symbol('<Unexpected Null Value>'), null, null, null));
 }
+const _jsIterator = Symbol("_jsIterator");
+const _current = Symbol("_current");
 function syncStar(gen, E, ...args) {
   const SyncIterable_E = getGenericClass(_js_helper.SyncIterable)(E);
   return new SyncIterable_E(gen, args);
@@ -269,9 +274,9 @@ const _AsyncStarStreamController = class _AsyncStarStreamController {
     this.canceler = null;
     this.iterator = generator(this, ...args)[Symbol.iterator]();
     this.controller = getGenericClass(async.StreamController)(T).new({
-      onListen: (() => this.scheduleGenerator()).bind(this),
-      onResume: (() => this.onResume()).bind(this),
-      onCancel: (() => this.onCancel()).bind(this)
+      onListen: () => this.scheduleGenerator(),
+      onResume: () => this.onResume(),
+      onCancel: () => this.onCancel()
     });
   }
   onResume() {
@@ -300,7 +305,7 @@ const _AsyncStarStreamController = class _AsyncStarStreamController {
       return;
     }
     this.isScheduled = true;
-    async.scheduleMicrotask((() => this.runBody()).bind(this));
+    async.scheduleMicrotask(() => this.runBody());
   }
   runBody(opt_awaitValue) {
     this.isScheduled = false;
@@ -325,8 +330,8 @@ const _AsyncStarStreamController = class _AsyncStarStreamController {
     if (!instanceOf(future, getGenericClass(async.Future))) {
       future = async.Future.value(future);
     }
-    return future.then((x => this.runBody(x)).bind(this), {
-      onError: ((e, s) => this.throwError(e, s)).bind(this)
+    return future.then(x => this.runBody(x), {
+      onError: (e, s) => this.throwError(e, s)
     });
   }
   add(event) {
@@ -339,11 +344,11 @@ const _AsyncStarStreamController = class _AsyncStarStreamController {
   addStream(stream) {
     if (!this.controller.hasListener) return true;
     this.isAdding = true;
-    this.controller.addStream(stream, {cancelOnError: false}).then((() => {
+    this.controller.addStream(stream, {cancelOnError: false}).then(() => {
       this.isAdding = false;
       this.scheduleGenerator();
-    }).bind(this), {
-      onError: ((e, s) => this.throwError(e, s)).bind(this)
+    }, {
+      onError: (e, s) => this.throwError(e, s)
     });
   }
   throwError(error, stackTrace) {
@@ -515,20 +520,26 @@ function notNull(x) {
   if (x == null) throwNullValueError();
   return x;
 }
-function map(values) {
-  let map = collection.LinkedHashMap.new();
-  if (Array.isArray(values)) {
-    for (let i = 0, end = values.length - 1; i < end; i += 2) {
-      let key = values[i];
-      let value = values[i + 1];
-      map.set(key, value);
+function map(values, K, V) {
+  if (K === void 0) K = null;
+  if (V === void 0) V = null;
+  return (() => {
+    if (K == null) K = dynamicR;
+    if (V == null) V = dynamicR;
+    let map = getGenericClass(collection.LinkedHashMap)(K, V).new();
+    if (Array.isArray(values)) {
+      for (let i = 0, end = values.length - 1; i < end; i += 2) {
+        let key = values[i];
+        let value = values[i + 1];
+        map.set(key, value);
+      }
+    } else if (typeof values === 'object') {
+      for (let key of getOwnPropertyNames(values)) {
+        map.set(key, values[key]);
+      }
     }
-  } else if (typeof values === 'object') {
-    for (let key of getOwnPropertyNames(values)) {
-      map.set(key, values[key]);
-    }
-  }
-  return map;
+    return map;
+  })();
 }
 function assert_(condition) {
   if (!condition) throwAssertionError();
@@ -721,7 +732,8 @@ function tagMemoized(value, compute) {
 const _mixins = Symbol("mixins");
 const implements_ = Symbol("implements");
 const metadata = Symbol("metadata");
-const TypeRep = class TypeRep extends LazyTagged(() => core.Type) {
+const _TypeRepBase = LazyTagged(() => core.Type);
+const TypeRep = class TypeRep extends _TypeRepBase {
   get name() {
     return this.toString();
   }

@@ -7,19 +7,19 @@ function compile_and_run() {
   local file=$1
   local name=`basename $file | sed 's/\.dart$//' | sed 's/\.html$//'`
 
-  [[ -d example/tree_shaking/$name ]] || mkdir -p example/tree_shaking/$name
+  [[ -d test/tree_shaking/$name ]] || mkdir -p test/tree_shaking/$name
 
   time \
     ./tool/build_sdk.sh \
     --modules=node \
     --tree-shaking=all \
     --destructure-named-params \
-    -o example/tree_shaking/$name \
+    -o test/tree_shaking/$name \
     $file
 
   # cp lib/runtime/{dart_library,harmony_feature_check}.js example/$name
 
-  NODE_PATH=example/tree_shaking/$name \
+  NODE_PATH=test/tree_shaking/$name \
     node \
     --harmony \
     --harmony_destructuring \

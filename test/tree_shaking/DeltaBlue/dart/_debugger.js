@@ -1,28 +1,28 @@
 'use strict';
-require("./_debugger");
-require("./html_common");
-require("./html");
-require("./_metadata");
-require("./js");
-require("./_js_mirrors");
-require("./mirrors");
-require("./convert");
-require("./_js_primitives");
-require("./_isolate_helper");
-require("./_native_typed_data");
-require("./typed_data");
-require("./isolate");
-require("./_js_helper");
-require("./_js_embedded_names");
-require("./_foreign_helper");
-require("./async");
-require("./_interceptors");
-require("./math");
-require("./_internal");
-require("./collection");
-require("./core");
-let dart = require("./_runtime");
-let core = require("./core");
+require("dart/_debugger");
+require("dart/html_common");
+require("dart/html");
+require("dart/_metadata");
+require("dart/js");
+require("dart/_js_mirrors");
+require("dart/mirrors");
+require("dart/convert");
+require("dart/_js_primitives");
+require("dart/_isolate_helper");
+require("dart/_native_typed_data");
+require("dart/typed_data");
+require("dart/isolate");
+require("dart/_js_helper");
+require("dart/_js_embedded_names");
+require("dart/_foreign_helper");
+require("dart/async");
+require("dart/_interceptors");
+require("dart/math");
+require("dart/_internal");
+require("dart/collection");
+require("dart/core");
+let dart = require("dart/_runtime");
+let core = require("dart/core");
 let dartx = dart.dartx;
 const skipDartConfig = dart.const(new core.Object());
 exports.maxIterableChildrenToDisplay = 50;
@@ -48,6 +48,7 @@ function getOwnPropertySymbols(object) {
   return Object.getOwnPropertySymbols(object);
 }
 dart.fn(getOwnPropertySymbols, core.List, [dart.dynamic]);
+// /* Incoming: JsonMLElement.addAttribute (MethodElementImpl @ dart:_debugger), ObjectFormatter._addMembers (MethodElementImpl @ dart:_debugger), base (LocalVariableElementImpl @ dart:_debugger), ClassMetadataFormatter.children (MethodElementImpl @ dart:_debugger) */
 class JSNative extends core.Object {
   static getProperty(object, name) {
     return object[name];
@@ -112,6 +113,7 @@ function hasMethod(object, name) {
 
 }
 dart.fn(hasMethod, core.bool, [dart.dynamic, core.String]);
+// /* Incoming: NameValuePair. (ConstructorElementImpl @ dart:_debugger), child (LocalVariableElementImpl @ dart:_debugger), nameSpan (LocalVariableElementImpl @ dart:_debugger), JsonMLFormatter.body (MethodElementImpl @ dart:_debugger), objectTag (LocalVariableElementImpl @ dart:_debugger), Formatter.children (MethodElementImpl @ dart:_debugger), DartFormatter.children (MethodElementImpl @ dart:_debugger), ObjectFormatter._addMembers (MethodElementImpl @ dart:_debugger), ObjectFormatter.children (MethodElementImpl @ dart:_debugger), properties (LocalVariableElementImpl @ dart:_debugger), ObjectFormatter.addMetadataChildren (MethodElementImpl @ dart:_debugger), FunctionFormatter.children (MethodElementImpl @ dart:_debugger), MapFormatter.children (MethodElementImpl @ dart:_debugger), entries (LocalVariableElementImpl @ dart:_debugger), IterableFormatter.children (MethodElementImpl @ dart:_debugger), ret (LocalVariableElementImpl @ dart:_debugger), ClassMetadataFormatter.children (MethodElementImpl @ dart:_debugger), ret (LocalVariableElementImpl @ dart:_debugger), MapEntryFormatter.children (MethodElementImpl @ dart:_debugger), HeritageClauseFormatter.children (MethodElementImpl @ dart:_debugger), ret (LocalVariableElementImpl @ dart:_debugger) */
 class NameValuePair extends core.Object {
   NameValuePair({name = null, value = null, skipDart = null} = {}) {
     this.name = name;
@@ -122,6 +124,7 @@ class NameValuePair extends core.Object {
 dart.setSignature(NameValuePair, {
   constructors: () => ({NameValuePair: [NameValuePair, [], {name: core.String, value: core.Object, skipDart: core.bool}]})
 });
+// /* Incoming: MapEntry. (ConstructorElementImpl @ dart:_debugger), entryWrapper (LocalVariableElementImpl @ dart:_debugger), MapFormatter.children (MethodElementImpl @ dart:_debugger), MapEntryFormatter.accept (MethodElementImpl @ dart:_debugger), entry (LocalVariableElementImpl @ dart:_debugger), MapEntryFormatter.preview (MethodElementImpl @ dart:_debugger) */
 class MapEntry extends core.Object {
   MapEntry({key = null, value = null} = {}) {
     this.key = key;
@@ -131,6 +134,7 @@ class MapEntry extends core.Object {
 dart.setSignature(MapEntry, {
   constructors: () => ({MapEntry: [MapEntry, [], {key: core.String, value: core.Object}]})
 });
+// /* Incoming: ClassMetadata. (ConstructorElementImpl @ dart:_debugger), ObjectFormatter.addMetadataChildren (MethodElementImpl @ dart:_debugger), ClassMetadataFormatter.accept (MethodElementImpl @ dart:_debugger), entry (LocalVariableElementImpl @ dart:_debugger), ClassMetadataFormatter.preview (MethodElementImpl @ dart:_debugger), entry (LocalVariableElementImpl @ dart:_debugger), type (LocalVariableElementImpl @ dart:_debugger), ClassMetadataFormatter.children (MethodElementImpl @ dart:_debugger), HeritageClauseFormatter.children (MethodElementImpl @ dart:_debugger) */
 class ClassMetadata extends core.Object {
   ClassMetadata(object) {
     this.object = object;
@@ -139,6 +143,7 @@ class ClassMetadata extends core.Object {
 dart.setSignature(ClassMetadata, {
   constructors: () => ({ClassMetadata: [ClassMetadata, [core.Object]]})
 });
+// /* Incoming: HeritageClause. (ConstructorElementImpl @ dart:_debugger), ClassMetadataFormatter.children (MethodElementImpl @ dart:_debugger), HeritageClauseFormatter.accept (MethodElementImpl @ dart:_debugger), clause (LocalVariableElementImpl @ dart:_debugger), typeNames (LocalVariableElementImpl @ dart:_debugger), HeritageClauseFormatter.preview (MethodElementImpl @ dart:_debugger), clause (LocalVariableElementImpl @ dart:_debugger), HeritageClauseFormatter.children (MethodElementImpl @ dart:_debugger) */
 class HeritageClause extends core.Object {
   HeritageClause(name, types) {
     this.name = name;
@@ -150,6 +155,7 @@ dart.setSignature(HeritageClause, {
 });
 const _attributes = Symbol('_attributes');
 const _jsonML = Symbol('_jsonML');
+// /* Incoming: JsonMLElement. (ConstructorElementImpl @ dart:_debugger), JsonMLElement.createChild (MethodElementImpl @ dart:_debugger), c (LocalVariableElementImpl @ dart:_debugger), JsonMLElement.createObjectTag (MethodElementImpl @ dart:_debugger), element (LocalVariableElementImpl @ dart:_debugger), JsonMLFormatter.header (MethodElementImpl @ dart:_debugger), body (LocalVariableElementImpl @ dart:_debugger), li (LocalVariableElementImpl @ dart:_debugger), nameSpan (LocalVariableElementImpl @ dart:_debugger), JsonMLFormatter.body (MethodElementImpl @ dart:_debugger), objectTag (LocalVariableElementImpl @ dart:_debugger) */
 class JsonMLElement extends core.Object {
   JsonMLElement(tagName) {
     this[_attributes] = null;
@@ -170,7 +176,7 @@ class JsonMLElement extends core.Object {
       let _ = this.createChild('object');
       _.addAttribute('object', object);
       return _;
-    }).bind(this)();
+    })();
   }
   setStyle(style) {
     dart.dput(this[_attributes], 'style', style);
@@ -206,6 +212,7 @@ dart.setSignature(JsonMLElement, {
     toJsonML: [dart.dynamic, []]
   })
 });
+// /* Incoming: _devtoolsFormatter (TopLevelVariableElementImpl @ dart:_debugger), preview (LocalVariableElementImpl @ dart:_debugger), JsonMLFormatter. (ConstructorElementImpl @ dart:_debugger), formatters (LocalVariableElementImpl @ dart:_debugger) */
 class JsonMLFormatter extends core.Object {
   JsonMLFormatter(simpleFormatter) {
     this[_simpleFormatter] = simpleFormatter;
@@ -259,8 +266,10 @@ dart.setSignature(JsonMLFormatter, {
     body: [dart.dynamic, [dart.dynamic]]
   })
 });
+// /* Incoming: DartFormatter._formatters (FieldElementImpl @ dart:_debugger), formatter (LocalVariableElementImpl @ dart:_debugger), DartFormatter.preview (MethodElementImpl @ dart:_debugger), formatter (LocalVariableElementImpl @ dart:_debugger), DartFormatter.hasChildren (MethodElementImpl @ dart:_debugger), formatter (LocalVariableElementImpl @ dart:_debugger), DartFormatter.children (MethodElementImpl @ dart:_debugger), ObjectFormatter (ClassElementImpl @ dart:_debugger), FunctionFormatter (ClassElementImpl @ dart:_debugger), MapFormatter (ClassElementImpl @ dart:_debugger), IterableFormatter (ClassElementImpl @ dart:_debugger), ClassMetadataFormatter (ClassElementImpl @ dart:_debugger), MapEntryFormatter (ClassElementImpl @ dart:_debugger), HeritageClauseFormatter (ClassElementImpl @ dart:_debugger) */
 class Formatter extends core.Object {}
 const _formatters = Symbol('_formatters');
+// /* Incoming: _devtoolsFormatter (TopLevelVariableElementImpl @ dart:_debugger), preview (LocalVariableElementImpl @ dart:_debugger), JsonMLFormatter._simpleFormatter (FieldElementImpl @ dart:_debugger), JsonMLFormatter. (ConstructorElementImpl @ dart:_debugger), c (LocalVariableElementImpl @ dart:_debugger), JsonMLFormatter.hasBody (MethodElementImpl @ dart:_debugger), children (LocalVariableElementImpl @ dart:_debugger), JsonMLFormatter.body (MethodElementImpl @ dart:_debugger), DartFormatter. (ConstructorElementImpl @ dart:_debugger) */
 class DartFormatter extends core.Object {
   DartFormatter() {
     this[_formatters] = null;
@@ -300,6 +309,7 @@ dart.setSignature(DartFormatter, {
   })
 });
 const _addMembers = Symbol('_addMembers');
+// /* Incoming: DartFormatter. (ConstructorElementImpl @ dart:_debugger), MapFormatter (ClassElementImpl @ dart:_debugger), IterableFormatter (ClassElementImpl @ dart:_debugger) */
 class ObjectFormatter extends Formatter {
   accept(object) {
     return isRegularDartObject(object);
@@ -366,6 +376,7 @@ dart.setSignature(ObjectFormatter, {
     addMetadataChildren: [dart.dynamic, [dart.dynamic, core.List$(NameValuePair)]]
   })
 });
+// /* Incoming: DartFormatter. (ConstructorElementImpl @ dart:_debugger) */
 class FunctionFormatter extends Formatter {
   accept(object) {
     if (_typeof(object) != 'function') return false;
@@ -389,6 +400,7 @@ dart.setSignature(FunctionFormatter, {
     children: [core.List$(NameValuePair), [dart.dynamic]]
   })
 });
+// /* Incoming: DartFormatter. (ConstructorElementImpl @ dart:_debugger) */
 class MapFormatter extends ObjectFormatter {
   accept(object) {
     return dart.is(object, core.Map);
@@ -412,6 +424,7 @@ class MapFormatter extends ObjectFormatter {
     return entries;
   }
 }
+// /* Incoming: DartFormatter. (ConstructorElementImpl @ dart:_debugger) */
 class IterableFormatter extends ObjectFormatter {
   accept(object) {
     return dart.is(object, core.Iterable);
@@ -446,6 +459,7 @@ class IterableFormatter extends ObjectFormatter {
   }
 }
 const _getType = Symbol('_getType');
+// /* Incoming: DartFormatter. (ConstructorElementImpl @ dart:_debugger) */
 class ClassMetadataFormatter extends core.Object {
   accept(object) {
     return dart.is(object, ClassMetadata);
@@ -490,6 +504,7 @@ dart.setSignature(ClassMetadataFormatter, {
     children: [core.List$(NameValuePair), [dart.dynamic]]
   })
 });
+// /* Incoming: DartFormatter. (ConstructorElementImpl @ dart:_debugger) */
 class MapEntryFormatter extends core.Object {
   accept(object) {
     return dart.is(object, MapEntry);
@@ -514,6 +529,7 @@ dart.setSignature(MapEntryFormatter, {
     children: [core.List$(NameValuePair), [dart.dynamic]]
   })
 });
+// /* Incoming: DartFormatter. (ConstructorElementImpl @ dart:_debugger) */
 class HeritageClauseFormatter extends core.Object {
   accept(object) {
     return dart.is(object, HeritageClause);
