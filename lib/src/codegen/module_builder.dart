@@ -134,6 +134,7 @@ class ES6ModuleBuilder extends ModuleBuilder {
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
     for (var i in _imports) {
+      if (i.name == jsPath) continue;
       var moduleName = js.string(_relativeModuleName(i.name, from: jsPath));
       // TODO(ochafik): laziness, late binding, etc, to support Closure...
       if (i.libVar == null) {
@@ -154,9 +155,9 @@ class ES6ModuleBuilder extends ModuleBuilder {
         moduleStatements
             .add(js.statement('#.# = #;', [exportsVar, exportName, name]));
       });
-      moduleStatements
-          .add(new JS.ExportDeclaration(exportsVar, isDefault: true));
     }
+    moduleStatements
+        .add(new JS.ExportDeclaration(exportsVar, isDefault: true));
     // TODO(ochafik): What to do with jsModuleValue?
     return new JS.Program(moduleStatements);
   }
