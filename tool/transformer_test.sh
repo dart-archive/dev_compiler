@@ -3,7 +3,7 @@ set -eu
 DIR=$(dirname "${BASH_SOURCE[0]}")
 
 echo "*** Testing pub serve + DDC transformer"
-pub run test test/transformer_e2e_test.dart
+pub run test --timeout 60s test/transformer_e2e_test.dart
 
 echo "*** Testing pub build + DDC transformer"
 cd test/transformer/hello_app
