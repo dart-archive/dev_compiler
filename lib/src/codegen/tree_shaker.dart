@@ -738,8 +738,8 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
           // stderr.writeln('WEAK INCOMING(${_str(e)}): ${_weakGraph.getIncoming(e)?.map(_str)}');
         }
       }
-      if (e.name == 'iterator')// && e.enclosingElement.name == '_LinkedHashSet') //e.name.contains('_ChildNodeListLazy') || e.name.contains('ListBase'))
-        printDiagnostic();
+      // if (e.name == 'iterator')// && e.enclosingElement.name == '_LinkedHashSet') //e.name.contains('_ChildNodeListLazy') || e.name.contains('ListBase'))
+      //   printDiagnostic();
 
       // isInExtensionType() {
       //   if (e is ClassMemberElement) {
@@ -820,7 +820,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
   }
 
   getTreeShakingData(Element e) =>
-      'Incoming: ${_graph.getIncoming(e).map(_str).join(', ')}';
+      'Incoming: ${(_graph.getIncoming(e) ?? []).map(_str).join(', ')}';
   String _str(Element e) {
     // if (e is PropertyAccessorElement) e = e.variable;
     var suffix = '${e.name} (${e.runtimeType} @ ${e.source?.uri})';

@@ -1340,6 +1340,14 @@ class VarCollector extends BaseVisitor {
     }
   }
 
+  void visitImportDeclaration(ImportDeclaration node) {
+    if (node.defaultBinding != null) declareVariable(node.defaultBinding);
+    for (var nameSpecifier in node.namedImports) {
+      // TODO(ochafik): Make nameSpecifier.{name, asName} Identifiers.
+    }
+    super.visitImportDeclaration(node);
+  }
+
   void visitFunctionDeclaration(FunctionDeclaration declaration) {
     // Note that we don't bother collecting the name of the function.
     collectVarsInFunction(declaration.function);

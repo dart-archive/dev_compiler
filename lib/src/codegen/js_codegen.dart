@@ -859,6 +859,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // TODO(vsm): Make this optional per #268.
     // Metadata
+    metadata = metadata
+        .where((a) {
+          return a.elementAnnotation != null &&
+              _isReachable(a.elementAnnotation.element);
+        })
+        .toList();
     if (metadata.isNotEmpty) {
       body.add(js.statement('#[dart.metadata] = () => #;', [
         name,
@@ -1963,6 +1969,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (result != null) return result;
 
     String code;
+    if (node.target is SuperExpression && options.closure) {
+      return js.call('#.bind(this)(#)', [_emitGet(node.target, node.methodName), _visit(node.argumentList)]);
+    }
     if (target == null || isLibraryPrefix(target)) {
       if (DynamicInvoke.get(node.methodName)) {
         code = 'dart.$DCALL(#, #)';
@@ -2348,6 +2357,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
       if (isPublic(fieldName)) _addExport(fieldName, exportName);
       var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
+      if (isJSTopLevel && jsInit is JS.ClassExpression) {
+          return new JS.ClassDeclaration(jsInit);
+      }
       return annotateVariable(
           js.statement(
               '$declKeyword # = #;', [new JS.Identifier(fieldName), jsInit]),

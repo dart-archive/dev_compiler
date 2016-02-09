@@ -1675,6 +1675,7 @@ class ImportDeclaration extends ModuleItem {
 
   accept(NodeVisitor visitor) => visitor.visitImportDeclaration(this);
   void visitChildren(NodeVisitor visitor) {
+    defaultBinding?.accept(visitor);
     if (namedImports != null) {
       for (NameSpecifier name in namedImports) name.accept(visitor);
     }
