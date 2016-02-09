@@ -9,7 +9,7 @@ cache:
     - $HOME/.chrome/canary
     - node_modules
 before_install:
-  - [[ -z "$ANALYZER_BRANCH" ]] || ./tool/override_analyzer_dependency.sh
+  - test -z "$ANALYZER_BRANCH" || ./tool/override_analyzer_dependency.sh
   - pub global activate dart_coveralls
   - export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
   - export DISPLAY=:99.0
