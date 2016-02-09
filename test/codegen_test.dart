@@ -67,6 +67,7 @@ main(arguments) {
   BatchCompiler createCompiler(AnalysisContext context,
       {bool checkSdk: false,
       bool sourceMaps: false,
+      bool destructureNamedParams: false,
       bool closure: false,
       ModuleFormat moduleFormat: ModuleFormat.legacy,
       TreeShakingMode treeShakingMode: TreeShakingMode.none}) {
@@ -78,6 +79,7 @@ main(arguments) {
             outputDir: expectDir,
             emitSourceMaps: sourceMaps,
             closure: closure,
+            destructureNamedParams: destructureNamedParams,
             forceCompile: checkSdk,
             treeShakingMode: treeShakingMode,
             moduleFormat: moduleFormat),
@@ -161,6 +163,7 @@ $compilerMessages''';
           var closure = filename == 'closure';
           var treeShakingMode = filename == 'tree_shaking'
               ? TreeShakingMode.all : TreeShakingMode.none;
+          var destructureNamedParams = filename == 'destructuring' || closure;
           var moduleFormat = filename == 'es6_modules'
               ? ModuleFormat.es6
               : filename == 'node_modules'
@@ -172,11 +175,12 @@ $compilerMessages''';
           // compiler.
           var compiler =
               (sourceMaps || closure || moduleFormat != ModuleFormat.legacy ||
-                  treeShakingMode != TreeShakingMode.none)
+                  destructureNamedParams || treeShakingMode != TreeShakingMode.none)
                       ? createCompiler(realSdkContext,
                           sourceMaps: sourceMaps,
                           closure: closure,
                           treeShakingMode: treeShakingMode,
+                          destructureNamedParams: destructureNamedParams,
                           moduleFormat: moduleFormat)
                       : batchCompiler;
           success = compile(compiler, filePath);
