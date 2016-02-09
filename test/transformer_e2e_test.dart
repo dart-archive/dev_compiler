@@ -23,9 +23,12 @@ main() {
           _startPubServe('test/transformer/hello_app', ['--verbose']);
 
       // Start selenium and wait for it to be ready.
+      stderr.writeln("Awaiting Selenium...");
       selenium = await _startSelenium();
+      stderr.writeln("Got Selenium!");
       var seleniumUrl = '${selenium.httpUri}/wd/hub';
 
+      stderr.writeln("Awaiting WebDriver...");
       webdriver =
           await WebDriver.createDriver(url: seleniumUrl, desiredCapabilities: {
         'browserName': 'chrome',
@@ -35,7 +38,11 @@ main() {
         // },
         'loggingPrefs': {'browser': 'ALL'}
       });
+      stderr.writeln("Got WebDriver!");
+
+      stderr.writeln("Awaiting Pub Serve...");
       pubServe = await pubServeFut;
+      stderr.writeln("Got Pub Serve!");
     });
 
     tearDown(() async {
