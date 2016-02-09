@@ -8,5 +8,3 @@ $DIR/node_test.sh
 $DIR/analyze.sh
 $DIR/format.sh
 $DIR/transformer_test.sh
-travis lint -x --skip-completion-check
-pub publish --dry-run
