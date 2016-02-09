@@ -2,7 +2,7 @@
 set -e
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
-. ./tool/overrides.sh
+. ./tool/dependency_overrides.sh
 
 checkout_dependency_override_from_github \
   analyzer \
