@@ -7,7 +7,6 @@ dart_library.library('js/js', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   dart.export(exports, js, ['allowInterop', 'allowInteropCaptureThis'], []);
-  // /* Incoming:  */
   class JS extends core.Object {
     JS(name) {
       if (name === void 0) name = null;
@@ -17,7 +16,6 @@ dart_library.library('js/js', null, /* Imports */[
   dart.setSignature(JS, {
     constructors: () => ({JS: [JS, [], [core.String]]})
   });
-  // /* Incoming:  */
   class _Anonymous extends core.Object {
     _Anonymous() {
     }

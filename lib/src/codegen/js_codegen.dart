@@ -902,12 +902,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     // TODO(vsm): Make this optional per #268.
     // Metadata
-    metadata = metadata
-        .where((a) {
-          return a.elementAnnotation != null &&
-              _isReachable(a.elementAnnotation.element);
-        })
-        .toList();
+    if (options.treeShakingMode != TreeShakingMode.none) {
+      metadata = metadata
+          .where((a) {
+            return a.elementAnnotation != null &&
+                _isReachable(a.elementAnnotation.element);
+          })
+          .toList();
+    }
     if (metadata.isNotEmpty) {
       body.add(js.statement('#[dart.metadata] = () => #;', [
         name,

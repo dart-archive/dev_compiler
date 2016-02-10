@@ -26,7 +26,6 @@ dart_library.library('sunflower/painter', null, /* Imports */[
       return dart.as(exports.canvas.getContext('2d'), dom.CanvasRenderingContext2D);
     }
   });
-  // /* Incoming:  */
   class CirclePainter extends core.Object {
     CirclePainter() {
       this.color = ORANGE;

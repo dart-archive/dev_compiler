@@ -5,7 +5,6 @@ dart_library.library('sunflower/dom', window, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
-  // /* Incoming:  */
   class Overload extends core.Object {
     Overload() {
     }
@@ -14,12 +13,10 @@ dart_library.library('sunflower/dom', window, /* Imports */[
     constructors: () => ({Overload: [Overload, []]})
   });
   const overload = dart.const(new Overload());
-  // /* Incoming:  */
   class CustomEvent extends core.Object {}
   dart.setSignature(CustomEvent, {
     constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamic, bubbles: dart.dynamic, cancelable: dart.dynamic}]})
   });
-  // /* Incoming:  */
   class HTMLCollection extends core.Object {}
   dart.setSignature(HTMLCollection, {
     methods: () => ({get: [Element, [core.num]]})
@@ -29,9 +26,7 @@ dart_library.library('sunflower/dom', window, /* Imports */[
   const CanvasElement = HTMLCanvasElement;
   const DivElement = HTMLDivElement;
   const ScriptElement = HTMLScriptElement;
-  // /* Incoming:  */
   class RenderingContext extends core.Object {}
-  // /* Incoming:  */
   class CanvasDrawingStyles extends core.Object {
     CanvasDrawingStyles() {
       this.lineWidth = null;
@@ -44,7 +39,6 @@ dart_library.library('sunflower/dom', window, /* Imports */[
       this.textBaseline = null;
     }
   }
-  // /* Incoming:  */
   class CanvasPathMethods extends core.Object {}
   // Exports:
   exports.Overload = Overload;

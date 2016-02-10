@@ -10,7 +10,6 @@ function generic_function<T>(items: core.List<T>, seed: T): core.List<T> {
 dart.fn(generic_function, () => dart.definiteFunctionType(core.List, [core.List, dart.dynamic]));
 /** @typedef */
 const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
-// /* Incoming:  */
 const Foo$ = dart.generic(function(T) {
   class Foo<T> extends core.Object {
     i: number;
@@ -84,9 +83,7 @@ const Foo$ = dart.generic(function(T) {
   return Foo;
 });
 let Foo = Foo$();
-// /* Incoming:  */
 class Bar extends core.Object {}
-// /* Incoming:  */
 const Baz$super = dart.mixin(Foo$(core.int), Bar);
 class Baz extends Baz$super {
   Baz(i: number) {
