@@ -12,6 +12,7 @@ packages
 .idea/
 .pub/
 node_modules
+dependencies/
 doc/api/
 
 # Ignore test output
