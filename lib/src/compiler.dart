@@ -522,7 +522,7 @@ final corelibOrder = [
 /// Runtime files added to all applications when running the compiler in the
 /// command line.
 final defaultRuntimeFiles = () {
-  String coreToFile(Uri uri) => uri.toString().replace(':', '/') + '.js';
+  String coreToFile(Uri uri) => uri.toString().replaceAll(':', '/') + '.js';
 
   var files = [
     'harmony_feature_check.js',
