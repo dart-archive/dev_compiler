@@ -5,6 +5,7 @@ dart_library.library('sunflower/circle', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  // /* Incoming:  */
   class Circle extends core.Object {
     Circle(x, y, radius) {
       this.x = x;

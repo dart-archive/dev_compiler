@@ -164,7 +164,7 @@ $compilerMessages''';
           var treeShakingMode = filename == 'tree_shaking'
               ? TreeShakingMode.all : TreeShakingMode.none;
           var destructureNamedParams = filename == 'destructuring' || closure;
-          var moduleFormat = filename == 'es6_modules'
+          var moduleFormat = filename == 'es6_modules' || closure
               ? ModuleFormat.es6
               : filename == 'node_modules'
                   ? ModuleFormat.node
@@ -173,16 +173,18 @@ $compilerMessages''';
           // TODO(vsm): Is it okay to reuse the same context here?  If there is
           // overlap between test files, we may need separate ones for each
           // compiler.
-          var compiler =
-              (sourceMaps || closure || moduleFormat != ModuleFormat.legacy ||
-                  destructureNamedParams || treeShakingMode != TreeShakingMode.none)
-                      ? createCompiler(realSdkContext,
-                          sourceMaps: sourceMaps,
-                          closure: closure,
-                          treeShakingMode: treeShakingMode,
-                          destructureNamedParams: destructureNamedParams,
-                          moduleFormat: moduleFormat)
-                      : batchCompiler;
+          var compiler = (sourceMaps ||
+                  closure ||
+                  destructureNamedParams ||
+                  treeShakingMode != TreeShakingMode.none ||
+                  moduleFormat != ModuleFormat.legacy)
+              ? createCompiler(realSdkContext,
+                  sourceMaps: sourceMaps,
+                  treeShakingMode: treeShakingMode,
+                  destructureNamedParams: destructureNamedParams,
+                  closure: closure,
+                  moduleFormat: moduleFormat)
+              : batchCompiler;
           success = compile(compiler, filePath);
 
           var outFile = new File(path.join(outDir.path, '$filename.js'));

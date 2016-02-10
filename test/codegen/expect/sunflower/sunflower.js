@@ -62,6 +62,7 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
     exports.notes.textContent = `${exports.seeds} seeds`;
   }
   dart.fn(draw, dart.void, []);
+  // /* Incoming:  */
   class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
     SunflowerSeed(x, y, radius, color) {
       if (color === void 0) color = null;
