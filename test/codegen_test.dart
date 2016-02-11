@@ -67,6 +67,7 @@ main(arguments) {
   BatchCompiler createCompiler(AnalysisContext context,
       {bool checkSdk: false,
       bool sourceMaps: false,
+      bool destructureNamedParams: false,
       bool closure: false,
       ModuleFormat moduleFormat: ModuleFormat.legacy}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
@@ -77,6 +78,7 @@ main(arguments) {
             outputDir: expectDir,
             emitSourceMaps: sourceMaps,
             closure: closure,
+            destructureNamedParams: destructureNamedParams,
             forceCompile: checkSdk,
             moduleFormat: moduleFormat),
         useColors: false,
@@ -103,37 +105,43 @@ $compilerMessages''';
     return !compiler.failure;
   }
 
+  var testDirs = <String>['language', path.join('lib', 'typed_data')];
+
   var multitests = new Set<String>();
   {
     // Expand wacky multitests into a bunch of test files.
     // We'll compile each one as if it was an input.
-    var languageDir = path.join(inputDir, 'language');
-    var testFiles = _findTests(languageDir, filePattern);
+    for (var testDir in testDirs) {
+      var fullDir = path.join(inputDir, testDir);
+      var testFiles = _findTests(fullDir, filePattern);
 
-    for (var filePath in testFiles) {
-      if (filePath.endsWith('_multi.dart')) continue;
+      for (var filePath in testFiles) {
+        if (filePath.endsWith('_multi.dart')) continue;
 
-      var contents = new File(filePath).readAsStringSync();
-      if (isMultiTest(contents)) {
-        multitests.add(filePath);
+        var contents = new File(filePath).readAsStringSync();
+        if (isMultiTest(contents)) {
+          multitests.add(filePath);
 
-        var tests = new Map<String, String>();
-        var outcomes = new Map<String, Set<String>>();
-        extractTestsFromMultitest(filePath, contents, tests, outcomes);
+          var tests = new Map<String, String>();
+          var outcomes = new Map<String, Set<String>>();
+          extractTestsFromMultitest(filePath, contents, tests, outcomes);
 
-        var filename = path.basenameWithoutExtension(filePath);
-        tests.forEach((name, contents) {
-          new File(path.join(languageDir, '${filename}_${name}_multi.dart'))
-              .writeAsStringSync(contents);
-        });
+          var filename = path.basenameWithoutExtension(filePath);
+          tests.forEach((name, contents) {
+            new File(path.join(fullDir, '${filename}_${name}_multi.dart'))
+                .writeAsStringSync(contents);
+          });
+        }
       }
     }
   }
 
   var batchCompiler = createCompiler(realSdkContext);
 
-  for (var dir in [null, 'language']) {
-    if (codeCoverage && dir == 'language') continue;
+  var allDirs = [null];
+  allDirs.addAll(testDirs);
+  for (var dir in allDirs) {
+    if (codeCoverage && dir != null) continue;
 
     group('dartdevc ' + path.join('test', 'codegen', dir), () {
       var outDir = new Directory(path.join(expectDir, dir));
@@ -151,7 +159,8 @@ $compilerMessages''';
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
-          var moduleFormat = filename == 'es6_modules'
+          var destructureNamedParams = filename == 'destructuring' || closure;
+          var moduleFormat = filename == 'es6_modules' || closure
               ? ModuleFormat.es6
               : filename == 'node_modules'
                   ? ModuleFormat.node
@@ -160,13 +169,16 @@ $compilerMessages''';
           // TODO(vsm): Is it okay to reuse the same context here?  If there is
           // overlap between test files, we may need separate ones for each
           // compiler.
-          var compiler =
-              (sourceMaps || closure || moduleFormat != ModuleFormat.legacy)
-                  ? createCompiler(realSdkContext,
-                      sourceMaps: sourceMaps,
-                      closure: closure,
-                      moduleFormat: moduleFormat)
-                  : batchCompiler;
+          var compiler = (sourceMaps ||
+                  closure ||
+                  destructureNamedParams ||
+                  moduleFormat != ModuleFormat.legacy)
+              ? createCompiler(realSdkContext,
+                  sourceMaps: sourceMaps,
+                  destructureNamedParams: destructureNamedParams,
+                  closure: closure,
+                  moduleFormat: moduleFormat)
+              : batchCompiler;
           success = compile(compiler, filePath);
 
           var outFile = new File(path.join(outDir.path, '$filename.js'));

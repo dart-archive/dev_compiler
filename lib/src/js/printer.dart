@@ -9,6 +9,7 @@ class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
+  final bool shouldEmitTypes;
   final bool allowSingleLineIfStatements;
 
   /// True to allow keywords in properties, such as `obj.var` or `obj.function`
@@ -19,6 +20,7 @@ class JavaScriptPrintingOptions {
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
+       this.shouldEmitTypes: false,
        this.allowKeywordsInProperties: false,
        this.allowSingleLineIfStatements: false});
 }
@@ -51,8 +53,9 @@ class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
   String getText() => buffer.toString();
 }
 
-
-class Printer implements NodeVisitor {
+// TODO(ochafik): Inline the body of [TypeScriptTypePrinter] here if/when it no
+// longer needs to share utils with [ClosureTypePrinter].
+class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   final JavaScriptPrintingOptions options;
   final JavaScriptPrintingContext context;
   final bool shouldCompressOutput;
@@ -541,12 +544,14 @@ class Printer implements NodeVisitor {
                             newInForInit: false, newAtStatementBegin: false);
     }
     localNamer.enterScope(fun);
+    outTypeParams(fun.typeParams);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
                           newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
+    outTypeAnnotation(fun.returnType);
     switch (fun.asyncModifier) {
       case const AsyncModifier.sync():
         break;
@@ -601,8 +606,11 @@ class Printer implements NodeVisitor {
 
   visitVariableDeclarationList(VariableDeclarationList list) {
     outClosureAnnotation(list);
-    out(list.keyword);
-    out(" ");
+    // Note: keyword can be null for non-static field declarations.
+    if (list.keyword != null) {
+      out(list.keyword);
+      out(" ");
+    }
     visitCommaSeparated(list.declarations, ASSIGNMENT,
                         newInForInit: inForInit, newAtStatementBegin: false);
   }
@@ -621,8 +629,17 @@ class Printer implements NodeVisitor {
   }
 
   visitDestructuredVariable(DestructuredVariable node) {
-    var hasName = node.name != null;
-    if (hasName) visit(node.name);
+    var name = node.name;
+    var hasName = name != null;
+    if (hasName) {
+      if (name is LiteralString) {
+        out("[");
+        out(name.value);
+        out("]");
+      } else {
+        visit(name);
+      }
+    }
     if (node.structure != null) {
       if (hasName) {
         out(":");
@@ -630,6 +647,7 @@ class Printer implements NodeVisitor {
       }
       visit(node.structure);
     }
+    outTypeAnnotation(node.type);
     if (node.defaultValue != null) {
       spaceOut();
       out("=");
@@ -637,6 +655,10 @@ class Printer implements NodeVisitor {
       visitNestedExpression(node.defaultValue, EXPRESSION,
                             newInForInit: false, newAtStatementBegin: false);
     }
+  }
+
+  visitSimpleBindingPattern(SimpleBindingPattern node) {
+    visit(node.name);
   }
 
   visitAssignment(Assignment assignment) {
@@ -856,6 +878,7 @@ class Printer implements NodeVisitor {
 
   visitIdentifier(Identifier node) {
     out(localNamer.getName(node));
+    outTypeAnnotation(node.type);
   }
 
   visitRestParameter(RestParameter node) {
@@ -921,7 +944,8 @@ class Printer implements NodeVisitor {
 
   visitArrowFun(ArrowFun fun) {
     localNamer.enterScope(fun);
-    if (fun.params.length == 1) {
+    if (fun.params.length == 1 &&
+        (fun.params.single.type == null || !options.shouldEmitTypes)) {
       visitNestedExpression(fun.params.single, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
     } else {
@@ -930,6 +954,7 @@ class Printer implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
       out(")");
     }
+    outTypeAnnotation(fun.returnType);
     spaceOut();
     out("=>");
     if (fun.body is Expression) {
@@ -1068,9 +1093,23 @@ class Printer implements NodeVisitor {
     lineOut();
   }
 
+  void outTypeParams(Iterable<Identifier> typeParams) {
+    if (typeParams != null && options.shouldEmitTypes && typeParams.isNotEmpty) {
+      out("<");
+      var first = true;
+      for (var typeParam in typeParams) {
+        if (!first) out(", ");
+        first = false;
+        visit(typeParam);
+      }
+      out(">");
+    }
+  }
+
   visitClassExpression(ClassExpression node) {
     out('class ');
     visit(node.name);
+    outTypeParams(node.typeParams);
     if (node.heritage != null) {
       out(' extends ');
       visit(node.heritage);
@@ -1080,6 +1119,14 @@ class Printer implements NodeVisitor {
       out('{');
       lineOut();
       indentMore();
+      if (options.shouldEmitTypes && node.fields != null) {
+        for (var field in node.fields) {
+          indent();
+          visit(field);
+          out(";");
+          lineOut();
+        }
+      }
       for (var method in node.methods) {
         indent();
         visit(method);
@@ -1310,6 +1357,18 @@ class Printer implements NodeVisitor {
   void visitAwait(Await node) {
     out("await ");
     visit(node.expression);
+  }
+
+  void outTypeAnnotation(TypeRef node) {
+    if (node == null || !options.shouldEmitTypes || node.isUnknown) return;
+
+    if (node is OptionalTypeRef) {
+      out("?: ");
+      visit(node.type);
+    } else {
+      out(": ");
+      visit(node);
+    }
   }
 }
 
@@ -1585,13 +1644,23 @@ abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
 
   _scanVariableBinding(VariableBinding d) {
     if (d is Identifier) declare(d);
-    if (d is RestParameter) _scanVariableBinding(d.parameter);
-    else if (d is BindingPattern) {
-      for (var v in d.variables) {
-        if (v.name != null) declare(v.name);
-        if (v.structure != null) _scanVariableBinding(v.structure);
-      }
-    }
+    else d.accept(this);
+  }
+
+  visitRestParameter(RestParameter node) {
+    _scanVariableBinding(node.parameter);
+    super.visitRestParameter(node);
+  }
+
+  visitDestructuredVariable(DestructuredVariable node) {
+    var name = node.name;
+    if (name is Identifier) _scanVariableBinding(name);
+    super.visitDestructuredVariable(node);
+  }
+
+  visitSimpleBindingPattern(SimpleBindingPattern node) {
+    _scanVariableBinding(node.name);
+    super.visitSimpleBindingPattern(node);
   }
 
   visitVariableInitialization(VariableInitialization node) {

@@ -827,6 +827,33 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitExportClause(ExportClause node) =>
       throw new UnimplementedError();
 
+  Instantiator visitAnyTypeRef(AnyTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitUnknownTypeRef(UnknownTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitArrayTypeRef(ArrayTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitFunctionTypeRef(FunctionTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitGenericTypeRef(GenericTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitQualifiedTypeRef(QualifiedTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitOptionalTypeRef(OptionalTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitRecordTypeRef(RecordTypeRef node) =>
+      throw new UnimplementedError();
+
+  Instantiator visitUnionTypeRef(UnionTypeRef node) =>
+      throw new UnimplementedError();
+
   @override
   Instantiator visitDestructuredVariable(DestructuredVariable node) {
     Instantiator makeName = visit(node.name);
@@ -857,6 +884,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           makeVars.map((m) => m(arguments)).toList());
     };
   }
+
+  @override
+  Instantiator visitSimpleBindingPattern(SimpleBindingPattern node) =>
+      (arguments) => new SimpleBindingPattern(new Identifier(node.name.name));
 }
 
 /**
