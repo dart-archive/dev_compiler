@@ -2,8 +2,10 @@
 set -eu
 DIR=$(dirname "${BASH_SOURCE[0]}")
 
-echo "*** Testing pub serve + DDC transformer"
-pub run test --timeout 120s test/transformer_e2e_test.dart
+if [[ "$TRAVIS" != "true" ]]; then
+  echo "*** Testing pub serve + DDC transformer"
+  pub run test --timeout 120s test/transformer_e2e_test.dart
+fi
 
 echo "*** Testing pub build + DDC transformer"
 cd test/transformer/hello_app
