@@ -78,6 +78,8 @@ class CodegenOptions {
   /// Enable ES6 destructuring of named parameters.
   final bool destructureNamedParams;
 
+  /// Pass type arguments to generic classes.
+  /// Is is required by the Dart semantic: disabling it is experimental.
   final bool reifyGenericClassTypeArgs;
 
   /// Which module format to support.
