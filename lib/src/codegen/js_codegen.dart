@@ -1820,18 +1820,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       var parts = _emitFunctionTypeParts(type as FunctionType);
       return js.call('dart.functionType(#)', [parts]);
     }
-    // For now, reify generic method parameters as dynamic
-    bool _isReifiedGenericTypeParameter(DartType type) {
-      if (type is TypeParameterType &&
-          type.element.enclosingElement is TypeDefiningElement) {
-        return options.reifyGenericClassTypeArgs;
+    bool _isErasedTypeParameter(DartType type) {
+      if (type is! TypeParameterType) return false;
+
+      var enclosing = type.element.enclosingElement;
+      if (enclosing is ClassElement || enclosing is FunctionTypeAliasElement) {
+        return !options.reifyGenericClassTypeArgs;
       }
-      return false;
+      // For now, reify generic method parameters as dynamic
+      return true;
     }
 
-    if (type is TypeParameterType && !_isReifiedGenericTypeParameter(type)) {
+    if (_isErasedTypeParameter(type)) {
       return _emitTypeName(
-          type.element.bound ?? types.dynamicType,
+          (type as TypeParameterType).element.bound ?? types.dynamicType,
           lowerTypedef: lowerTypedef, lowerGeneric: lowerGeneric);
     }
 
@@ -1844,8 +1846,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       var isCurrentClass =
           args.isNotEmpty && _loader.isCurrentElement(type.element);
       Iterable jsArgs = null;
-      if (args.any((a) => a != types.dynamicType &&
-          _isReifiedGenericTypeParameter(a))) {
+      if (args.any((a) => !a.isDynamic && !_isErasedTypeParameter(a))) {
         jsArgs = args.map(_emitTypeName);
       } else if (lowerGeneric || isCurrentClass) {
         // When creating a `new S<dynamic>` we try and use the raw form
