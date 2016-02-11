@@ -341,7 +341,8 @@ final ArgParser argParser = new ArgParser()
       help: 'Destructure named parameters (requires ES6-enabled runtime)',
       defaultsTo: _DESTRUCTURE_NAMED_PARAMS_DEFAULT)
   ..addFlag('reify-generic-class-type-args',
-      help: 'Whether to pass generic type params to generic classes. Required by Dart semantics.',
+      help:
+          'Whether to pass generic type params to generic classes. Required by Dart semantics.',
       // Turning this off breaks Dart semantics / is very experimental.
       hide: true,
       defaultsTo: _REIFY_GENERIC_CLASS_TYPE_ARGS_DEFAULT)

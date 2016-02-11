@@ -1298,7 +1298,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       // TODO(jmesserly): various problems here, see:
       // https://github.com/dart-lang/dev_compiler/issues/161
       var paramType = param.element.type;
-      if (!constructor && _hasUnsoundTypeParameter(paramType) &&
+      if (!constructor &&
+          _hasUnsoundTypeParameter(paramType) &&
           options.reifyGenericClassTypeArgs) {
         body.add(js
             .statement('dart.as(#, #);', [jsParam, _emitTypeName(paramType)]));
@@ -1834,7 +1835,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (_isErasedTypeParameter(type)) {
       return _emitTypeName(
           (type as TypeParameterType).element.bound ?? types.dynamicType,
-          lowerTypedef: lowerTypedef, lowerGeneric: lowerGeneric);
+          lowerTypedef: lowerTypedef,
+          lowerGeneric: lowerGeneric);
     }
 
     if (type is TypeParameterType) {
