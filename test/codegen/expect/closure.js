@@ -73,14 +73,43 @@ Foo.some_static_constant = "abc";
 Foo.some_static_final = "abc";
 /** @type {string} */
 Foo.some_static_var = "abc";
-class FooOwner<T> extends core.Object {
+class GenericWithBound<T> extends core.Object {
   foo: T;
-  FooOwner(foo: T) {
+  GenericWithBound(foo: T) {
     this.foo = foo;
   }
+  makeList1() {
+    return dart.list([], Foo);
+  }
+  makeList2() {
+    return core.List.new();
+  }
 }
-dart.setSignature(FooOwner, {
-  constructors: () => ({FooOwner: [FooOwner, [Foo]]})
+dart.setSignature(GenericWithBound, {
+  constructors: () => ({GenericWithBound: [GenericWithBound, [Foo]]}),
+  methods: () => ({
+    makeList1: [dart.dynamic, []],
+    makeList2: [dart.dynamic, []]
+  })
+});
+class GenericWithoutBound<T> extends core.Object {
+  foo: T;
+  GenericWithoutBound(foo: T) {
+    this.foo = foo;
+  }
+  makeList1() {
+    return dart.list([], dart.dynamic);
+  }
+  makeList2() {
+    return core.List.new();
+  }
+}
+dart.setSignature(GenericWithoutBound, {
+  constructors: () => ({GenericWithoutBound: [GenericWithoutBound, [dart.dynamic]]}),
+  methods: () => ({
+    makeList1: [dart.dynamic, []],
+    makeList2: [dart.dynamic, []]
+  })
 });
 class Bar extends core.Object {}
 const Baz$super = dart.mixin(Foo, Bar);
@@ -106,8 +135,10 @@ exports.generic_function = generic_function;
 exports.Callback = Callback;
 exports.Foo$ = Foo$;
 exports.Foo = Foo;
-exports.FooOwner$ = FooOwner$;
-exports.FooOwner = FooOwner;
+exports.GenericWithBound$ = GenericWithBound$;
+exports.GenericWithBound = GenericWithBound;
+exports.GenericWithoutBound$ = GenericWithoutBound$;
+exports.GenericWithoutBound = GenericWithoutBound;
 exports.Bar = Bar;
 exports.Baz = Baz;
 exports.main = main;
