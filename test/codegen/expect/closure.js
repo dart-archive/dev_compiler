@@ -14,11 +14,11 @@ class Foo<T> extends core.Object {
   i: number;
   b: boolean;
   s: string;
-  v;
+  v: T;
   static some_static_constant: string;
   static some_static_final: string;
   static some_static_var: string;
-  Foo(i: number, v) {
+  Foo(i: number, v: T) {
     this.i = i;
     this.v = v;
     this.b = null;
@@ -28,7 +28,7 @@ class Foo<T> extends core.Object {
     return new Foo(1, null);
   }
   untyped_method(a, b) {}
-  pass(t) {
+  pass(t: T) {
     return t;
   }
   typed_method(foo: Foo<any>, list: core.List<any>, i: number, n: number, d: number, b: boolean, s: string, a: any[], o: Object, f: Function) {
@@ -74,8 +74,8 @@ Foo.some_static_final = "abc";
 /** @type {string} */
 Foo.some_static_var = "abc";
 class FooOwner<T> extends core.Object {
-  foo: Foo<number>;
-  FooOwner(foo: Foo<number>) {
+  foo: T;
+  FooOwner(foo: T) {
     this.foo = foo;
   }
 }
