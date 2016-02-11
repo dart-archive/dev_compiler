@@ -575,7 +575,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     if (isPublic(name)) _addExport(name);
 
-    if (genericDef != null) {
+    if (genericDef != null && options.reifyGenericClassTypeArgs) {
       var dynType = fillDynamicTypeArgs(type, types);
       var genericInst = _emitTypeName(dynType, lowerGeneric: true);
       return js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
@@ -588,6 +588,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var genericName = '$name\$';
     var typeParams = _typeFormalsOf(type).map((p) => p.name);
     if (isPublic(name)) _addExport(genericName);
+    if (!options.reifyGenericClassTypeArgs) return body;
     return js.statement('const # = dart.generic(function(#) { #; return #; });',
         [genericName, typeParams, body, name]);
   }
@@ -1297,7 +1298,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       // TODO(jmesserly): various problems here, see:
       // https://github.com/dart-lang/dev_compiler/issues/161
       var paramType = param.element.type;
-      if (!constructor && _hasUnsoundTypeParameter(paramType)) {
+      if (!constructor && _hasUnsoundTypeParameter(paramType) &&
+          options.reifyGenericClassTypeArgs) {
         body.add(js
             .statement('dart.as(#, #);', [jsParam, _emitTypeName(paramType)]));
       }
@@ -1846,7 +1848,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         // because `S` refers to the current S<T> we are generating.
         jsArgs = [];
       }
-      if (jsArgs != null) {
+      if (jsArgs != null && options.reifyGenericClassTypeArgs) {
         var genericName = _emitTopLevelName(element, suffix: '\$');
         return js.call('#(#)', [genericName, jsArgs]);
       }

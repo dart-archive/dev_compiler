@@ -52,6 +52,11 @@ class Foo<T> {
   static String some_static_var = "abc";
 }
 
+class FooOwner<T extends Foo<int>> {
+  T foo;
+  FooOwner(this.foo);
+}
+
 class Bar {}
 
 class Baz extends Foo<int> with Bar {

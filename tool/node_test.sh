@@ -7,6 +7,7 @@ output_dir=`mktemp -d /tmp/ddc_node_test.XXXXXX`
 
 ddc_options=(
   --destructure-named-params
+  --no-reify-generic-class-type-args
   --modules=node
   -o $output_dir
 )

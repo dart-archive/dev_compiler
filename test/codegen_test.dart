@@ -79,6 +79,7 @@ main(arguments) {
             emitSourceMaps: sourceMaps,
             closure: closure,
             destructureNamedParams: destructureNamedParams,
+            reifyGenericClassTypeArgs: !closure,
             forceCompile: checkSdk,
             moduleFormat: moduleFormat),
         useColors: false,

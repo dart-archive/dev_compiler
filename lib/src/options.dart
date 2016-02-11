@@ -17,6 +17,7 @@ import 'utils.dart' show parseEnum, getEnumName;
 const String _V8_BINARY_DEFAULT = 'node';
 const bool _CLOSURE_DEFAULT = false;
 const bool _DESTRUCTURE_NAMED_PARAMS_DEFAULT = false;
+const bool _REIFY_GENERIC_CLASS_TYPE_ARGS_DEFAULT = true;
 
 /// Options used to set up Source URI resolution in the analysis context.
 class SourceResolverOptions {
@@ -77,6 +78,8 @@ class CodegenOptions {
   /// Enable ES6 destructuring of named parameters.
   final bool destructureNamedParams;
 
+  final bool reifyGenericClassTypeArgs;
+
   /// Which module format to support.
   /// Currently 'es6' and 'legacy' are supported.
   final ModuleFormat moduleFormat;
@@ -86,6 +89,7 @@ class CodegenOptions {
       this.forceCompile: false,
       this.closure: _CLOSURE_DEFAULT,
       this.destructureNamedParams: _DESTRUCTURE_NAMED_PARAMS_DEFAULT,
+      this.reifyGenericClassTypeArgs: _REIFY_GENERIC_CLASS_TYPE_ARGS_DEFAULT,
       this.outputDir,
       this.moduleFormat: ModuleFormat.legacy});
 }
@@ -234,6 +238,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           forceCompile: args['force-compile'] || serverMode,
           closure: args['closure'],
           destructureNamedParams: args['destructure-named-params'],
+          reifyGenericClassTypeArgs: args['reify-generic-class-type-args'],
           outputDir: outputDir,
           moduleFormat: parseModuleFormat(args['modules'])),
       sourceOptions: new SourceResolverOptions(
@@ -333,6 +338,11 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('destructure-named-params',
       help: 'Destructure named parameters (requires ES6-enabled runtime)',
       defaultsTo: _DESTRUCTURE_NAMED_PARAMS_DEFAULT)
+  ..addFlag('reify-generic-class-type-args',
+      help: 'Whether to pass generic type params to generic classes. Required by Dart semantics.',
+      // Turning this off breaks Dart semantics / is very experimental.
+      hide: true,
+      defaultsTo: _REIFY_GENERIC_CLASS_TYPE_ARGS_DEFAULT)
   ..addFlag('force-compile',
       abbr: 'f', help: 'Compile code with static errors', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level (defaults to warning)')

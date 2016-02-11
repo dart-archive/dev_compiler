@@ -44,7 +44,13 @@ abstract class JsTypeRefCodegen {
       if (type == types.boolType) return new JS.TypeRef.boolean().orNull();
       if (type == types.stringType) return new JS.TypeRef.string();
 
-      if (type is TypeParameterType) return new JS.TypeRef.named(type.name);
+      if (type is TypeParameterType) {
+        if (!options.reifyGenericClassTypeArgs &&
+            type.element.enclosingElement is ClassElement) {
+          return emitTypeRef(type.element.bound ?? types.dynamicType);
+        }
+        return new JS.TypeRef.named(type.name);
+      }
       if (type is ParameterizedType) {
         JS.TypeRef rawType;
         if (type is FunctionType && type.name == null) {
