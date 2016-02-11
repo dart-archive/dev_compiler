@@ -287,9 +287,9 @@ registerExtension(jsType, dartExtType) => JS('', '''(() => {
     $copyTheseProperties(jsProto, extProto, $getOwnPropertySymbols(extProto));
     extProto = extProto.__proto__;
   }
-  let desc = $getOwnPropertyDescriptor($dartExtType, $_methodSig);
-  if (desc) {
-    let originalSigFn = desc.get;
+  let methodSig = $getOwnPropertyDescriptor($dartExtType, $_methodSig);
+  if (methodSig) {
+    let originalSigFn = methodSig.get;
     $assert_(originalSigFn);
     $defineMemoizedGetter($jsType, $_methodSig, originalSigFn);
   }
@@ -326,14 +326,17 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
   // annotations) any time we copy a method as part of our metaprogramming.
   // It might be more friendly to JS metaprogramming if we include this info
   // on the function.
-  let originalSigFn = $getOwnPropertyDescriptor($type, $_methodSig).get;
-  $defineMemoizedGetter(type, $_methodSig, function() {
-    let sig = originalSigFn();
-    for (let name of $methodNames) {
-      sig[$getExtensionSymbol(name)] = sig[name];
-    }
-    return sig;
-  });
+  let methodSig = $getOwnPropertyDescriptor($type, $_methodSig);
+  if (methodSig) {
+    let originalSigFn = methodSig.get;
+    $defineMemoizedGetter(type, $_methodSig, function() {
+      let sig = originalSigFn();
+      for (let name of $methodNames) {
+        sig[$getExtensionSymbol(name)] = sig[name];
+      }
+      return sig;
+    });
+  }
 })()''');
 
 canonicalMember(obj, name) => JS('', '''(() => {
