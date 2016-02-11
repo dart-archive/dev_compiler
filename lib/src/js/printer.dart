@@ -878,12 +878,20 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitIdentifier(Identifier node) {
     out(localNamer.getName(node));
+  }
+
+  visitParameter(Parameter node) {
+    if (node.isRest) out('...');
+    visit(node.binding);
     outTypeAnnotation(node.type);
   }
 
-  visitRestParameter(RestParameter node) {
-    out('...');
-    visitIdentifier(node.parameter);
+  visitTypeParameter(TypeParameter node) {
+    visit(node.name);
+    if (node.bound != null && options.shouldEmitTypes) {
+      out(" extends ");
+      visit(node.bound);
+    }
   }
 
   bool isDigit(int charCode) {
@@ -944,10 +952,11 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitArrowFun(ArrowFun fun) {
     localNamer.enterScope(fun);
-    if (fun.params.length == 1 &&
+    if (fun.params.length == 1 && fun.params.single.binding is Expression &&
         (fun.params.single.type == null || !options.shouldEmitTypes)) {
-      visitNestedExpression(fun.params.single, SPREAD,
-          newInForInit: false, newAtStatementBegin: false);
+      visit(fun.params.single.binding);
+      // visitNestedExpression(fun.params.single, SPREAD,
+      //     newInForInit: false, newAtStatementBegin: false);
     } else {
       out("(");
       visitCommaSeparated(fun.params, SPREAD,
@@ -1093,7 +1102,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     lineOut();
   }
 
-  void outTypeParams(Iterable<Identifier> typeParams) {
+  void outTypeParams(Iterable<TypeParameter> typeParams) {
     if (typeParams != null && options.shouldEmitTypes && typeParams.isNotEmpty) {
       out("<");
       var first = true;
@@ -1391,7 +1400,18 @@ class VarCollector extends BaseVisitor {
       nested = true;
       if (fun.params != null) {
         for (var param in fun.params) {
-          params.add(param.name);
+          collectBinding(Node node) {
+            if (node is Identifier) {
+              // TODO(ochafik): collect destructured
+              params.add(node.name);
+            } else if (node is DestructuredVariable) {
+              collectBinding(node.name);
+              collectBinding(node.structure);
+            } else if (node is BindingPattern) {
+              node.variables.forEach(collectBinding);
+            }
+          }
+          collectBinding(param.binding);
         }
       }
       fun.body.accept(this);
@@ -1647,9 +1667,9 @@ abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
     else d.accept(this);
   }
 
-  visitRestParameter(RestParameter node) {
-    _scanVariableBinding(node.parameter);
-    super.visitRestParameter(node);
+  visitParameter(Parameter node) {
+    _scanVariableBinding(node);
+    super.visitParameter(node);
   }
 
   visitDestructuredVariable(DestructuredVariable node) {

@@ -232,7 +232,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
       Parameter toIdentifier(item) {
         if (item is Parameter) return item;
-        if (item is String) return new Identifier(item);
+        if (item is String) return new Parameter(new Identifier(item));
         return error('Interpolated value #$nameOrPosition is not an Identifier'
             ' or List of Identifiers: $value');
       }
@@ -627,6 +627,21 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitThis(This node) => (arguments) => new This();
   Instantiator visitSuper(Super node) => (arguments) => new Super();
 
+  Instantiator visitParameter(Parameter node) {
+    Instantiator makeBinding = visit(node.binding);
+    Instantiator makeType = visit(node.type);
+    var isRest = node.isRest;
+    return (arguments) => new Parameter(
+        makeBinding(arguments), type: makeType(arguments), isRest: isRest);
+  }
+
+  Instantiator visitTypeParameter(TypeParameter node) {
+    Instantiator makeName = visit(node.name);
+    Instantiator makeBound = visit(node.bound);
+    return (arguments) =>
+        new TypeParameter(makeName(arguments), bound: makeBound(arguments));
+  }
+
   Instantiator visitIdentifier(Identifier node) =>
       (arguments) => new Identifier(node.name);
 
@@ -636,9 +651,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitYield(Yield node) =>
       (args) => new Yield(node.value != null ? visit(node.value)(args) : null,
           star: node.star);
-
-  Instantiator visitRestParameter(RestParameter node) =>
-      (args) => new RestParameter(visit(node.parameter)(args));
 
   Instantiator visitAccess(PropertyAccess node) {
     Instantiator makeReceiver = visit(node.receiver);

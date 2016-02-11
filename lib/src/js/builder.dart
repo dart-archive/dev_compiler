@@ -840,7 +840,7 @@ class MiniJsParser {
       return parseArrowFunctionBody(<Parameter>[]);
     }
     if (acceptCategory(ELLIPSIS)) {
-      var params = <Parameter>[new RestParameter(parseParameter())];
+      var params = <Parameter>[parseParameter(isRest: true)];
       expectCategory(RPAREN);
       expectCategory(ARROW);
       return parseArrowFunctionBody(params);
@@ -850,7 +850,7 @@ class MiniJsParser {
       if (acceptCategory(ELLIPSIS)) {
         var params = <Parameter>[];
         _expressionToParameterList(expression, params);
-        params.add(new RestParameter(parseParameter()));
+        params.add(parseParameter(isRest: true));
         expectCategory(RPAREN);
         expectCategory(ARROW);
         return parseArrowFunctionBody(params);
@@ -873,7 +873,7 @@ class MiniJsParser {
    */
   void _expressionToParameterList(Expression node, List<Parameter> params) {
     if (node is Identifier) {
-      params.add(node);
+      params.add(new Parameter(node));
     } else if (node is Binary && node.op == ',') {
       // TODO(jmesserly): this will allow illegal parens, such as
       // `((a, b), (c, d))`. Fixing it on the left side needs an explicit
@@ -915,7 +915,7 @@ class MiniJsParser {
     if (!acceptCategory(RPAREN)) {
       for (;;) {
         if (acceptCategory(ELLIPSIS)) {
-          params.add(new RestParameter(parseParameter()));
+          params.add(parseParameter(isRest: true));
           expectCategory(RPAREN);
           break;
         }
@@ -946,7 +946,7 @@ class MiniJsParser {
   }
 
   /** Parse parameter name or interpolated parameter. */
-  Identifier parseParameter() {
+  Parameter parseParameter({bool isRest: false}) {
     if (acceptCategory(HASH)) {
       var nameOrPosition = parseHash();
       var parameter = new InterpolatedParameter(nameOrPosition);
@@ -956,7 +956,7 @@ class MiniJsParser {
       // TODO(jmesserly): validate this is not a keyword
       String argumentName = lastToken;
       expectCategory(ALPHA);
-      return new Identifier(argumentName);
+      return new Parameter(new Identifier(argumentName), isRest: isRest);
     }
   }
 

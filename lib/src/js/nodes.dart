@@ -47,7 +47,6 @@ abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
   T visitThis(This node);
   T visitSuper(Super node);
   T visitAccess(PropertyAccess node);
-  T visitRestParameter(RestParameter node);
 
   T visitNamedFunction(NamedFunction node);
   T visitFun(Fun node);
@@ -88,6 +87,9 @@ abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
   T visitInterpolatedStatement(InterpolatedStatement node);
   T visitInterpolatedMethod(InterpolatedMethod node);
   T visitInterpolatedIdentifier(InterpolatedIdentifier node);
+
+  T visitParameter(Parameter node);
+  T visitTypeParameter(TypeParameter node);
 
   T visitArrayBindingPattern(ArrayBindingPattern node);
   T visitObjectBindingPattern(ObjectBindingPattern node);
@@ -171,8 +173,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitThis(This node) => visitExpression(node);
   T visitSuper(Super node) => visitExpression(node);
 
-  T visitRestParameter(RestParameter node) => visitNode(node);
-
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
   T visitFunctionExpression(FunctionExpression node) => visitExpression(node);
   T visitFun(Fun node) => visitFunctionExpression(node);
@@ -227,6 +227,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
   T visitAwait(Await node) => visitExpression(node);
   T visitDartYield(DartYield node) => visitStatement(node);
+
+  T visitParameter(Parameter node) => visitNode(node);
+  T visitTypeParameter(TypeParameter node) => visitNode(node);
 
   T visitBindingPattern(BindingPattern node) => visitNode(node);
   T visitArrayBindingPattern(ArrayBindingPattern node)
@@ -688,7 +691,7 @@ class DartYield extends Statement {
   DartYield _clone() => new DartYield(expression, hasStar);
 }
 
-abstract class Expression extends Node {
+abstract class Expression extends Node implements LValue {
   Expression();
 
   factory Expression.binary(List<Expression> exprs, String op) {
@@ -761,8 +764,10 @@ class VariableDeclarationList extends Expression {
   int get precedenceLevel => EXPRESSION;
 }
 
+abstract class LValue implements Node {}
+
 class Assignment extends Expression {
-  final Expression leftHandSide;
+  final LValue leftHandSide;
   final String op;         // Null, if the assignment is not compound.
   final Expression value;  // May be null, for [VariableInitialization]s.
 
@@ -786,8 +791,9 @@ class Assignment extends Expression {
 }
 
 class VariableInitialization extends Assignment {
+  final TypeRef type;
   /** [value] may be null. */
-  VariableInitialization(VariableBinding declaration, Expression value)
+  VariableInitialization(VariableBinding declaration, Expression value, {this.type})
       : super(declaration, value);
 
   VariableBinding get declaration => leftHandSide;
@@ -798,16 +804,15 @@ class VariableInitialization extends Assignment {
       new VariableInitialization(declaration, value);
 }
 
-abstract class VariableBinding extends Expression {
-}
+abstract class VariableBinding implements LValue {}
 
-class DestructuredVariable extends Expression implements Parameter {
+class DestructuredVariable extends Node implements VariableBinding {
   /// [LiteralString] or [Identifier].
   final Expression name;
   final BindingPattern structure;
   final Expression defaultValue;
   final TypeRef type;
-  DestructuredVariable({this.name, this.structure, this.defaultValue, this.type}) {
+  DestructuredVariable({this.name, this.structure, this.type, this.defaultValue}) {
     assert(name != null || structure != null);
   }
 
@@ -815,11 +820,10 @@ class DestructuredVariable extends Expression implements Parameter {
   void visitChildren(NodeVisitor visitor) {
     name?.accept(visitor);
     structure?.accept(visitor);
+    type?.accept(visitor);
     defaultValue?.accept(visitor);
   }
 
-  /// Avoid parenthesis when pretty-printing.
-  @override int get precedenceLevel => PRIMARY;
   @override Node _clone() =>
       new DestructuredVariable(
           name: name, structure: structure, defaultValue: defaultValue);
@@ -1060,16 +1064,40 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-abstract class Parameter implements Expression, VariableBinding {
-  TypeRef get type;
+class Parameter extends Node implements VariableBinding {
+  final VariableBinding binding;
+  final TypeRef type;
+  final Expression defaultValue;
+  final bool isRest;
+  Parameter(this.binding, {this.type, this.defaultValue, this.isRest: false});
+
+  accept(NodeVisitor visitor) => visitor.visitParameter(this);
+  void visitChildren(NodeVisitor visitor) {
+    binding?.accept(visitor);
+    defaultValue?.accept(visitor);
+    type?.accept(visitor);
+  }
+  Parameter _clone() => new Parameter(binding, type: type, isRest: isRest);
 }
 
-class Identifier extends Expression implements Parameter, VariableBinding {
+class TypeParameter extends Node {
+  final Identifier name;
+  final TypeRef bound;
+  TypeParameter(this.name, {this.bound});
+
+  accept(NodeVisitor visitor) => visitor.visitTypeParameter(this);
+  void visitChildren(NodeVisitor visitor) {
+    name?.accept(visitor);
+    bound?.accept(visitor);
+  }
+  TypeParameter _clone() => new TypeParameter(name, bound: bound);
+}
+
+class Identifier extends Expression implements VariableBinding {
   final String name;
   final bool allowRename;
-  final TypeRef type;
 
-  Identifier(this.name, {this.allowRename: true, this.type}) {
+  Identifier(this.name, {this.allowRename: true}) {
     if (!_identifierRE.hasMatch(name)) {
       throw new ArgumentError.value(name, "name", "not a valid identifier");
     }
@@ -1081,21 +1109,6 @@ class Identifier extends Expression implements Parameter, VariableBinding {
   accept(NodeVisitor visitor) => visitor.visitIdentifier(this);
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
-}
-
-// This is an expression for convenience in the AST.
-class RestParameter extends Expression implements Parameter {
-  final Identifier parameter;
-  TypeRef get type => null;
-
-  RestParameter(this.parameter);
-
-  RestParameter _clone() => new RestParameter(parameter);
-  accept(NodeVisitor visitor) => visitor.visitRestParameter(this);
-  void visitChildren(NodeVisitor visitor) {
-    parameter.accept(visitor);
-  }
-  int get precedenceLevel => PRIMARY;
 }
 
 class This extends Expression {
@@ -1155,7 +1168,7 @@ abstract class FunctionExpression extends Expression {
   get body; // Expression or block
   /// Type parameters passed to this generic function, if any. `null` otherwise.
   // TODO(ochafik): Support type bounds.
-  List<Identifier> get typeParams;
+  List<TypeParameter> get typeParams;
   /// Return type of this function, if any. `null` otherwise.
   TypeRef get returnType;
 }
@@ -1163,7 +1176,7 @@ abstract class FunctionExpression extends Expression {
 class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
-  @override final List<Identifier> typeParams;
+  @override final List<TypeParameter> typeParams;
   @override final TypeRef returnType;
   /** Whether this is a JS generator (`function*`) that may contain `yield`. */
   final bool isGenerator;
@@ -1190,7 +1203,7 @@ class Fun extends FunctionExpression {
 class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
-  @override final List<Identifier> typeParams;
+  @override final List<TypeParameter> typeParams;
   @override final TypeRef returnType;
 
   ArrowFun(this.params, this.body, {this.typeParams, this.returnType});
@@ -1482,7 +1495,7 @@ class ClassExpression extends Expression {
   final List<Method> methods;
   /// Type parameters of this class, if any. `null` otherwise.
   // TODO(ochafik): Support type bounds.
-  final List<Identifier> typeParams;
+  final List<TypeParameter> typeParams;
   /// Field declarations of this class (TypeScript / ES6_TYPED).
   final List<VariableDeclarationList> fields;
 
@@ -1571,18 +1584,21 @@ class InterpolatedLiteral extends Literal with InterpolatedNode {
 }
 
 class InterpolatedParameter extends Expression with InterpolatedNode
-    implements Identifier {
+    implements Parameter {
   final nameOrPosition;
+  final bool isRest;
   TypeRef get type => null;
 
-  String get name { throw "InterpolatedParameter.name must not be invoked"; }
+  Identifier get binding { throw "InterpolatedParameter.binding must not be invoked"; }
+  Expression get defaultValue { throw "InterpolatedParameter.defaultValue must not be invoked"; }
   bool get allowRename => false;
 
-  InterpolatedParameter(this.nameOrPosition);
+  InterpolatedParameter(this.nameOrPosition, {this.isRest: false});
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedParameter(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedParameter _clone() => new InterpolatedParameter(nameOrPosition);
+  InterpolatedParameter _clone() =>
+      new InterpolatedParameter(nameOrPosition, isRest: isRest);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -1633,7 +1649,6 @@ class InterpolatedMethod extends Expression with InterpolatedNode
 class InterpolatedIdentifier extends Expression with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
-  TypeRef get type => null;
 
   InterpolatedIdentifier(this.nameOrPosition);
 

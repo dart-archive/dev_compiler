@@ -466,10 +466,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return result;
   }
 
-  Iterable<JS.Identifier> _emitTypeParams(TypeParameterizedElement e) sync* {
+  Iterable<JS.TypeParameter> _emitTypeParams(TypeParameterizedElement e) sync* {
     if (!options.closure) return;
     for (var typeParam in e.typeParameters) {
-      yield new JS.Identifier(typeParam.name);
+      yield new JS.TypeParameter(
+          new JS.Identifier(typeParam.name),
+          bound: emitTypeRef(typeParam.bound));
     }
   }
 
@@ -483,11 +485,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     makeInitialization(VariableDeclaration decl) =>
         new JS.VariableInitialization(
-            new JS.Identifier(
-                // TODO(ochafik): use a refactored _emitMemberName instead.
-                decl.name.name,
-                type: emitTypeRef(decl.element.type)),
-            null);
+            // TODO(ochafik): use a refactored _emitMemberName instead.
+            new JS.Identifier(decl.name.name),
+            null,
+            type: emitTypeRef(decl.element.type));
 
     for (var field in fields) {
       yield new JS.VariableDeclarationList(
@@ -1269,7 +1270,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
-      var jsParam = _emitSimpleIdentifier(param.identifier, allowType: false);
+      var jsParam = _visit(param.identifier);
 
       if (param.kind == ParameterKind.NAMED) {
         if (!options.destructureNamedParams) {
@@ -1336,7 +1337,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         params.isNotEmpty) {
       // []= methods need to return the value. We could also address this at
       // call sites, but it's cleaner to instead transform the operator method.
-      var returnValue = new JS.Return(params.last);
+      // TODO(ochafik): How do we ensure this is an expression and not a destructing pattern?
+      var returnValue = new JS.Return(params.last.binding as JS.Expression);
       var body = fn.body;
       if (JS.Return.foundIn(fn)) {
         // If a return is inside body, transform `(params) { body }` to
@@ -1543,7 +1545,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   JS.Fun _emitFunctionBody(List<JS.Parameter> params, FunctionBody body,
-      List<JS.Identifier> typeParams, JS.TypeRef returnType) {
+      List<JS.TypeParameter> typeParams, JS.TypeRef returnType) {
     // sync*, async, async*
     if (body.isAsynchronous || body.isGenerator) {
       return new JS.Fun(
@@ -1641,14 +1643,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     ]);
   }
 
-  @override
-  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) =>
-      _emitSimpleIdentifier(node);
-
   /// Writes a simple identifier. This can handle implicit `this` as well as
   /// going through the qualified library name if necessary.
-  JS.Expression _emitSimpleIdentifier(SimpleIdentifier node,
-      {bool allowType: false}) {
+  @override
+  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
     var accessor = node.staticElement;
     if (accessor == null) {
       return js.commentExpression(
@@ -1717,10 +1715,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
     }
 
-    return annotate(
-        new JS.Identifier(name,
-            type: allowType ? emitTypeRef(node.bestType) : null),
-        node);
+    return annotate(new JS.Identifier(name), node);
   }
 
   JS.TemporaryId _getTemp(Element key, String name) =>
@@ -2095,13 +2090,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var args = <JS.Expression>[];
     var named = <JS.Property>[];
     for (var arg in node.arguments) {
+      var jsArg = _visit(arg);
       if (arg is NamedExpression) {
-        named.add(_visit(arg));
+        named.add(jsArg);
       } else if (arg is MethodInvocation && isJsSpreadInvocation(arg)) {
-        args.add(
-            new JS.RestParameter(_visit(arg.argumentList.arguments.single)));
+        args.add(new JS.Spread(jsArg));
       } else {
-        args.add(_visit(arg));
+        args.add(jsArg);
       }
     }
     if (named.isNotEmpty) {
@@ -2156,17 +2151,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           needsOpts = true;
         }
       } else {
-        var jsParam = _visit(param);
-        result.add(
-            param is DefaultFormalParameter && options.destructureNamedParams
-                ? new JS.DestructuredVariable(
-                    name: jsParam, defaultValue: _defaultParamValue(param))
-                : jsParam);
+        var name = new JS.Identifier(param.element.name);
+        var type = emitTypeRef(param.element.type);
+        result.add(new JS.Parameter(
+            name,
+            type: type,
+            defaultValue: param is DefaultFormalParameter && options.destructureNamedParams
+                ? _defaultParamValue(param) : null));
       }
     }
 
     if (needsOpts) {
-      result.add(_namedArgTemp);
+      result.add(new JS.Parameter(_namedArgTemp));
     } else if (namedVars.isNotEmpty) {
       // Note: `var {valueOf} = {}` extracts `Object.prototype.valueOf`, so
       // in case there are conflicting names we create an object without
@@ -2174,8 +2170,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       var defaultOpts = hasNamedArgsConflictingWithObjectProperties
           ? js.call('Object.create(null)')
           : js.call('{}');
-      result.add(new JS.DestructuredVariable(
-          structure: new JS.ObjectBindingPattern(namedVars),
+      result.add(new JS.Parameter(
+          new JS.ObjectBindingPattern(namedVars),
           type: emitNamedParamsArgType(node.parameterElements),
           defaultValue: defaultOpts));
     }
@@ -2308,9 +2304,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return _emitTopLevelField(node);
     }
 
-    var name =
-        new JS.Identifier(node.name.name, type: emitTypeRef(node.element.type));
-    return new JS.VariableInitialization(name, _visitInitializer(node));
+    var name = new JS.Identifier(node.name.name);
+    return new JS.VariableInitialization(name, _visitInitializer(node),
+        type: emitTypeRef(node.element.type));
   }
 
   bool _isFinalJSDecl(AstNode field) =>
@@ -2403,9 +2399,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         annotate(
             new JS.VariableDeclarationList(declKeyword, [
               new JS.VariableInitialization(
-                  new JS.Identifier(fieldName,
-                      type: emitTypeRef(field.element.type)),
-                  jsInit)
+                  new JS.Identifier(fieldName),
+                  jsInit,
+                  type: emitTypeRef(field.element.type))
             ]),
             field,
             field.element)
@@ -2839,12 +2835,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   @override
   visitFormalParameter(FormalParameter node) => _emitFormalParameter(node);
 
-  _emitFormalParameter(FormalParameter node, {bool allowType: true}) {
-    var id = _emitSimpleIdentifier(node.identifier, allowType: allowType);
-
-    var isRestArg = findAnnotation(node.element, isJsRestAnnotation) != null;
-    return isRestArg ? new JS.RestParameter(id) : id;
-  }
+  _emitFormalParameter(FormalParameter node,
+      {bool allowType: true, bool isRest}) =>
+          new JS.Parameter(
+              _visit(node.identifier),
+              type: allowType ? emitTypeRef(node.element.type) : null,
+              isRest: isRest ??
+                  findAnnotation(node.element, isJsRestAnnotation) != null);
 
   @override
   JS.This visitThisExpression(ThisExpression node) => new JS.This();
