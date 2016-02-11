@@ -52,12 +52,12 @@ class Foo<T> extends core.Object {
 }
 dart.setSignature(Foo, {
   constructors: () => ({
-    Foo: [Foo, [core.int, T]],
+    Foo: [Foo, [core.int, dart.dynamic]],
     build: [Foo, []]
   }),
   methods: () => ({
     untyped_method: [dart.dynamic, [dart.dynamic, dart.dynamic]],
-    pass: [T, [T]],
+    pass: [dart.dynamic, [dart.dynamic]],
     typed_method: [core.String, [Foo, core.List, core.int, core.num, core.double, core.bool, core.String, js.JsArray, js.JsObject, js.JsFunction]],
     optional_params: [dart.dynamic, [dart.dynamic], [dart.dynamic, core.int]],
     nullary_method: [dart.dynamic, []],
@@ -80,7 +80,7 @@ class FooOwner<T> extends core.Object {
   }
 }
 dart.setSignature(FooOwner, {
-  constructors: () => ({FooOwner: [FooOwner, [T]]})
+  constructors: () => ({FooOwner: [FooOwner, [Foo]]})
 });
 class Bar extends core.Object {}
 const Baz$super = dart.mixin(Foo, Bar);
