@@ -39,7 +39,7 @@ main() {
       if (chromeBin != null) {
         capabilities['chromeOptions'] = {
           'binary': chromeBin,
-          'args': ['--no-sandbox', '--js-flags=--harmony'],
+          'args': ['--no-sandbox'],
         };
       }
       webdriver = await WebDriver.createDriver(
