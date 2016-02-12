@@ -31,13 +31,15 @@ main() {
       stderr.writeln("# [e2e] Awaiting WebDriver...");
       var capabilities = {
         'browserName': 'chrome',
+        "maxInstances": 1,
+        "seleniumProtocol": "WebDriver",
         'loggingPrefs': {'browser': 'ALL'}
       };
       var chromeBin = Platform.environment['CHROME_CANARY_BIN'];
       if (chromeBin != null) {
         capabilities['chromeOptions'] = {
           'binary': chromeBin,
-          // 'args': ['--js-flags=--harmony'],
+          'args': ['--no-sandbox', '--js-flags=--harmony'],
         };
       }
       webdriver = await WebDriver.createDriver(

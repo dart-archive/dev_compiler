@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eu
-DIR=$(dirname "${BASH_SOURCE[0]}")
+cd $( dirname "${BASH_SOURCE[0]}" )/..
+
+export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
 
 # if [[ "${TRAVIS:-false}" != "true" ]]; then
   echo "*** Testing pub serve + DDC transformer"
