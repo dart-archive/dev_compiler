@@ -23,12 +23,12 @@ main() {
           _startPubServe('test/transformer/hello_app', ['--verbose']);
 
       // Start selenium and wait for it to be ready.
-      stderr.writeln("Awaiting Selenium...");
+      stderr.writeln("# [e2e] Awaiting Selenium...");
       selenium = await _startSelenium();
-      stderr.writeln("Got Selenium!");
+      stderr.writeln("# [e2e] Got Selenium!");
       var seleniumUrl = '${selenium.httpUri}/wd/hub';
 
-      stderr.writeln("Awaiting WebDriver...");
+      stderr.writeln("# [e2e] Awaiting WebDriver...");
       var capabilities = {
         'browserName': 'chrome',
         'loggingPrefs': {'browser': 'ALL'}
@@ -37,16 +37,16 @@ main() {
       if (chromeBin != null) {
         capabilities['chromeOptions'] = {
           'binary': chromeBin,
-          'args': ['--js-flags=--harmony'],
+          // 'args': ['--js-flags=--harmony'],
         };
       }
       webdriver = await WebDriver.createDriver(
           url: seleniumUrl, desiredCapabilities: capabilities);
-      stderr.writeln("Got WebDriver!");
+      stderr.writeln("# [e2e] Got WebDriver!");
 
-      stderr.writeln("Awaiting Pub Serve...");
+      stderr.writeln("# [e2e] Awaiting Pub Serve...");
       pubServe = await pubServeFut;
-      stderr.writeln("Got Pub Serve!");
+      stderr.writeln("# [e2e] Got Pub Serve!");
     });
 
     tearDown(() async {
@@ -79,13 +79,15 @@ Future<ChildServerProcess> _startPubServe(String directory,
       defaultPort: 8080);
 }
 
-Future<ChildServerProcess> _startSelenium() => ChildServerProcess.build(
+const _webDriverManagerPath = './node_modules/.bin/webdriver-manager';
+Future<ChildServerProcess> _startSelenium() async {
+  var result = await Process.run(_webDriverManagerPath, ['update']);
+  if (result.exitCode != 0) {
+    throw new StateError('Webdriver update failed: ${result.stderr}');
+  }
+  return ChildServerProcess.build(
     (host, port) => Process.start(
-        'node',
-        [
-          './node_modules/.bin/webdriver-manager',
-          'start',
-          '--seleniumPort=$port'
-        ],
+        _webDriverManagerPath, ['start', '--seleniumPort=$port'],
         mode: ProcessStartMode.DETACHED_WITH_STDIO),
     defaultPort: 4444);
+}
