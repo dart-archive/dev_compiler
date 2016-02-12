@@ -4,10 +4,8 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
 
-# if [[ "${TRAVIS:-false}" != "true" ]]; then
-  echo "*** Testing pub serve + DDC transformer"
-  pub run test --timeout 120s test/transformer_e2e_test.dart
-# fi
+echo "*** Testing pub serve + DDC transformer"
+pub run test --timeout 120s test/transformer_e2e_test.dart
 
 echo "*** Testing pub build + DDC transformer"
 cd test/transformer/hello_app
