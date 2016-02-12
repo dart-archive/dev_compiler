@@ -32,10 +32,10 @@ main() {
       webdriver =
           await WebDriver.createDriver(url: seleniumUrl, desiredCapabilities: {
         'browserName': 'chrome',
-        // 'chromeOptions': {
-        //   'binary': Platform.environment['DARTIUM_BIN'],
-        //   'args': ['--js-flags=--harmony'],
-        // },
+        'chromeOptions': {
+          'binary': Platform.environment['CHROME_CANARY_BIN'],
+          //'args': ['--js-flags=--harmony'],
+        },
         'loggingPrefs': {'browser': 'ALL'}
       });
       stderr.writeln("Got WebDriver!");
