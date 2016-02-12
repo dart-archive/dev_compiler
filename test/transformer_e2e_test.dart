@@ -29,15 +29,19 @@ main() {
       var seleniumUrl = '${selenium.httpUri}/wd/hub';
 
       stderr.writeln("Awaiting WebDriver...");
-      webdriver =
-          await WebDriver.createDriver(url: seleniumUrl, desiredCapabilities: {
+      var capabilities = {
         'browserName': 'chrome',
-        'chromeOptions': {
-          'binary': Platform.environment['CHROME_CANARY_BIN'],
-          //'args': ['--js-flags=--harmony'],
-        },
         'loggingPrefs': {'browser': 'ALL'}
-      });
+      };
+      var chromeBin = Platform.environment['CHROME_CANARY_BIN'];
+      if (chromeBin != null) {
+        capabilities['chromeOptions'] = {
+          'binary': chromeBin,
+          'args': ['--js-flags=--harmony'],
+        };
+      }
+      webdriver = await WebDriver.createDriver(
+          url: seleniumUrl, desiredCapabilities: capabilities);
       stderr.writeln("Got WebDriver!");
 
       stderr.writeln("Awaiting Pub Serve...");
