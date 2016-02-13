@@ -23,6 +23,7 @@ class ChildServerProcess {
       int maxPort: 65535,
       String host: '0.0.0.0'}) async {
     var port = await _findUnusedPort(defaultPort, maxPort);
+    stderr.writeln("Found unused port $port");
     var p = (await builder(host, port))
       ..stdout.pipe(_consoleOut)
       ..stderr.pipe(_consoleOut);
@@ -36,7 +37,9 @@ class ChildServerProcess {
     var lastError;
     for (int i = 0; i < attempts; i++) {
       try {
+        stderr.writeln("Awaiting $host:$port (${i + 1} / $attempts)");
         await (await Socket.connect(host, port)).close();
+        stderr.writeln("Successfully connected to $host:$port after ${i + 1} attempts");
         return;
       } catch (e) {
         lastError = e;

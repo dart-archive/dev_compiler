@@ -5,8 +5,7 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
 
 echo "*** Testing pub serve + DDC transformer"
-# TODO(ochafik,vsm): This is breaking on travis.
-# pub run test --timeout 120s test/transformer_e2e_test.dart
+pub run test --timeout 120s test/transformer_e2e_test.dart
 
 echo "*** Testing pub build + DDC transformer"
 cd test/transformer/hello_app
