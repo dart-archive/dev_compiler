@@ -25,6 +25,6 @@
     "karma-requirejs": "^0.2.2",
     "mocha": "^2.2.4",
     "requirejs": "^2.1.17",
-    "rollup": "file:../rollup_ochafik"
+    "rollup": "^0.25.4"
   }
 }
