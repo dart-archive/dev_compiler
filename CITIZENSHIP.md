@@ -10,14 +10,15 @@ DDC supports both the legacy [dart:js](https://api.dartlang.org/stable/dart-js/d
 
 Here are some tools which we might like to be able to consume DDC's output:
 
-| Tool | Modules | Module Cycles | Type System | DDC support |
-| ---- | ------- | ------------- | ----------- | ----------- |
-| [node.js](https://nodejs.org) | node ([es6](https://github.com/ModuleLoader/es6-module-loader) with polyfill) | yes | n/a | [experimental](https://github.com/dart-lang/dev_compiler/blob/master/tool/node_test.sh) |
-| [Rollup.js](rollupjs.org) | es6 | yes | n/a | [experimental since 0.25.4](https://github.com/rollup/rollup/pull/506) |
-| [Babel](https://babeljs.io) | node, es6 | ? | Flow | ? |
-| [Closure Compiler](https://developers.google.com/closure/compiler/) | closure, es6 | no | Closure | [in progress](https://github.com/dart-lang/dev_compiler/issues/312) |
-| [Flow](https://flowtype.org) | es6 | yes | Flow | no |
-| [TypeScript](https://babeljs.io://typescriptlang.org) / Closure+ES6_TYPED | TS, es6 | yes? | TypeScript | in progress |
+| Tool | Modules | Module Cycles | Type System | [Decorators](https://github.com/wycats/javascript-decorators) | DDC support |
+| ---- | ------- | ------------- | ----------- | ---------- | ----------- |
+| [node.js](https://nodejs.org) | node ([es6](https://github.com/ModuleLoader/es6-module-loader) with polyfill) | yes | no | n/a | [experimental](https://github.com/dart-lang/dev_compiler/blob/master/tool/node_test.sh) |
+| [rollup.js](https://github.com/rollup/rollup) ([demo](https://rollupjs.org)) | es6 | yes | n/a | no | [experimental since 0.25.4](https://github.com/rollup/rollup/pull/506) |
+| [Babel](https://babeljs.io) ([demo](https://babeljs.io/repl/)) | node, es6 | ? | Flow | [yes](https://medium.com/google-developers/exploring-es7-decorators-76ecb65fb841#.wz7l9gni2) | ? |
+| [Closure Compiler](https://developers.google.com/closure/compiler/) ([demo](http://closure-compiler.appspot.com/home#code%3D%252F%252F%2520%253D%253DClosureCompiler%253D%253D%250A%252F%252F%2520%2540compilation_level%2520SIMPLE_OPTIMIZATIONS%250A%252F%252F%2520%2540language_in%253DES6%250A%252F%252F%2520%2540language_out%253DES6%250A%252F%252F%2520%253D%253D%252FClosureCompiler%253D%253D%250A%250A%252F%252F%2520ADD%2520YOUR%2520CODE%2520HERE%250Afunction%2520hello(name)%2520%257B%250A%2520%2520alert('Hello%252C%2520'%2520%252B%2520name)%253B%250A%257D%250Ahello('New%2520user')%253B%250A%250A)) | closure, es6 | no | Closure | ? | [in progress](https://github.com/dart-lang/dev_compiler/issues/312) |
+| [Flow](https://flowtype.org) ([demo](http://tryflow.org/)) | es6 | yes | Flow | ? | no |
+| [TypeScript](https://babeljs.io://typescriptlang.org) ([demo](http://www.typescriptlang.org/Playground)) | TS, es6 | yes? | TypeScript | yes | in progress |
+| [Traceur](https://github.com/google/traceur-compiler) ([demo](http://google.github.io/traceur-compiler/demo/repl.html#)) | es6 | yes? | n/a | [experimental](https://github.com/google/traceur-compiler/wiki/LanguageFeatures#annotations-experimental) | ? |
 
 ### Module formats
 
@@ -30,9 +31,9 @@ We hope to be able to default to ES6 modules when Chrome and node.js support the
 
 ### Types
 
-JavaScript does not currently support static types, but there are a few vendor-specific language extensions allow static type checks  and/or perform type-based optimizations.
+JavaScript does not currently support static types, but there are a few vendor-specific language extensions that allow static type checks and/or type-based optimizations.
 
-| Type System | Generics | Type Syntax | primitive nullable | Object nullable | `?nullable` | `!notNullable` |
+| Type System | Generics | Type Syntax | primitive nullability | Object nullability | `?nullable` | `!notNullable` |
 | ----------- | -------- | ----------- | ------------------ | --------------- | ----------- | -------------- |
 | [Dart](https://www.dartlang.org/docs/spec/) | covariant | Dart | yes | yes | `no(*)` | `no(*)` |
 | [Flow](https://flowtype.org/docs/type-annotations.html#_) | ? | TS / comment | non-nullable | non-nullable | [yes](https://flowtype.org/docs/nullable-types.html) | no |
@@ -63,3 +64,5 @@ Notes:
   - _covariant_ means `List<number>` variables accept `List<int>` values but not `Iterable<number>`.
   - _contravariant_ means `List<number>` variables accept `Iterable<number>` values but not `List<int>`.
   - _invariant_ means `List<number>` vars only accept `List<number>` values.
+
+TODO(ochafik): Decorators (ES7 / TypeScript / AtScript)
