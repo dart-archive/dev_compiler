@@ -28,7 +28,7 @@ import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../compiler.dart'
     show AbstractCompiler, corelibOrder, getCorelibModuleName;
 import '../info.dart';
-import '../options.dart' show CodegenOptions, TreeShakingMode;
+import '../options.dart' show CodegenOptions, TreeShakingMode, TypesFormat;
 import '../utils.dart';
 
 import 'code_generator.dart';
@@ -43,7 +43,6 @@ import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
 import 'tree_shaker.dart';
-import 'dart:io';
 
 part 'js_typeref_codegen.dart';
 
@@ -438,7 +437,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
         _classHeritage(classElem), _emitClassMethods(node, ctors, fields),
-        typeParams: _emitTypeParams(classElem).toList(),
+        typeParams: emitTypeParams(classElem).toList(),
         fields:
             _emitFieldDeclarations(classElem, fields, staticFields).toList());
 
@@ -474,12 +473,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return result;
   }
 
-  Iterable<JS.Identifier> _emitTypeParams(TypeParameterizedElement e) sync* {
-    if (!options.closure) return;
-    for (var typeParam in e.typeParameters) {
-      yield new JS.Identifier(typeParam.name);
-    }
-  }
+  bool get _shouldEmitFieldDeclarations =>
+    options.typesFormat == TypesFormat.typeScript;
 
   /// Emit field declarations for TypeScript & Closure's ES6_TYPED
   /// (e.g. `class Foo { i: string; }`)
@@ -487,7 +482,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       ClassElement classElem,
       List<FieldDeclaration> fields,
       List<FieldDeclaration> staticFields) sync* {
-    if (!options.closure) return;
+    if (!_shouldEmitFieldDeclarations) return;
 
     makeInitialization(VariableDeclaration decl) =>
         new JS.VariableInitialization(
@@ -1359,7 +1354,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var params = _visit(node.parameters) as List<JS.Parameter>;
     if (params == null) params = <JS.Parameter>[];
 
-    var typeParams = _emitTypeParams(node.element).toList();
+    var typeParams = emitTypeParams(node.element).toList();
     var returnType = emitTypeRef(node.element.returnType);
     JS.Fun fn = _emitFunctionBody(params, node.body, typeParams, returnType);
     if (node.operatorKeyword != null &&
@@ -1537,7 +1532,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var parent = node.parent;
     var inStmt = parent.parent is FunctionDeclarationStatement;
-    var typeParams = _emitTypeParams(node.element).toList();
+    var typeParams = emitTypeParams(node.element).toList();
     var returnType = emitTypeRef(node.element.returnType);
     if (parent is FunctionDeclaration) {
       return _emitFunctionBody(params, node.body, typeParams, returnType);
@@ -3593,7 +3588,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       e.staticType ?? DynamicTypeImpl.instance;
 
   JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
-    if (options.closure && element != null) {
+    if (options.typesFormat == TypesFormat.closure && element != null) {
       node = node.withClosureAnnotation(
           closureAnnotationFor(node, original, element, _namedArgTemp.name));
     }

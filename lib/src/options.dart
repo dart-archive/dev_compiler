@@ -64,6 +64,10 @@ ModuleFormat parseModuleFormat(String s) => parseEnum(s, ModuleFormat.values);
 enum TreeShakingMode { all, private, none }
 TreeShakingMode parseTreeShakingMode(String s) => parseEnum(s, TreeShakingMode.values);
 
+// TODO(ochafik): Add Flow (~ TypeScript + Closure-style nullable types).
+enum TypesFormat { none, closure, typeScript }
+TypesFormat parseTypesFormat(String s) => parseEnum(s, TypesFormat.values);
+
 // TODO(jmesserly): refactor all codegen options here.
 class CodegenOptions {
   /// Whether to emit the source map files.
@@ -87,6 +91,9 @@ class CodegenOptions {
 
   final TreeShakingMode treeShakingMode;
 
+  /// Format for types.
+  final TypesFormat typesFormat;
+
   final bool debug;
 
   const CodegenOptions(
@@ -96,6 +103,7 @@ class CodegenOptions {
       this.destructureNamedParams: _DESTRUCTURE_NAMED_PARAMS_DEFAULT,
       this.outputDir,
       this.treeShakingMode: TreeShakingMode.none,
+      this.typesFormat,
       this.debug: _DEBUG_DEFAULT,
       this.moduleFormat: ModuleFormat.legacy});
 }
@@ -247,6 +255,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           outputDir: outputDir,
           debug: args['debug'],
           treeShakingMode: parseTreeShakingMode(args['tree-shaking']),
+          typesFormat: parseTypesFormat(args['types']),
           moduleFormat: parseModuleFormat(args['modules'])),
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
@@ -322,6 +331,14 @@ final ArgParser argParser = new ArgParser()
             'tree-shake all unused elements'
       },
       defaultsTo: getEnumName(TreeShakingMode.none))
+  ..addOption('types',
+      help: 'Format of types (experimental)',
+      allowed: TypesFormat.values.map(getEnumName).toList(),
+      allowedHelp: {
+        getEnumName(TypesFormat.closure): "Closure",
+        getEnumName(TypesFormat.typeScript): "TypeScript / Closure's ES6_TYPED",
+      },
+      defaultsTo: getEnumName(TypesFormat.none))
   ..addOption('modules',
       help: 'Which module pattern to emit',
       allowed: ModuleFormat.values.map(getEnumName).toList(),

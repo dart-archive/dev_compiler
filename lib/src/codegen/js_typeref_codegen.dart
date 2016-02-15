@@ -29,8 +29,17 @@ abstract class JsTypeRefCodegen {
     }
   }
 
+  bool get _shouldEmitTypes => options.typesFormat == TypesFormat.typeScript;
+
+  Iterable<JS.Identifier> emitTypeParams(TypeParameterizedElement e) sync* {
+    if (!_shouldEmitTypes) return;
+    for (var typeParam in e.typeParameters) {
+      yield new JS.Identifier(typeParam.name);
+    }
+  }
+
   JS.TypeRef emitTypeRef(DartType type) {
-    if (!options.closure) return null;
+    if (!_shouldEmitTypes) return null;
 
     return _resolved.putIfAbsent(type, () {
       if (type == null) new JS.TypeRef.unknown();
@@ -77,7 +86,7 @@ abstract class JsTypeRefCodegen {
   }
 
   JS.TypeRef emitNamedParamsArgType(List<ParameterElement> params) {
-    if (!options.closure) return null;
+    if (!_shouldEmitTypes) return null;
 
     var namedArgs = <JS.Identifier, JS.TypeRef>{};
     for (ParameterElement param in params) {
