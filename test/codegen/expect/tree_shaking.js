@@ -25,7 +25,6 @@ dart_library.library('tree_shaking', null, /* Imports */[
     constructors: () => ({_Keep1: [_Keep1, [core.Function]]}),
     methods: () => ({[_keepThisUtilMember]: [dart.void, []]})
   });
-  _Keep1[dart.metadata] = () => [dart.const(new _KeepAnnotation1()), _keepAnnotation2];
   function _keep2() {
   }
   dart.fn(_keep2);
@@ -167,13 +166,9 @@ dart_library.library('tree_shaking', null, /* Imports */[
     _Sub() {
       super.kept(null);
     }
-    run() {
-      return core.print('Sub');
-    }
   }
   dart.setSignature(_Sub, {
-    constructors: () => ({_Sub: [_Sub, []]}),
-    methods: () => ({run: [dart.dynamic, []]})
+    constructors: () => ({_Sub: [_Sub, []]})
   });
   class _KeepEx extends core.Error {
     _KeepEx() {

@@ -3,23 +3,15 @@ import dart from "./dart/_runtime";
 import core from "./dart/core";
 import js from "./dart/js";
 let dartx = dart.dartx;
-function generic_function<T>(items: core.List<T>, seed: T): core.List<T> {
-  let strings = items[dartx.map](dart.fn((i: T): string => `${i}`, core.String, [dart.dynamic]))[dartx.toList]();
+function generic_function(items, seed) {
+  let strings = items[dartx.map](dart.fn(i => `${i}`, core.String, [dart.dynamic]))[dartx.toList]();
   return items;
 }
 dart.fn(generic_function, () => dart.definiteFunctionType(core.List, [core.List, dart.dynamic]));
-/** @typedef */
 const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
 const Foo$ = dart.generic(function(T) {
-  class Foo<T> extends core.Object {
-    i: number;
-    b: boolean;
-    s: string;
-    v: T;
-    static some_static_constant: string;
-    static some_static_final: string;
-    static some_static_var: string;
-    Foo(i: number, v: T) {
+  class Foo extends core.Object {
+    Foo(i, v) {
       this.i = i;
       this.v = v;
       this.b = null;
@@ -29,33 +21,33 @@ const Foo$ = dart.generic(function(T) {
       return new (Foo$(T))(1, null);
     }
     untyped_method(a, b) {}
-    pass(t: T) {
+    pass(t) {
       dart.as(t, T);
       return t;
     }
-    typed_method(foo: Foo<any>, list: core.List<any>, i: number, n: number, d: number, b: boolean, s: string, a: any[], o: Object, f: Function) {
+    typed_method(foo, list, i, n, d, b, s, a, o, f) {
       return '';
     }
-    optional_params(a, b = null, c: number = null) {}
-    static named_params(a, {b = null, c = null}: {b?: any, c?: number} = {}) {}
+    optional_params(a, b = null, c = null) {}
+    static named_params(a, {b = null, c = null} = {}) {}
     nullary_method() {}
-    function_params(f: (x: any, y?: any) => number, g: (x: any, opts?: {y?: string, z?: any}) => any, cb: Callback) {
+    function_params(f, g, cb) {
       dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
       dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
       cb({i: this.i});
     }
-    run(a: core.List<any>, b: string, c: (d: string) => core.List<any>, e: (f: (g: any) => any) => core.List<number>, {h = null}: {h?: core.Map<core.Map<any, any>, core.Map<any, any>>} = {}) {
+    run(a, b, c, e, {h = null} = {}) {
       dart.as(c, dart.functionType(core.List, [core.String]));
       dart.as(e, dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])]));
     }
     get prop() {
       return null;
     }
-    set prop(value: string) {}
+    set prop(value) {}
     static get staticProp() {
       return null;
     }
-    static set staticProp(value: string) {}
+    static set staticProp(value) {}
   }
   dart.setSignature(Foo, {
     constructors: () => ({
@@ -74,11 +66,8 @@ const Foo$ = dart.generic(function(T) {
     statics: () => ({named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: core.int}]}),
     names: ['named_params']
   });
-  /** @final {string} */
   Foo.some_static_constant = "abc";
-  /** @final {string} */
   Foo.some_static_final = "abc";
-  /** @type {string} */
   Foo.some_static_var = "abc";
   return Foo;
 });
@@ -86,21 +75,18 @@ let Foo = Foo$();
 class Bar extends core.Object {}
 const Baz$super = dart.mixin(Foo$(core.int), Bar);
 class Baz extends Baz$super {
-  Baz(i: number) {
+  Baz(i) {
     super.Foo(i, 123);
   }
 }
 dart.setSignature(Baz, {
   constructors: () => ({Baz: [Baz, [core.int]]})
 });
-function main(args): void {
+function main(args) {
 }
 dart.fn(main, dart.void, [dart.dynamic]);
-/** @final {string} */
-const some_top_level_constant: string = "abc";
-/** @final {string} */
+const some_top_level_constant = "abc";
 exports.some_top_level_final = "abc";
-/** @type {string} */
 exports.some_top_level_var = "abc";
 // Exports:
 exports.generic_function = generic_function;

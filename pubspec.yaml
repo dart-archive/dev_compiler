@@ -1,6 +1,6 @@
 name: dev_compiler
 # When updating this version, also update the version in lib/devc.dart.
-version: 0.1.17
+version: 0.1.18
 description: >
   Experimental Dart to JavaScript compiler designed to create idiomatic,
   readable JavaScript output.
@@ -33,6 +33,7 @@ dev_dependencies:
   dart_style: 0.2.2
   test: ^0.12.0
   transformer_test: ^0.1.0
+  webdriver: ^0.8.8
 
 environment:
   sdk: ">=1.12.0 <2.0.0"
