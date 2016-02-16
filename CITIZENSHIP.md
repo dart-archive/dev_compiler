@@ -58,11 +58,11 @@ Notes:
   - `!nullable` means any type `t` can be made non-nullable as `!t`.
   - In TypeScript, the `Null` type is a subtype of all types.
 
-- Generics 101:
+- Generics: suppose we have `class B extends A {}`, then:
 
-  - _bivariant_ means `List<number>` variables accept both `Iterable<number>` and `List<int>` values.
-  - _covariant_ means `List<number>` variables accept `List<int>` values but not `Iterable<number>`.
-  - _contravariant_ means `List<number>` variables accept `Iterable<number>` values but not `List<int>`.
-  - _invariant_ means `List<number>` vars only accept `List<number>` values.
+  - _bivariant_ means `List<A>` `<:` `List<B>` *and* `List<B>` `<:` `List<A>`
+  - _covariant_ means `List<B>` `<:` `List<A>` but not the other way around
+  - _contravariant_ means `List<A>` `<:` `List<B>` but not the other way around
+  - _invariant_ means Neither subtypes the other
 
 TODO(ochafik): Decorators (ES7 / TypeScript / AtScript)
