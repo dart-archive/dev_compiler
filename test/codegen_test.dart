@@ -80,6 +80,7 @@ main(arguments) {
             emitSourceMaps: sourceMaps,
             closure: closure,
             destructureNamedParams: destructureNamedParams,
+            reifyGenericClassTypeArgs: !closure,
             forceCompile: checkSdk,
             treeShakingMode: treeShakingMode,
             moduleFormat: moduleFormat),

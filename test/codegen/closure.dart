@@ -52,6 +52,20 @@ class Foo<T> {
   static String some_static_var = "abc";
 }
 
+class GenericWithBound<T extends Foo<int>> {
+  T foo;
+  GenericWithBound(this.foo);
+  makeList1() => <T>[];
+  makeList2() => new List<T>();
+}
+
+class GenericWithoutBound<T> {
+  T foo;
+  GenericWithoutBound(this.foo);
+  makeList1() => <T>[];
+  makeList2() => new List<T>();
+}
+
 class Bar {}
 
 class Baz extends Foo<int> with Bar {
