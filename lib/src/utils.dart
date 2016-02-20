@@ -494,10 +494,11 @@ class DirectedGraph<V> {
   }
 
   /// Get all the vertices reachable from the provided [roots].
-  Set<V> getTransitiveClosure(Iterable<V> roots) {
+  Set<V> getTransitiveClosure(Iterable<V> roots, [bool predicate(V element)]) {
     final reached = new Set<V>.identity();
 
     visit(V e) {
+      if (predicate != null && !predicate(e)) return;
       if (reached.add(e)) {
         var destinations = _adjacencyList[e];
         // if (e is Element && '$e'.contains('registerWeak')) {

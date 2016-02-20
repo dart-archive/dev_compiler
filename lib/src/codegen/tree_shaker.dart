@@ -36,7 +36,6 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
   final _pendingActions = <_Action>[];
   final _specialRoots = new Set<Element>.identity();
   final _graph = new DirectedGraph<Object>();
-  // final _weakGraph = new DirectedGraph<Object>();
   final AnalysisContext context;
 
   final _topLevelsByName = <String, Set<Element>>{};
@@ -149,7 +148,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
       // ) ||
       uri.startsWith('dart:_runtime') ||
       uri == 'dart:_debugger' && (debug || e.name == 'registerDevtoolsFormatter') ||
-      uri == 'dart:_isolate_helper' && e.name == 'startRootIsolate' ||
+      // uri == 'dart:_isolate_helper' && e.name == 'startRootIsolate' ||
       // uri.startsWith('dart:core') && (
       //     e.name == 'List' ||
       //     // e.name == 'Set' ||
@@ -226,7 +225,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     return e;
   }
 
-  _addEdge(AstNode node, Element from, Element to, {bool weak: false}) {
+  _addEdge(AstNode node, Element from, Element to) {
     if (from == null || to == null || from is LibraryElement) {
       var ancestor = node is Declaration ? node : node?.getAncestor((a) => a is Declaration);
       throw new ArgumentError('Invalid edge for $node ($from -> $to). Found ancestor: $ancestor (${ancestor.runtimeType}\n\t<- ${node?.parent}\n\t<- ${node?.parent?.parent}');
@@ -241,37 +240,20 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     //   try { throw new Error(); } catch (e, s) {
     //     stderr.write(s);
     //   }
-    // }
-    // _weakGraph.addEdge(from, to);
-    // if (!weak) _graph.addEdge(from, to);
 
     _graph.addEdge(from, to);
   }
 
-  _declareDep(AstNode node, Element to, [Element from, bool weak = false]) {
-    // assert(to is Element || to is _UnresolvedElement);
-
+  _declareDep(AstNode node, Element to, [Element from]) {
     from ??= _currentEnclosingElement;
-
-    // if (froms.isEmpty) throw new ArgumentError('No origin for destination $to ($node)');
-
-    // if (to is Element) {
-      from = _normalize(from);
-      to = _normalize(to);
-      // if (to.name == '_isStringElement') {
-      //   stderr.writeln("FROM: ${from} (${from.runtimeType}) to ${to} (${to.runtimeType})");
-      //   stderr.writeln("    ${from.enclosingElement}");
-      // }
+    from = _normalize(from);
+    to = _normalize(to);
+    // if (to.name == '_isStringElement') {
+    //   stderr.writeln("FROM: ${from} (${from.runtimeType}) to ${to} (${to.runtimeType})");
+    //   stderr.writeln("    ${from.enclosingElement}");
     // }
-    // if (to.name == 'weakPorts') {
-    //   stderr.writeln('FROM ${from} -> ${to}');
-    //   // stderr.writeln('node.target?.propagatedType?.element = ${node.target?.propagatedType?.element}');
-    // }
-
-    _addEdge(node, from, to, weak: weak);
+    _addEdge(node, from, to);
   }
-
-  // static ClassElement _getElement(InterfaceType type) => type.element;
 
   Iterable<ClassElement> _collectHierarchy(ClassElement e, {bool useExtensions: true}) sync* {
     if (e == null) throw new ArgumentError.notNull("e");
@@ -482,13 +464,6 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     // stderr.writeln('node.methodName.propagatedElement = ${node.methodName.propagatedElement}');
     // stderr.writeln('node.target?.propagatedType?.element = ${node.target?.propagatedType?.element}');
     var target = node.realTarget?.bestType?.element;
-    // if (target == null && node.target is ThisExpression) {
-    //   var enclosingClass = node.getAncestor((a) {
-    //     return a is ClassDeclaration || a is ClassTypeAlias;
-    //   });
-    //   target = enclosingClass.element;
-    //   stderr.writeln('$node -> ${target}');
-    // }
     _declareTargetPropertyDep(node, target, node.methodName.bestElement, node.methodName.name);
     super.visitMethodInvocation(node);
   }
@@ -507,17 +482,11 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
           // if (propertyName == 'warmup') stderr.writeln('POTENTIAL($propertyName): ${potentialTargets.map(_str)}');
           for (var potentialTarget in potentialTargets) {
             // stderr.writeln("LAZY DEP ${_str(from)} -> ${_str(potentialTarget)}");
-            _declareDep(node, potentialTarget, from, true);
+            _declareDep(node, potentialTarget, from);
           }
         });
         // _declareDep(node, new _UnresolvedElement(null, propertyName));
       }
-    } else {
-      // for (var ancestor in _collectHierarchy(target)) {
-      //   var members = _getClassMembers(ancestor);
-      //   var e = members[propertyName];
-      //   if (e != null) _declareDep(node, e);
-      // }
     }
   }
 
@@ -643,15 +612,24 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
 
     var allRoots = new Set<Element>.identity()..addAll(_specialRoots)..addAll(roots);
     var accessible = _graph.getTransitiveClosure(allRoots);
-    // Elements accessible only if their enclosing element is accessible:
-    // var weaklyAccessible = _weakGraph.getTransitiveClosure(accessible);
-    // for (var e in weaklyAccessible) {
-    //   if (e is ClassMemberElement) {
-    //     if (accessible.contains(e.enclosingElement)) {
-    //       accessible.add(e);
-    //     }
-    //   }
-    // }
+
+    refineVisibility() {
+      var accessibleClasses = accessible.where((e) => e is ClassElement).toSet();
+      var newAccessible = _graph.getTransitiveClosure(allRoots, (Element e) {
+        return e is! ClassMemberElement || accessibleClasses.contains(e.enclosingElement);
+      });
+      stderr.writeln("Old accessible = ${accessible.length}; new = ${newAccessible.length}");
+      var changed = accessible.length != newAccessible.length;
+      // for (var e in accessible) {
+      //   if (!newAccessible.contains(e)) stderr.writeln("\tNo longer accessible: ${_str(e)}");
+      // }
+      accessible = newAccessible;
+      return changed;
+    }
+    var _maxVisibilityIterations = 5;
+    for (int i = 0; i < _maxVisibilityIterations; i++) {
+      if (!refineVisibility()) break;
+    }
 
     stderr.writeln("ACCESSIBILITY: ${accessible.length} / ${_graph.vertices.length}");
 
@@ -669,12 +647,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
           stderr.writeln('FOUND PATH to ${_str(e)}:\n\t' + path.map(_str).join('\n\t -> '));
         } else {
           stderr.writeln('FOUND NO PATH ${_str(e)}');
-          // path = _weakGraph.getSomePath(allRoots, e);
-          // if (path != null) {
-          //   stderr.writeln('FOUND WEAK PATH to $e:\n\t' + path.map(_str).join(' -> '));
-          // }
           stderr.writeln('\tINCOMING(${_str(e)}): ${_graph.getIncoming(e)?.map(_str)}');
-          // stderr.writeln('WEAK INCOMING(${_str(e)}): ${_weakGraph.getIncoming(e)?.map(_str)}');
         }
       }
       // var uri = e.source.uri.toString();
@@ -712,6 +685,10 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
   String _str(Element e) {
     // if (e is PropertyAccessorElement) e = e.variable;
     var suffix = '${e.name} (${e.runtimeType} @ ${e.source?.uri})';
-    return e is ClassMemberElement ? '${e.enclosingElement.name}.$suffix' : suffix;
+    return e is ClassMemberElement
+        ? '${e.enclosingElement.name}.$suffix'
+        : e is ClassElement
+            ? 'class $suffix'
+            : suffix;
   }
 }
