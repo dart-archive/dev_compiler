@@ -3806,8 +3806,7 @@ class JSGenerator extends CodeGenerator {
     finder._addExtensionType(_types.boolType);
     finder._addExtensionType(_types.stringType);
 
-    _treeShakingVisitor = new TreeShakingVisitor(compiler.context)
-        ..registerExtensionTypes(_extensionTypes);
+    _treeShakingVisitor = new TreeShakingVisitor(compiler.context);
   }
 
   void scanLibrary(LibraryUnit unit, {bool isMain}) {
@@ -3815,12 +3814,12 @@ class JSGenerator extends CodeGenerator {
 
     unit.libraryThenParts.forEach((u) => u.accept(_treeShakingVisitor));
 
-    var isRuntime =
-        unit.library.element.source.uri.toString() == 'dart:_runtime';
-
-    if (isRuntime || isMain || _treeShakingMode == TreeShakingMode.private) {
+    if (isMain || _treeShakingMode == TreeShakingMode.private) {
       unit.libraryThenParts.forEach((u) {
         for (var d in u.declarations) {
+          if (isMain && (_treeShakingMode == TreeShakingMode.all)) {
+            if (!(d.element is FunctionElement && d.element.name == 'main')) continue;
+          }
           if (d is TopLevelVariableDeclaration) {
             d.variables.variables.forEach((v) => _addRoot(v.element));
           } else {
@@ -3838,6 +3837,7 @@ class JSGenerator extends CodeGenerator {
       for (var m in _getPublicElements(e)) {
         // stderr.writeln("ADDING ROOT: ${m.name} (${m.runtimeType})");
         if (_isReachable != null) throw new StateError("Already built isReachable, can't add any new root!");
+        // if (m is FunctionElement && m.name == 'main')
         _roots.add(m);
       }
     }

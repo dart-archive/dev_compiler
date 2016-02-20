@@ -166,9 +166,13 @@ dart_library.library('tree_shaking', null, /* Imports */[
     _Sub() {
       super.kept(null);
     }
+    run() {
+      return core.print('Sub');
+    }
   }
   dart.setSignature(_Sub, {
-    constructors: () => ({_Sub: [_Sub, []]})
+    constructors: () => ({_Sub: [_Sub, []]}),
+    methods: () => ({run: [dart.dynamic, []]})
   });
   class _KeepEx extends core.Error {
     _KeepEx() {

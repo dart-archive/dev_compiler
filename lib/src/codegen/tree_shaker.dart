@@ -36,14 +36,18 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
   final _pendingActions = <_Action>[];
   final _specialRoots = new Set<Element>.identity();
   final _graph = new DirectedGraph<Object>();
-  final _weakGraph = new DirectedGraph<Object>();
+  // final _weakGraph = new DirectedGraph<Object>();
   final AnalysisContext context;
 
   final _topLevelsByName = <String, Set<Element>>{};
   final _membersByName = <String, Set<ClassMemberElement>>{};
   final _membersByClassByName = <ClassElement, Map<String, ClassMemberElement>>{};
 
+  // final _subclasses = <ClassElement, Set<ClassElement>>{};
+
+  // IOSink _diagnosticOut;
   TreeShakingVisitor(this.context, {this.followReflection : true, this.debug : true}) {
+    // _diagnosticOut = stderr;//new File('diagnostic.txt').openWrite();
     // seedRoots();
   }
 
@@ -82,52 +86,40 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     _membersByName.putIfAbsent(name, () => new Set<ClassMemberElement>.identity()).add(e);
   }
 
-  registerExtensionTypes(Set<ClassElement> extensionTypes) {
-    for (var t in extensionTypes) {
-      _registerExtensionTypes(t);
-    }
-    // stderr.writeln('ExtensionMappings:');
-    // _extensionMembers.forEach((from, tos) {
-    //   stderr.writeln('\t${from.name}: ${tos.keys.join(", ")}');
-    // });
-  }
+  // registerExtensionTypes(Set<ClassElement> extensionTypes) {
+  //   for (var t in extensionTypes) {
+  //     _registerExtensionTypes(t);
+  //   }
+  //   // stderr.writeln('ExtensionMappings:');
+  //   // _extensionMembers.forEach((from, tos) {
+  //   //   stderr.writeln('\t${from.name}: ${tos.keys.join(", ")}');
+  //   // });
+  // }
 
-  void _registerExtensionTypes(ClassElement extensionType) {
-    var extensionMembers = _getClassMembers(extensionType);
-    extensionMembers.forEach((name, e) {
-      _foundMemberElement(name, e);
-    });
-    visitExtendedInterface(InterfaceType interfaceType) {
-      var interfaceMembers = _getClassMembers(interfaceType.element);
-      interfaceMembers.forEach((name, interfaceMember) {
-        var extensionMember = extensionMembers[name];
-        if (extensionMember != null) {
-          _addEdge(null, interfaceMember, extensionMember);
-        }
-      });
-    }
-    extensionType.interfaces.forEach(visitExtendedInterface);
-    //   if (a.isObject || a == t) return;
-    //   // stderr.writeln('Extension: $a');
-    //   var members = _extensionMembers.putIfAbsent(a.element, () => <String, ClassMemberElement>{});
-    //   addMember(Element e) {
-    //     e = _normalize(e);
-    //     members[e.name] = e;
-    //     _foundMemberElement(e.name, e);
-    //     // for (var a in _collectHierarchy(t, useExtensions: false)) {
-    //     //   if (t == a /*|| a.type.isObject*/) continue;
-    //     //   _extensionMappings.putIfAbsent(a, () => new Set<ClassElement>()).add(t);
-    //     // }
-    //   }
-    //   a.methods.forEach(addMember);
-    //   a.accessors.forEach(addMember);
-    //   a.element.allSupertypes.forEach(visit);
-    // }
-    // for (var a in _collectHierarchy(t, useExtensions: false)) {
-    //   if (t == a /*|| a.type.isObject*/) continue;
-    //   _extensionMappings.putIfAbsent(a, () => new Set<ClassElement>()).add(t);
-    // }
-  }
+  // _registerInheritance(ClassElement e) {
+  //   _registerImplementation(e, _collectHierarchy(e));
+  // }
+  //
+  // void _registerExtensionTypes(ClassElement extensionType, Iterable<ClassElement> ancestors) {
+  //   _registerImplementation(extensionType, extensionType.interfaces.map((i) => i.element));
+  // }
+
+  // void _registerImplementation(ClassElement implementationType, Iterable<ClassElement> implementedTypes) {
+  //   var implementationMembers = _getClassMembers(implementationType);
+  //   implementationMembers.forEach((name, e) {
+  //     _foundMemberElement(name, e);
+  //   });
+  //   for (ClassElement interfaceType in implementedTypes) {
+  //     var interfaceMembers = _getClassMembers(interfaceType);
+  //     interfaceMembers.forEach((name, interfaceMember) {
+  //       var extensionMember = implementationMembers[name];
+  //       if (extensionMember != null) {
+  //         _addEdge(null, interfaceMember, extensionMember);
+  //         _addEdge(null, extensionMember, interfaceMember);
+  //       }
+  //     });
+  //   }
+  // }
 
   // buildSpecialLinks() {
   //   var libraries = <String, LibraryElement>{};
@@ -149,66 +141,59 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     var uri = e.source.uri.toString();
     var res =
       // e is ClassMemberElement && (
-      e.name == 'values' ||
-      e.name == 'iterator' ||
-      e is MethodElement && e.name == 'moveNext' ||
+      // e.name == 'values' ||
+      // e.name == 'iterator' ||
+      // e is MethodElement && e.name == 'moveNext' ||
         // false
       //   e.enclosingElement.name == 'Map' && e.name == 'values'
       // ) ||
       uri.startsWith('dart:_runtime') ||
       uri == 'dart:_debugger' && (debug || e.name == 'registerDevtoolsFormatter') ||
       uri == 'dart:_isolate_helper' && e.name == 'startRootIsolate' ||
-      uri.startsWith('dart:core') && (
-          e.name == 'List' ||
-          // e.name == 'Set' ||
-          e.name == 'String' ||
-          e.name == 'Iterator' ||
-          e.name == 'Object'
-      ) ||
+      // uri.startsWith('dart:core') && (
+      //     e.name == 'List' ||
+      //     // e.name == 'Set' ||
+      //     e.name == 'String' ||
+      //     e.name == 'Iterator' ||
+      //     e.name == 'Object'
+      // ) ||
       uri.startsWith('dart:_interceptors') && (
-      //     e.name == 'JSNumber' ||
-      //     e.name == 'JSArray' ||
-      //     e.name == 'JSBool' ||
-          e is ClassMemberElement && (
-            e.enclosingElement.name == 'JSNumber' && (
-              e.name == 'floor' ||
-              e.name == 'truncate' ||
-              false
-            ) ||
+        e is ClassMemberElement && (
+          e.enclosingElement.name == 'JSNumber' && (
+            e.name == 'floor' ||
+            e.name == 'truncate' ||
             false
-          ) ||
-      //       e.enclosingElement.name == 'JSArray' && e.name == 'checkGrowable'
-      //     ) ||
-          false
+          )
+        )
       ) ||
       // e.name == 'iterator' || // TODO: make it weak
-      uri == 'dart:_internal/iterable.dart' && (
-        e.name == 'MappedIterator' ||
-        e.name == 'MappedIterable' ||
-        false
-      ) ||
-      uri.startsWith('dart:collection') && (
-        e.name == 'ListBase' ||
-        e.name == 'ListMixin' ||
-        e.name == 'LinkedHashSetCell' ||
-        e.name == 'LinkedHashMapCell' ||
-        e.name == 'IterableBase' ||
-        e.name == 'LinkedHashMapKeyIterable' ||
-        e.name == 'LinkedHashMapKeyIterator' ||
-        e.name == 'ListQueue' ||
-        // e.name == '_LinkedHashSet' ||
-        // e.name == '_LinkedHashMap' ||
-        e is ClassMemberElement && (
-          // e.enclosingElement.name == 'MappedIterator' ||
-          // e.enclosingElement.name == 'LinkedHashMapKeyIterable' ||
-          // e.enclosingElement.name == 'ListQueue' ||
-          e.enclosingElement.name == '_LinkedHashSet' ||
-          e.enclosingElement.name == '_LinkedHashMap' ||
-          // e.enclosingElement.name == 'Map' && e.name == 'values'
-          false
-        ) ||
-        false
-      ) ||
+      // uri == 'dart:_internal/iterable.dart' && (
+      //   e.name == 'MappedIterator' ||
+      //   e.name == 'MappedIterable' ||
+      //   false
+      // ) ||
+      // uri.startsWith('dart:collection') && (
+      //   e.name == 'ListBase' ||
+      //   e.name == 'ListMixin' ||
+      //   e.name == 'LinkedHashSetCell' ||
+      //   e.name == 'LinkedHashMapCell' ||
+      //   e.name == 'IterableBase' ||
+      //   e.name == 'LinkedHashMapKeyIterable' ||
+      //   e.name == 'LinkedHashMapKeyIterator' ||
+      //   e.name == 'ListQueue' ||
+      //   // e.name == '_LinkedHashSet' ||
+      //   // e.name == '_LinkedHashMap' ||
+      //   e is ClassMemberElement && (
+      //     // e.enclosingElement.name == 'MappedIterator' ||
+      //     // e.enclosingElement.name == 'LinkedHashMapKeyIterable' ||
+      //     // e.enclosingElement.name == 'ListQueue' ||
+      //     e.enclosingElement.name == '_LinkedHashSet' ||
+      //     e.enclosingElement.name == '_LinkedHashMap' ||
+      //     // e.enclosingElement.name == 'Map' && e.name == 'values'
+      //     false
+      //   ) ||
+      //   false
+      // ) ||
       false;
     return res;
   }
@@ -250,7 +235,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
 
     // if (to.name == 'startRootIsolate') {
     // // if (to is Element && to.name.contains('LinkedHashMap') && from.name.contains('LinkedHashMap')) {
-    //   stderr.writeln('MAP EDGE(${node.runtimeType}): [${from.name}: ${from.runtimeType}] -> [${to.name}: ${to.runtimeType}]'
+    // stderr.writeln('MAP EDGE(${node.runtimeType}): [${from.name}: ${from.runtimeType}] -> [${to.name}: ${to.runtimeType}]');
     //     '\n$node'
     //   );
     //   try { throw new Error(); } catch (e, s) {
@@ -284,15 +269,6 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     // }
 
     _addEdge(node, from, to, weak: weak);
-    // if (to is ClassMemberElement) {
-      // if (to.isStatic) _addEdge(node, from, to.enclosingElement);
-    // } else if (to is PropertyAccessorElement) {
-    //   _addEdge(node, from, to.variable);
-    // } else if (to is PropertyInducingElement) {
-    //   // TODO(ochafik): Refine.
-    //   if (to.getter != null) _addEdge(node, from, to.getter);
-    //   if (to.setter != null) _addEdge(node, from, to.setter);
-    // }
   }
 
   // static ClassElement _getElement(InterfaceType type) => type.element;
@@ -528,7 +504,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
         var from = _currentEnclosingElement;
         _pendingActions.add(() {
           var potentialTargets = _getPotentialTargets(propertyName);
-          if (propertyName == 'warmup') stderr.writeln('POTENTIAL($propertyName): ${potentialTargets.map(_str)}');
+          // if (propertyName == 'warmup') stderr.writeln('POTENTIAL($propertyName): ${potentialTargets.map(_str)}');
           for (var potentialTarget in potentialTargets) {
             // stderr.writeln("LAZY DEP ${_str(from)} -> ${_str(potentialTarget)}");
             _declareDep(node, potentialTarget, from, true);
@@ -537,42 +513,11 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
         // _declareDep(node, new _UnresolvedElement(null, propertyName));
       }
     } else {
-      // var members = _extensionMembers[target];
-      // memberElement ??= members == null ? null : members[propertyName];
-      //
-      // if (memberElement != null) {
-      //   _declareDep(node, memberElement);
+      // for (var ancestor in _collectHierarchy(target)) {
+      //   var members = _getClassMembers(ancestor);
+      //   var e = members[propertyName];
+      //   if (e != null) _declareDep(node, e);
       // }
-      for (var ancestor in _collectHierarchy(target)) {
-        // if (ancestor == target) continue;
-        // if (ancestor == null) continue;
-
-        var members = _getClassMembers(ancestor);
-        // if (members == null) {
-        //   if (ancestor.methods.isNotEmpty || ancestor.fields.isNotEmpty) {
-        //     stderr.writeln("FOUND NO MEMBERS FOR $ancestor");
-        //   }
-        //   continue;
-        // }
-        var e = members[propertyName];
-        if (e != null) {
-          _declareDep(node, e);
-        }
-        // var e;
-        // e ??= ancestor.getField(propertyName);
-        // // e ??= ancestor.getGetter(propertyName);
-        // // e ??= ancestor.getSetter(propertyName);
-        // e ??= ancestor.getMethod(propertyName);
-        // // if ((propertyName == 'floor' || propertyName == 'truncate')) {
-        // //   if (e != null) {
-        // //     stderr.writeln('RESOLVED ON ANCESTOR ${ancestor.name} of ${target.name}: ${e.name}');
-        // //   } else {
-        // //     stderr.writeln('NOT RESOLVED ON ANCESTOR ${ancestor.name} of ${target.name}: $propertyName');
-        // //   }
-        // // }
-        // e ??= new _UnresolvedElement(ancestor, propertyName);
-        // _declareDep(node, e);
-      }
     }
   }
 
@@ -585,9 +530,23 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
   }
 
   void _visitClassElement(AstNode node, ClassElement e) {
-    _forAllMembers(e, (m) {
-      _foundMemberElement(m.name, _normalize(m));
+    // _registerImplementation(e, _collectHierarchy(e));
+    var members = _getClassMembers(e);
+    members.forEach((name, e) {
+      _foundMemberElement(name, e);
     });
+    for (ClassElement ancestor in _collectHierarchy(e)) {
+      _getClassMembers(ancestor).forEach((name, ancestorMember) {
+        var member = members[name];
+        if (member != null) {
+          _addEdge(null, ancestorMember, member);
+          _addEdge(null, member, ancestorMember);
+        }
+      });
+    }
+    // _forAllMembers(e, (m) {
+    //   _foundMemberElement(m.name, _normalize(m));
+    // });
     for (var ancestor in _collectHierarchy(e)) {
       if (ancestor == e) continue;
       _declareDep(node, ancestor);
@@ -633,30 +592,10 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
 
   @override
   visitFieldDeclaration(FieldDeclaration node) {
-
-    // for (var field in node.fields.variables) {
-    //   _foundMemberElement(field.name.name, field.element as FieldElement);
-    // }
     _withEnclosingElement(node.element, () {
       super.visitFieldDeclaration(node);
     });
   }
-
-  // @override
-  // visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-  //   visitFunctionDeclaration(node.functionDeclaration);
-  //   // super.visitFunctionDeclarationStatement(node);
-  // }
-
-  // @override
-  // visitFunctionExpression(FunctionExpression node) {
-  //   _withEnclosingElement(node.element, () {
-  //     if (node.parameters != null) {
-  //       visitFormalParameterList(node.parameters);
-  //     }
-  //     super.visitFunctionExpression(node);
-  //   });
-  // }
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -738,22 +677,15 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
           // stderr.writeln('WEAK INCOMING(${_str(e)}): ${_weakGraph.getIncoming(e)?.map(_str)}');
         }
       }
-      // if (e.name == 'iterator')// && e.enclosingElement.name == '_LinkedHashSet') //e.name.contains('_ChildNodeListLazy') || e.name.contains('ListBase'))
+      // var uri = e.source.uri.toString();
+      // if (uri.startsWith('dart:_runtime')) //e.name == 'Baz')// && e.enclosingElement.name == '_LinkedHashSet') //e.name.contains('_ChildNodeListLazy') || e.name.contains('ListBase'))
+      // if (e.name == 'run')
       //   printDiagnostic();
 
-      // isInExtensionType() {
-      //   if (e is ClassMemberElement) {
-      //     for (var p in _collectHierarchy(e.enclosingElement)) {
-      //       if (_extensionTypes.contains(p)) return true;
-      //     }
-      //   }
-      //   return false;
-      // }
       if (accessible.contains(e) || _specialRoots.contains(e)) {
         // if (isInExtensionType() && (e.name == 'floor' || e.name == 'truncate')) stderr.writeln("EXT reachable: ${e.enclosingElement.name}.${e.name}");
         return true;
       }
-      // var uri = e.source.uri.toString();
       // if (e.name == '_Manager') {//uri.startsWith('dart:_runtime') && e.name == 'dynamicR') {
       //   printDiagnostic();
       //   stderr.writeln('SPECIAL TREATMENT: ${_str(e)} (_specialRoots.contains: ${_specialRoots.contains(e)})');
@@ -764,50 +696,6 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
         printDiagnostic();
         throw new StateError('Not reachable: ${_str(e)}');
       }
-
-      // if (isInExtensionType() && (e.name == 'floor' || e.name == 'truncate')) stderr.writeln("EXT not reachable: ${e.enclosingElement.name}.${e.name}");
-      //   if (_isSpecialRoot(e) || _isSpecialRoot(e.enclosingElement)) {
-      //     stderr.writeln("SPECIAL: $e");
-      //   // if (_specialRoots.contains(e.enclosingElement)) {
-      //   //   s
-      //     return true;
-      //   }
-      // }
-      // if (_isSpecialRoot(e)) {
-      //   stderr.writeln("SPECIAL: $e");
-      //   stderr.writeln('INCOMING($e): ${_graph.getIncoming(e)}');
-      //   return true;
-      // }
-
-      // isReachableAsUnresolved() {
-      //   if (e is FunctionElement) {
-      //     return accessible.contains(new _UnresolvedElement(null, e.name));
-      //   }
-      //   if (e is ClassMemberElement || e is PropertyAccessorElement) {
-      //     var enclosingClass = e.getAncestor((a) => a is ClassElement);
-      //     if (enclosingClass != null) {
-      //       return _collectHierarchy(enclosingClass)
-      //           .any((ClassElement parent) {
-      //             var parentMemberElement;
-      //             if (e is PropertyAccessorElement) {
-      //               parentMemberElement = parent.getField(e.variable.name);
-      //             } else if (e is PropertyInducingElement) {
-      //               parentMemberElement = parent.getField(e.name);
-      //             } else if (e is MethodElement) {
-      //               parentMemberElement = parent.getMethod(e.name);
-      //             }
-      //             return parentMemberElement != null && accessible.contains(parentMemberElement) ||
-      //                 accessible.contains(new _UnresolvedElement(parent, e.name));
-      //           });
-      //     } else {
-      //       return accessible.contains(new _UnresolvedElement(null, e.name));
-      //     }
-      //   }
-      //   return false;
-      // }
-      // var res = isReachableAsUnresolved();
-      // if (res) stderr.writeln('isReachableAsUnresolved(${_str(e)}): $res');
-      // return res;
       // stderr.writeln('Unreachable by default: $e: ${e.runtimeType}');
       return false;
     }
@@ -827,19 +715,3 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     return e is ClassMemberElement ? '${e.enclosingElement.name}.$suffix' : suffix;
   }
 }
-
-// class _UnresolvedElement {
-//   final Element targetElement;
-//   final String name;
-//   _UnresolvedElement(this.targetElement, this.name);
-//   operator==(other) =>
-//       other is _UnresolvedElement &&
-//       targetElement == other.targetElement &&
-//       name == other.name;
-//   get hashCode =>
-//       (targetElement?.hashCode ?? 0) ^ name.hashCode;
-//
-//   toString() => 'Unresolved(${targetElement?.name}.$name)';
-//
-//   noSuchMethod(i) => super.noSuchMethod(i);
-// }
