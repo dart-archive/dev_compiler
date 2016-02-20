@@ -5,6 +5,10 @@
 set -e
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
+# http://javascriptplayground.com/blog/2016/02/better-bundles-rollup
+# babel src --presets es2015 --out-dir=dist && browserify -t uglifyify dist/app.js | uglifyjs -c > dist/bundle.js
+# npm install --save-dev babel-preset-es2015-rollup rollup rollup-plugin-babel rollup-plugin-uglify
+
 function get_closure() {
   local closure_dir=$PWD/dependencies/closure
   [[ -d $closure_dir ]] || mkdir -p $closure_dir
@@ -35,16 +39,19 @@ function compile_and_run() {
     --closure
     --tree-shaking=all
     --destructure-named-params
+    # --no-reify-generic-class-type-args
   )
 
   local rollup_opts=()
 
   local closure_opts=(
     --dart_pass
+    --language_in=ES6
     --language_out=ES5
-    --formatting=PRETTY_PRINT
+    # --formatting=PRETTY_PRINT
     # -O ADVANCED
-    -O WHITESPACE_ONLY
+    # -O WHITESPACE_ONLY
+    -O SIMPLE
   )
 
   local node_opts=(
@@ -55,9 +62,10 @@ function compile_and_run() {
 
   time ./tool/build_sdk.sh "${ddc_opts[@]}" -o $output_dir $file
 
-
   local single_file=$name.single_es6.js
-  local min_file=$name.min_es5.js
+  local closure_file=$name.closure_es5.js
+  local babel_file=$name.babel_es5.js
+  local ugly_file=$name.ugly_es5.js
   (
     cd $output_dir
     echo "
@@ -90,17 +98,20 @@ function compile_and_run() {
       isolate_helper.startRootIsolate(main.main, []);
     " > ${name}_entry_point.js
 
-    #java -jar ./compiler.jar "${args[@]}" > $name.min.js
-
     echo '(function() { "use strict"; ' > $single_file
     $root_dir/node_modules/rollup/bin/rollup "${rollup_opts[@]}" ${name}_entry_point.js >> $single_file
     echo "})()" >> $single_file
 
-    java -jar $CLOSURE_JAR "${closure_opts[@]}" --js $single_file > $min_file
+    echo "Running Babel + UglifyJS"
+    cat $single_file | babel --presets es2015 > $babel_file
+    cat $babel_file | uglifyjs -c -m > $ugly_file
+
+    echo "Running ClosureJS"
+    java -jar $CLOSURE_JAR "${closure_opts[@]}" --js $single_file > $closure_file
   )
   # cp lib/runtime/{dart_library,harmony_feature_check}.js example/$name
 
-  for f in $output_dir/$single_file $output_dir/$min_file ; do
+  for f in $output_dir/*.js ; do
     echo "Gzipped size of $f: `cat $f | gzip -9 | wc -c`"
   done
 
@@ -108,10 +119,10 @@ function compile_and_run() {
   node "${node_opts[@]}" $output_dir/$single_file
 
   echo "** Running closure-minified script"
-  # node "${node_opts[@]}" $output_dir/$min_file
+  # node "${node_opts[@]}" $output_dir/$closure_file
   echo 'var $jscomp = {};' > tmp.js
   cat ../closure-compiler-ochafik/src/com/google/javascript/jscomp/js/es6_runtime.js >> tmp.js
-  cat $output_dir/$min_file >> tmp.js
+  cat $output_dir/$closure_file >> tmp.js
   node "${node_opts[@]}" tmp.js
 
 

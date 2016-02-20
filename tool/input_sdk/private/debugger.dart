@@ -197,7 +197,7 @@ class JsonMLFormatter {
   bool hasBody(object) => _simpleFormatter.hasChildren(object);
 
   body(object) {
-    var body = new JsonMLElement('ol')
+    var bodyElement = new JsonMLElement('ol')
       ..setStyle('list-style-type: none;'
           'padding-left: 0px;'
           'margin-top: 0px;'
@@ -205,7 +205,7 @@ class JsonMLFormatter {
           'margin-left: 12px');
     var children = _simpleFormatter.children(object);
     for (NameValuePair child in children) {
-      var li = body.createChild('li');
+      var li = bodyElement.createChild('li');
       var nameSpan = new JsonMLElement('span')
         ..createTextChild(child.name != null ? child.name + ': ' : '')
         ..setStyle('color: rgb(136, 19, 145);');
@@ -228,7 +228,7 @@ class JsonMLFormatter {
           ..createTextChild(safePreview(child.value));
       }
     }
-    return body.toJsonML();
+    return bodyElement.toJsonML();
   }
 }
 
