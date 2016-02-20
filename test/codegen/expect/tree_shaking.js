@@ -18,6 +18,7 @@ dart_library.library('tree_shaking', null, /* Imports */[
     _Keep1(entry) {
       this.entry = entry;
       this[_keepThisUtilMember]();
+      new _Keep2();
     }
     [_keepThisUtilMember]() {}
   }
@@ -25,6 +26,7 @@ dart_library.library('tree_shaking', null, /* Imports */[
     constructors: () => ({_Keep1: [_Keep1, [core.Function]]}),
     methods: () => ({[_keepThisUtilMember]: [dart.void, []]})
   });
+  class _Keep2 extends core.Object {}
   function _keep2() {
   }
   dart.fn(_keep2);

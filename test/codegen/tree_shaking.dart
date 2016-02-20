@@ -10,8 +10,11 @@ const _keepAnnotation2 = const _KeepAnnotation1();
 @_DropAnnotation1()
 @_dropAnnotation2
 class _Drop1 {
-  keepMethod1() {}
+  keepMethod1() {
+    new _Drop2();
+  }
 }
+class _Drop2 {}
 _drop2() {}
 var _drop3;
 final _drop4 = 0;
@@ -23,10 +26,12 @@ class _Keep1 {
   final Function entry;
   _Keep1(this.entry) {
     _keepThisUtilMember();
+    new _Keep2();
   }
 
   void _keepThisUtilMember() {}
 }
+class _Keep2 {}
 _keep2() {}
 var _keep3;
 final _keep4 = 0;
