@@ -47,6 +47,12 @@ import 'tree_shaker.dart';
 
 part 'js_typeref_codegen.dart';
 
+const _allowDynamicInvoke = true;
+const _emitSignatures = true;
+const _trustPrimitives = false;
+const _bindSuperMethodCalls = false;
+const _annotateIncomingReferences = false;
+
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
 // _runtime.js file and comments.
@@ -460,7 +466,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         staticFields, methods, node.metadata, jsPeerName);
 
     var result = _finishClassDef(type, body);
-    // result = _statement([new JS.Comment('/* ${_treeShakingData(classElem)} */'), result]);
+    if (_annotateIncomingReferences) result = _statement([new JS.Comment('/* ${_treeShakingData(classElem)} */'), result]);
 
     if (jsPeerName != null) {
       // This class isn't allowed to be lazy, because we need to set up
@@ -887,7 +893,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       if (!sigFields.isEmpty || extensions.isNotEmpty) {
         var sig = new JS.ObjectInitializer(sigFields);
         var classExpr = new JS.Identifier(name);
-        body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
+        if (_emitSignatures) body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
       }
     }
 
@@ -2044,7 +2050,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       id = lhs.identifier;
     }
 
-    if (target != null && DynamicInvoke.get(target)) {
+    if (target != null && _allowDynamicInvoke && DynamicInvoke.get(target)) {
       return js.call('dart.$DPUT(#, #, #)', [
         _visit(target),
         _emitMemberName(id.name, type: getStaticType(target)),
@@ -2105,11 +2111,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (result != null) return result;
 
     String code;
-    if (node.target is SuperExpression && options.closure) {
+    if (node.target is SuperExpression && (_bindSuperMethodCalls || options.closure)) {
       return js.call('#.bind(this)(#)', [_emitGet(node.target, node.methodName), _visit(node.argumentList)]);
     }
     if (target == null || isLibraryPrefix(target)) {
-      if (DynamicInvoke.get(node.methodName)) {
+      if (_allowDynamicInvoke && DynamicInvoke.get(node.methodName)) {
         code = 'dart.$DCALL(#, #)';
       } else {
         code = '#(#)';
@@ -2124,9 +2130,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     bool isStatic = element is ExecutableElement && element.isStatic;
     var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
 
-    if (DynamicInvoke.get(target)) {
+    if (_allowDynamicInvoke && DynamicInvoke.get(target)) {
       code = 'dart.$DSEND(#, #, #)';
-    } else if (DynamicInvoke.get(node.methodName)) {
+    } else if (_allowDynamicInvoke && DynamicInvoke.get(node.methodName)) {
       // This is a dynamic call to a statically known target. For example:
       //     class Foo { Function bar; }
       //     new Foo().bar(); // dynamic call
@@ -2184,7 +2190,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   JS.Expression visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
     var code;
-    if (DynamicInvoke.get(node.function)) {
+    if (_allowDynamicInvoke && DynamicInvoke.get(node.function)) {
       code = 'dart.$DCALL(#, #)';
     } else {
       code = '#(#)';
@@ -2672,6 +2678,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (expr == null) return null;
     var jsExpr = _visit(expr);
     if (!_isNullable(expr)) return jsExpr;
+    if (_trustPrimitives) return jsExpr;
     return js.call('dart.notNull(#)', jsExpr);
   }
 
@@ -2821,7 +2828,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return expr as SimpleIdentifier;
     }
     result.staticType = expr.staticType;
-    DynamicInvoke.set(result, DynamicInvoke.get(expr));
+    DynamicInvoke.set(result, _allowDynamicInvoke && DynamicInvoke.get(expr));
     return result;
   }
 
@@ -3062,7 +3069,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     bool isStatic = member is ClassMemberElement && member.isStatic;
     var name = _emitMemberName(memberId.name,
         type: getStaticType(target), isStatic: isStatic);
-    if (DynamicInvoke.get(target)) {
+    if (_allowDynamicInvoke && DynamicInvoke.get(target)) {
       return js.call('dart.$DLOAD(#, #)', [_visit(target), name]);
     }
 
@@ -3095,7 +3102,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       Expression target, String name, List<Expression> args) {
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, unary: args.isEmpty, type: type);
-    if (DynamicInvoke.get(target)) {
+    if (_allowDynamicInvoke && DynamicInvoke.get(target)) {
       // dynamic dispatch
       var dynamicHelper = const {'[]': DINDEX, '[]=': DSETINDEX}[name];
       if (dynamicHelper != null) {

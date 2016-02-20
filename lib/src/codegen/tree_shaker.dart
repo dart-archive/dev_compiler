@@ -13,6 +13,8 @@ import '../utils.dart';
 typedef bool ReachabilityPredicate(Element e, {bool throwIfNot});
 typedef void _Action();
 
+const _retainExpressionTypes = true;
+
 /// Special cases:
 /// - Edge to each extension type's method from the implemented interface method (List.add -> JSArray.add)
 /// - Root non-tree-shakable elements:
@@ -210,22 +212,6 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     });
   }
 
-  // @override
-  // visitDeclaration(Declaration node) {
-  //   if (node is! DeclaredIdentifier &&
-  //       node is! MethodDeclaration &&
-  //       node is! FunctionDeclaration &&
-  //       node is! ClassDeclaration &&
-  //       node is! ConstructorDeclaration &&
-  //       node is! FieldDeclaration &&
-  //       node is! TopLevelVariableDeclaration &&
-  //       node is! VariableDeclaration &&
-  //       node is! ClassTypeAlias) {
-  //     stderr.writeln('DECL: $node (${node.runtimeType})');
-  //   }
-  //   super.visitDeclaration(node);
-  // }
-
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     _withEnclosingElement(node.element, () {
@@ -317,18 +303,17 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
 
   @override
   visitExpression(Expression node) {
-    var e = node.bestType?.element;
-    if (e != null) _declareDep(node, e);
+    if (_retainExpressionTypes) {
+      var e = node.bestType?.element;
+      if (e != null) _declareDep(node, e);
+    }
     super.visitExpression(node);
   }
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // if (node.bestType?.element?.name?.contains('LinkedHashMap') == true) {
-    //   stderr.writeln('INSTANCE CREATION: $node\n\t$_currentEnclosingElement\n\t${node.bestType?.element}\n\t${node.constructorName.staticElement}\n\t${node.staticElement}');
-    // }
-    // _declareDep(node, node.constructorName.staticElement);
-    _declareDep(node, node.staticElement);
+    // _declareDep(node, node.staticElement);
+    _declareDep(node, node.constructorName.staticElement);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -394,6 +379,9 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
     members.forEach((name, e) {
       _foundMemberElement(name, e);
     });
+
+    // TODO(ochafik): Do some escape analysis to know which methods can
+    // actually be called from each call site, instead of this broad catchall.
     for (InterfaceType ancestorType in e.allSupertypes) {
       var ancestor = ancestorType.element;
       _declareDep(node, ancestor);
@@ -408,6 +396,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
 
     var defaultCtor = e.type.lookUpConstructor('', e.library);
     if (defaultCtor != null) {
+      // stderr.writeln("CTOR: $e -> $defaultCtor");
       _addEdge(node, e, defaultCtor);
     }
   }
@@ -567,7 +556,7 @@ class TreeShakingVisitor extends GeneralizingAstVisitor {
   }
 
   getTreeShakingData(Element e) =>
-      'Incoming: ${(_graph.getIncoming(e) ?? []).map(_str).join(', ')}';
+      'Incoming:\n\t${(_graph.getIncoming(e) ?? []).map(_str).join(',\n\t')}';
   String _str(Element e) {
     // if (e is PropertyAccessorElement) e = e.variable;
     var suffix = '${e.name} (${e.runtimeType} @ ${e.source?.uri})';
