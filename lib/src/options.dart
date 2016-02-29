@@ -62,7 +62,7 @@ class SourceResolverOptions {
 enum ModuleFormat { es6, legacy, node }
 ModuleFormat parseModuleFormat(String s) => parseEnum(s, ModuleFormat.values);
 
-enum TreeShakingMode { all, private, none }
+enum TreeShakingMode { main, none }
 TreeShakingMode parseTreeShakingMode(String s) => parseEnum(s, TreeShakingMode.values);
 
 // TODO(ochafik): Add Flow (~ TypeScript + Closure-style nullable types).
@@ -332,10 +332,8 @@ final ArgParser argParser = new ArgParser()
       allowed: TreeShakingMode.values.map(getEnumName).toList(),
       allowedHelp: {
         getEnumName(TreeShakingMode.none): 'none (safer)',
-        getEnumName(TreeShakingMode.private):
-            'only tree-shake unused private elements',
-        getEnumName(TreeShakingMode.all):
-            'tree-shake all unused elements'
+        getEnumName(TreeShakingMode.main):
+            'tree-shake all elements that cannot be reached from main()'
       },
       defaultsTo: getEnumName(TreeShakingMode.none))
   ..addOption('types',

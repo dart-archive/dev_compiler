@@ -44,6 +44,9 @@ import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
 import 'tree_shaker.dart';
+import 'type_escape_analysis.dart';
+import 'inheritance_visitor.dart';
+import 'member_utils.dart';
 
 part 'js_typeref_codegen.dart';
 
@@ -122,7 +125,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   bool _isDartRuntime;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
-      this._extensionTypes, this._fieldsNeedingStorage, this._isReachable, this._treeShakingData)
+      this._extensionTypes, this._fieldsNeedingStorage, this._isReachable)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
         _types = compiler.context.typeProvider {
@@ -138,8 +141,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   TypeProvider get types => _types;
 
   NullableExpressionPredicate _isNullable;
-  ReachabilityPredicate _isReachable;
-  Function _treeShakingData;
+  ReachabilityPredicate _isReachable = (Element _, {bool throwIfNot}) => true;
 
   JS.Program emitLibrary(LibraryUnit library) {
     // Modify the AST to make coercions explicit.
@@ -466,7 +468,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         staticFields, methods, node.metadata, jsPeerName);
 
     var result = _finishClassDef(type, body);
-    if (_annotateIncomingReferences) result = _statement([new JS.Comment('/* ${_treeShakingData(classElem)} */'), result]);
 
     if (jsPeerName != null) {
       // This class isn't allowed to be lazy, because we need to set up
@@ -1751,14 +1752,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (accessor is PropertyAccessorElement) element = accessor.variable;
 
     _loader.declareBeforeUse(element);
-
-    // if (node is! FormalParameter && !_isReachable(element)) {
-    //   var enclosingDecl = node.getAncestor((n) => n is Declaration);
-    //   // if (enclosin)
-    //   stderr.writeln('enclosingDecl($node) = $enclosingDecl');
-    //   if (enclosingDecl?.element != null) _isReachable(enclosingDecl.element, throwIfNot: true);
-    //   _isReachable(element, throwIfNot: true);
-    // }
 
     // type literal
     if (element is ClassElement ||
@@ -3781,24 +3774,15 @@ class JSGenerator extends CodeGenerator {
   final _extensionTypes = new HashSet<ClassElement>();
   final TypeProvider _types;
 
-  final _roots = new Set<Element>();
-  TreeShakingVisitor _treeShakingVisitor;
   final TreeShakingMode _treeShakingMode;
 
   ReachabilityPredicate _isReachable;
-  ReachabilityPredicate get isReachable {
-    if (_isReachable == null) {
-      _isReachable = _treeShakingMode == TreeShakingMode.none
-          ? (Element _, {bool throwIfNot}) => true
-          : _treeShakingVisitor.buildReachabilityPredicate(_roots);
-    }
-    return _isReachable;
-  }
 
   JSGenerator(AbstractCompiler compiler)
       : _types = compiler.context.typeProvider,
         _treeShakingMode = compiler.options.codegenOptions.treeShakingMode,
         super(compiler) {
+
     // TODO(vsm): Eventually, we want to make this extensible - i.e., find
     // annotations in user code as well.  It would need to be summarized in
     // the element model - not searched this way on every compile.
@@ -3812,62 +3796,23 @@ class JSGenerator extends CodeGenerator {
     finder._addExtensionType(_types.doubleType);
     finder._addExtensionType(_types.boolType);
     finder._addExtensionType(_types.stringType);
-
-    _treeShakingVisitor = new TreeShakingVisitor(compiler.context);
   }
 
-  void scanLibrary(LibraryUnit unit, {bool isMain}) {
-    if (_treeShakingMode == TreeShakingMode.none) return;
-
-    unit.libraryThenParts.forEach((u) => u.accept(_treeShakingVisitor));
-
-    if (isMain || _treeShakingMode == TreeShakingMode.private) {
-      unit.libraryThenParts.forEach((u) {
-        for (var d in u.declarations) {
-          if (isMain && (_treeShakingMode == TreeShakingMode.all)) {
-            if (!(d.element is FunctionElement && d.element.name == 'main')) continue;
-          }
-          if (d is TopLevelVariableDeclaration) {
-            d.variables.variables.forEach((v) => _addRoot(v.element));
-          } else {
-            // TODO(ochafik): Skip stuff like @JS, etc.
-            _addRoot(d.element);
-          }
-        }
-      });
-    }
-  }
-  bool _isPublic(String name) => !name.startsWith('_');
-
-  _addRoot(Element e) {
-    if (e != null) {
-      for (var m in _getPublicElements(e)) {
-        // stderr.writeln("ADDING ROOT: ${m.name} (${m.runtimeType})");
-        if (_isReachable != null) throw new StateError("Already built isReachable, can't add any new root!");
-        // if (m is FunctionElement && m.name == 'main')
-        _roots.add(m);
+  void performGlobalAnalysis(List<LibraryUnit> libraries, {bool isMain(LibraryUnit lib)}) {
+    var memberResolver = getMemberResolver(libraries);
+    //var memberResolver = analyzeTypeEscape(compiler, libraries);
+    var treeShakingVisitor = new TreeShakingVisitor(memberResolver, _types);
+    for (var library in libraries) {
+      for (var unit in library.libraryThenParts) {
+        unit.accept(treeShakingVisitor);
       }
     }
+
+    var roots = new Set<Element>()..addAll(_extensionTypes);
+    roots.add(findMain(libraries.firstWhere(isMain)));
+    _isReachable = treeShakingVisitor.buildReachabilityPredicate(roots);
   }
-  Iterable<Element> _getPublicElements(Element e) sync* {
-    if (_isPublic(e.name)) {
-      yield e;
-      if (e is PropertyInducingElement) {
-        if (e.getter != null) yield e.getter;
-        if (e.setter != null) yield e.setter;
-      } else if (e is ClassElement) {
-        for (var m in e.constructors) {
-          if (_isPublic(m.name)) yield m;
-        }
-        for (var m in e.methods) {
-          if (_isPublic(m.name)) yield m;
-        }
-        for (var m in e.fields) {
-          yield* _getPublicElements(m);
-        }
-      }
-    }
-  }
+
   String generateLibrary(LibraryUnit unit) {
     // Clone the AST first, so we can mutate it.
     unit = unit.clone();
@@ -3875,7 +3820,7 @@ class JSGenerator extends CodeGenerator {
     var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
     var codegen =
-        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, isReachable, _treeShakingVisitor.getTreeShakingData);
+        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, _isReachable);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;
