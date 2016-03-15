@@ -72,7 +72,7 @@ class BatchCompiler extends AbstractCompiler {
   String _runtimeOutputDir;
 
   /// Already compiled sources, so we don't check or compile them again.
-  final _compilationRecord = <LibraryElement, bool>{};
+  final _compilationRecord = new Map<LibraryElement, bool>.identity();
   bool _sdkCopied = false;
 
   bool _failure = false;
