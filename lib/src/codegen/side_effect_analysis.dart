@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/error.dart'
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
 
-/// True is the expression can be evaluated multiple times without causing
+/// True if the expression can be evaluated multiple times without causing
 /// code execution. This is true for final fields. This can be true for local
 /// variables, if:
 /// * they are not assigned within the [context].

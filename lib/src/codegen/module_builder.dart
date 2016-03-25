@@ -89,6 +89,7 @@ class LegacyModuleBuilder extends ModuleBuilder {
     moduleStatements.addAll(_flattenBlocks(moduleItems));
 
     if (_exports.isNotEmpty) {
+      moduleStatements.add(js.comment(''));
       moduleStatements.add(js.comment('Exports:'));
       // TODO(jmesserly): make these immutable in JS?
       _exports.forEach((name, exportName) {
@@ -148,6 +149,7 @@ class ES6ModuleBuilder extends ModuleBuilder {
     moduleStatements.addAll(_flattenBlocks(moduleItems));
 
     if (_exports.isNotEmpty) {
+      moduleStatements.add(js.comment(''));
       moduleStatements.add(js.comment('Exports:'));
       // TODO(jmesserly): make these immutable in JS?
       _exports.forEach((name, exportName) {
@@ -168,19 +170,22 @@ class NodeModuleBuilder extends ModuleBuilder {
   JS.Program build(String jsPath, String jsModuleValue,
       JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[js.statement("'use strict';"),];
+    moduleStatements.add(js.comment(''));
 
     for (var i in _imports) {
+      var moduleName = js.string(_relativeModuleName(i.name, from: jsPath));
       if (i.libVar == null) {
-        moduleStatements.add(js.statement('require(#);', [js.string(i.name)]));
+        moduleStatements.add(js.statement('require(#);', [moduleName]));
       } else {
         moduleStatements.add(
-            js.statement('let # = require(#);', [i.libVar, js.string(i.name)]));
+            js.statement('let # = require(#);', [i.libVar, moduleName]));
       }
     }
 
     moduleStatements.addAll(_flattenBlocks(moduleItems));
 
     if (_exports.isNotEmpty) {
+      moduleStatements.add(js.comment(''));
       moduleStatements.add(js.comment('Exports:'));
       _exports.forEach((name, exportName) {
         moduleStatements

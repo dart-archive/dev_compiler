@@ -570,6 +570,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
+    lineOut();
     indent();
     outClosureAnnotation(declaration);
     functionOut(declaration.function, declaration.name);
@@ -1088,6 +1089,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitClassDeclaration(ClassDeclaration node) {
+    lineOut();
     indent();
     visit(node.classExpr);
     lineOut();
@@ -1332,12 +1334,15 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   void visitComment(Comment node) {
     if (shouldCompressOutput) return;
     String comment = node.comment.trim();
-    if (comment.isEmpty) return;
-    for (var line in comment.split('\n')) {
-      if (comment.startsWith('//')) {
-        outIndentLn(line.trim());
-      } else {
-        outIndentLn('// ${line.trim()}');
+    if (comment.isEmpty) {
+      lineOut();
+    } else {
+      for (var line in comment.split('\n')) {
+        if (comment.startsWith('//')) {
+          outIndentLn(line.trim());
+        } else {
+          outIndentLn('// ${line.trim()}');
+        }
       }
     }
   }

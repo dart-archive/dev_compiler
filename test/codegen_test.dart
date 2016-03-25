@@ -222,8 +222,7 @@ $compilerMessages''';
     });
   }
 
-  var expectedRuntime =
-      defaultRuntimeFiles.map((f) => 'dev_compiler/runtime/$f');
+  var expectedRuntime = defaultRuntimeFiles.map((f) => f);
 
   test('devc jscodegen sunflower.html', () {
     var filePath = path.join(inputDir, 'sunflower', 'sunflower.html');
