@@ -88,7 +88,7 @@ class ServerCompiler extends AbstractCompiler {
     rebuild(_entryNode, _buildSource);
     clock.stop();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
-    _log.fine('Compiled ${_libraries.length} libraries in ${time} s\n');
+    print('Compiled ${_libraries.length} libraries in ${time} s\n');
     return new CheckerResults(
         _libraries, _failure || options.codegenOptions.forceCompile);
   }
@@ -191,7 +191,7 @@ class ServerCompiler extends AbstractCompiler {
     clock.stop();
     if (changed > 0) _dumpInfoIfRequested();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
-    _log.fine("Compiled ${changed} libraries in ${time} s\n");
+    print("Compiled ${changed} libraries in ${time} s\n");
   }
 
   _dumpInfoIfRequested() {

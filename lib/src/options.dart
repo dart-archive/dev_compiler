@@ -217,6 +217,8 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
   }
   var htmlReport = args['html-report'];
 
+  var inputBaseDir = args['input-base-dir'];
+
   var v8Binary = args['v8-binary'];
   if (v8Binary == null) v8Binary = _V8_BINARY_DEFAULT;
 
@@ -263,7 +265,8 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
       host: args['host'],
       port: int.parse(args['port']),
       runtimeDir: runtimeDir,
-      inputs: args.rest);
+      inputs: args.rest,
+      inputBaseDir: inputBaseDir);
 }
 
 final ArgParser argParser = new ArgParser()
@@ -344,7 +347,9 @@ final ArgParser argParser = new ArgParser()
       help: 'V8-based binary to run JavaScript output with (iojs, node, d8)',
       defaultsTo: _V8_BINARY_DEFAULT)
   ..addOption('dump-info-file',
-      help: 'Dump info json file (requires dump-info)', defaultsTo: null);
+      help: 'Dump info json file (requires dump-info)', defaultsTo: null)
+  ..addOption('input-base-dir',
+      help: 'Input base directory', defaultsTo: null);
 
 // TODO: Switch over to the `pub_cache` package (or the Resource API)?
 

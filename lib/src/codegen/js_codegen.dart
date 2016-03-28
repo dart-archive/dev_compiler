@@ -200,6 +200,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       var dartxImport =
           js.statement("let # = #.dartx;", [_dartxVar, _runtimeLibVar]);
       items.add(dartxImport);
+      var currentUriString = js.string(currentLibrary.source.uri.toString(), "'");
+      var uriMetadata =
+          js.statement("#[dart.uri] = #;", [_exportsVar, currentUriString]);
+      items.add(uriMetadata);
     }
     items.addAll(_moduleItems);
 
@@ -938,6 +942,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
             new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
       ]));
     }
+
+    body.add(js.statement('#[dart.owner] = #;', [
+       name,
+      _exportsVar
+    ]));
 
     // Emits static fields. These are eager initialized if possible, otherwise
     // they are made lazy.
@@ -3800,8 +3809,19 @@ class JSGenerator extends CodeGenerator {
 
   String generateLibrary(LibraryUnit unit) {
     // Clone the AST first, so we can mutate it.
+    print(unit.library.element);
+    for (var dir in unit.library.directives) {
+      if (dir is LibraryDirective) {
+        assert(dir.element != null);
+      }
+    }
     unit = unit.clone();
     var library = unit.library.element.library;
+    for (var dir in unit.library.directives) {
+      if (dir is LibraryDirective) {
+        assert(dir.element != null);
+      }
+    }
     var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
     var codegen =
