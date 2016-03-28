@@ -5,6 +5,7 @@ dart_library.library('covariance', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/covariance.dart';
   const _t = Symbol('_t');
   const Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
@@ -26,6 +27,7 @@ dart_library.library('covariance', null, /* Imports */[
         forEach: [dart.dynamic, [dart.functionType(dart.void, [T])]]
       })
     });
+    Foo[dart.owner] = exports;
     return Foo;
   });
   let Foo = Foo$();
@@ -41,6 +43,7 @@ dart_library.library('covariance', null, /* Imports */[
   dart.setSignature(Bar, {
     methods: () => ({add: [dart.dynamic, [core.int]]})
   });
+  Bar[dart.owner] = exports;
   function main() {
     let foo = new Bar();
     foo.add('hi');

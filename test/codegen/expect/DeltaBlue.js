@@ -6,6 +6,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
 ], function(exports, dart, BenchmarkBase, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/DeltaBlue.dart';
   function main() {
     new DeltaBlue().report();
   }
@@ -22,6 +23,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   dart.setSignature(DeltaBlue, {
     constructors: () => ({DeltaBlue: [DeltaBlue, []]})
   });
+  DeltaBlue[dart.owner] = exports;
   class Strength extends core.Object {
     Strength(value, name) {
       this.value = value;
@@ -54,6 +56,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }),
     names: ['stronger', 'weaker', 'weakest', 'strongest']
   });
+  Strength[dart.owner] = exports;
   const REQUIRED = dart.const(new Strength(0, "required"));
   const STRONG_PREFERRED = dart.const(new Strength(1, "strongPreferred"));
   const PREFERRED = dart.const(new Strength(2, "preferred"));
@@ -103,6 +106,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       isInput: [core.bool, []]
     })
   });
+  Constraint[dart.owner] = exports;
   class UnaryConstraint extends Constraint {
     UnaryConstraint(myOutput, strength) {
       this.myOutput = myOutput;
@@ -154,6 +158,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       removeFromGraph: [dart.void, []]
     })
   });
+  UnaryConstraint[dart.owner] = exports;
   class StayConstraint extends UnaryConstraint {
     StayConstraint(v, str) {
       super.UnaryConstraint(v, str);
@@ -164,6 +169,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     constructors: () => ({StayConstraint: [StayConstraint, [Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
+  StayConstraint[dart.owner] = exports;
   class EditConstraint extends UnaryConstraint {
     EditConstraint(v, str) {
       super.UnaryConstraint(v, str);
@@ -177,6 +183,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     constructors: () => ({EditConstraint: [EditConstraint, [Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
+  EditConstraint[dart.owner] = exports;
   const NONE = 1;
   const FORWARD = 2;
   const BACKWARD = 0;
@@ -252,6 +259,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       removeFromGraph: [dart.void, []]
     })
   });
+  BinaryConstraint[dart.owner] = exports;
   class ScaleConstraint extends BinaryConstraint {
     ScaleConstraint(src, scale, offset, dest, strength) {
       this.scale = scale;
@@ -290,6 +298,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     constructors: () => ({ScaleConstraint: [ScaleConstraint, [Variable, Variable, Variable, Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
+  ScaleConstraint[dart.owner] = exports;
   class EqualityConstraint extends BinaryConstraint {
     EqualityConstraint(v1, v2, strength) {
       super.BinaryConstraint(v1, v2, strength);
@@ -302,6 +311,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     constructors: () => ({EqualityConstraint: [EqualityConstraint, [Variable, Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
+  EqualityConstraint[dart.owner] = exports;
   class Variable extends core.Object {
     Variable(name, value) {
       this.constraints = dart.list([], Constraint);
@@ -327,6 +337,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       removeConstraint: [dart.void, [Constraint]]
     })
   });
+  Variable[dart.owner] = exports;
   class Planner extends core.Object {
     Planner() {
       this.currentMark = 0;
@@ -431,6 +442,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       addConstraintsConsumingTo: [dart.void, [Variable, core.List$(Constraint)]]
     })
   });
+  Planner[dart.owner] = exports;
   class Plan extends core.Object {
     Plan() {
       this.list = dart.list([], Constraint);
@@ -454,6 +466,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       execute: [dart.void, []]
     })
   });
+  Plan[dart.owner] = exports;
   function chainTest(n) {
     exports.planner = new Planner();
     let prev = null, first = null, last = null;

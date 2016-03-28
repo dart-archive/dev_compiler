@@ -7,6 +7,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
 ], function(exports, dart, core, utils, collection) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'package:collection/src/canonicalized_map.dart';
   const _base = Symbol('_base');
   const _canonicalize = Symbol('_canonicalize');
   const _isValidKeyFn = Symbol('_isValidKeyFn');
@@ -143,6 +144,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       'length',
       'values'
     ]);
+    CanonicalizedMap[dart.owner] = exports;
     return CanonicalizedMap;
   });
   let CanonicalizedMap = CanonicalizedMap$();

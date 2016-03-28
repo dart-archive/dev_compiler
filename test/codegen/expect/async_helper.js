@@ -5,6 +5,7 @@ dart_library.library('async_helper', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/async_helper.dart';
   exports._initialized = false;
   const _Action0 = dart.typedef('_Action0', () => dart.functionType(dart.void, []));
   exports._onAsyncEnd = null;

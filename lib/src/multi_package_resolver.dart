@@ -28,7 +28,6 @@ class MultiPackageResolver extends UriResolver {
             new JavaFile(resolvedPath), actualUri != null ? actualUri : uri);
       }
     }
-    print('could not resolve $uri');
     return null;
   }
 

@@ -9,6 +9,7 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
 ], function(exports, dart, dom, core, math, painter, circle) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/sunflower/sunflower.dart';
   const SEED_RADIUS = 2;
   const SCALE_FACTOR = 4;
   const MAX_D = 300;
@@ -72,6 +73,7 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
   dart.setSignature(SunflowerSeed, {
     constructors: () => ({SunflowerSeed: [SunflowerSeed, [core.num, core.num, core.num], [core.String]]})
   });
+  SunflowerSeed[dart.owner] = exports;
   // Exports:
   exports.SEED_RADIUS = SEED_RADIUS;
   exports.SCALE_FACTOR = SCALE_FACTOR;

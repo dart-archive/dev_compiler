@@ -5,6 +5,7 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'package:collection/src/comparators.dart';
   const _zero = 48;
   const _upperCaseA = 65;
   const _upperCaseZ = 90;

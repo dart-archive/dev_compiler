@@ -11,6 +11,7 @@ dart_library.library('unittest', null, /* Imports */[
 ], function(exports, dart, matcher, dom, core, async, interfaces, util, description$) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/unittest.dart';
   dart.export(exports, matcher);
   function group(name, body) {
     return dart.dsend(dom.window, 'suite', name, body);
@@ -46,6 +47,7 @@ dart_library.library('unittest', null, /* Imports */[
   dart.setSignature(TestFailure, {
     constructors: () => ({TestFailure: [TestFailure, [core.String]]})
   });
+  TestFailure[dart.owner] = exports;
   const ErrorFormatter = dart.typedef('ErrorFormatter', () => dart.functionType(core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]));
   function expect(actual, matcher, opts) {
     let reason = opts && 'reason' in opts ? opts.reason : null;

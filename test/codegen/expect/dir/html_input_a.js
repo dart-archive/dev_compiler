@@ -8,6 +8,7 @@ dart_library.library('dir/html_input_a', null, /* Imports */[
 ], function(exports, dart, core, html_input_b, html_input_c, html_input_d) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/dir/html_input_a.dart';
   function main() {
     core.print(`fib(${html_input_b.x} + ${html_input_c.y}) = `);
     core.print(`  ... ${html_input_d.fib(dart.notNull(html_input_b.x) + dart.notNull(html_input_c.y))}`);

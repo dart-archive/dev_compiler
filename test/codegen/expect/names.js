@@ -5,6 +5,7 @@ dart_library.library('names', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/names.dart';
   exports.exports = 42;
   const _foo$ = Symbol('_foo');
   class Foo extends core.Object {
@@ -15,6 +16,7 @@ dart_library.library('names', null, /* Imports */[
   dart.setSignature(Foo, {
     methods: () => ({[_foo$]: [dart.dynamic, []]})
   });
+  Foo[dart.owner] = exports;
   function _foo() {
     return 456;
   }
@@ -33,7 +35,9 @@ dart_library.library('names', null, /* Imports */[
     statics: () => ({callee: [dart.dynamic, []]}),
     names: ['callee']
   });
+  Frame[dart.owner] = exports;
   class Frame2 extends core.Object {}
+  Frame2[dart.owner] = exports;
   dart.defineLazyProperties(Frame2, {
     get caller() {
       return 100;

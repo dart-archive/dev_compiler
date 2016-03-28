@@ -6,6 +6,7 @@ dart_library.library('domtest', null, /* Imports */[
 ], function(exports, dart, dom, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/domtest.dart';
   function testNativeIndexers() {
     let nodes = dom.document.querySelector('body').childNodes;
     for (let i = 0; i < dart.notNull(nodes.length); i++) {

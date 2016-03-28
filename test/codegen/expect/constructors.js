@@ -5,7 +5,9 @@ dart_library.library('constructors', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/constructors.dart';
   class A extends core.Object {}
+  A[dart.owner] = exports;
   class B extends core.Object {
     B() {
     }
@@ -13,6 +15,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(B, {
     constructors: () => ({B: [B, []]})
   });
+  B[dart.owner] = exports;
   class C extends core.Object {
     named() {
     }
@@ -21,6 +24,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(C, {
     constructors: () => ({named: [C, []]})
   });
+  C[dart.owner] = exports;
   class C2 extends C {
     named() {
       super.named();
@@ -30,6 +34,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(C2, {
     constructors: () => ({named: [C2, []]})
   });
+  C2[dart.owner] = exports;
   class D extends core.Object {
     D() {
     }
@@ -43,6 +48,7 @@ dart_library.library('constructors', null, /* Imports */[
       named: [D, []]
     })
   });
+  D[dart.owner] = exports;
   class E extends core.Object {
     E(name) {
       this.name = name;
@@ -51,6 +57,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(E, {
     constructors: () => ({E: [E, [core.String]]})
   });
+  E[dart.owner] = exports;
   class F extends E {
     F(name) {
       super.E(name);
@@ -59,6 +66,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(F, {
     constructors: () => ({F: [F, [core.String]]})
   });
+  F[dart.owner] = exports;
   class G extends core.Object {
     G(p1) {
       if (p1 === void 0) p1 = null;
@@ -67,6 +75,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(G, {
     constructors: () => ({G: [G, [], [core.String]]})
   });
+  G[dart.owner] = exports;
   class H extends core.Object {
     H(opts) {
       let p1 = opts && 'p1' in opts ? opts.p1 : null;
@@ -75,6 +84,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(H, {
     constructors: () => ({H: [H, [], {p1: core.String}]})
   });
+  H[dart.owner] = exports;
   class I extends core.Object {
     I() {
       this.name = 'default';
@@ -90,6 +100,7 @@ dart_library.library('constructors', null, /* Imports */[
       named: [I, [core.String]]
     })
   });
+  I[dart.owner] = exports;
   class J extends core.Object {
     J() {
       this.initialized = true;
@@ -99,6 +110,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(J, {
     constructors: () => ({J: [J, []]})
   });
+  J[dart.owner] = exports;
   class K extends core.Object {
     K() {
       this.s = 'a';
@@ -114,6 +126,7 @@ dart_library.library('constructors', null, /* Imports */[
       withS: [K, [core.String]]
     })
   });
+  K[dart.owner] = exports;
   class L extends core.Object {
     L(foo) {
       this.foo = foo;
@@ -122,6 +135,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(L, {
     constructors: () => ({L: [L, [dart.dynamic]]})
   });
+  L[dart.owner] = exports;
   class M extends L {
     named(x) {
       super.L(dart.notNull(x) + 42);
@@ -131,6 +145,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(M, {
     constructors: () => ({named: [M, [core.int]]})
   });
+  M[dart.owner] = exports;
   class N extends M {
     named(y) {
       super.named(dart.notNull(y) + 100);
@@ -140,6 +155,7 @@ dart_library.library('constructors', null, /* Imports */[
   dart.setSignature(N, {
     constructors: () => ({named: [N, [core.int]]})
   });
+  N[dart.owner] = exports;
   class P extends N {
     P(z) {
       super.named(dart.notNull(z) + 9000);
@@ -160,6 +176,7 @@ dart_library.library('constructors', null, /* Imports */[
       bar: [P, []]
     })
   });
+  P[dart.owner] = exports;
   const Q$ = dart.generic(function(T) {
     class Q extends core.Object {
       Q(y) {
@@ -193,6 +210,7 @@ dart_library.library('constructors', null, /* Imports */[
       }),
       names: ['foo', 'baz']
     });
+    Q[dart.owner] = exports;
     return Q;
   });
   let Q = Q$();

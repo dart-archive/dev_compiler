@@ -5,6 +5,7 @@ dart_library.library('destructuring', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/destructuring.dart';
   function f(a, b, c = 1) {
     f(a, b, c);
   }

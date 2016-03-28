@@ -6,6 +6,7 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
 ], function(exports, dart, core, collection) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'package:collection/src/queue_list.dart';
   const _head = Symbol('_head');
   const _tail = Symbol('_tail');
   const _table = Symbol('_table');
@@ -225,6 +226,7 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
       'length',
       'length'
     ]);
+    QueueList[dart.owner] = exports;
     QueueList._INITIAL_CAPACITY = 8;
     return QueueList;
   });

@@ -191,7 +191,7 @@ class ServerCompiler extends AbstractCompiler {
     clock.stop();
     if (changed > 0) _dumpInfoIfRequested();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
-    print("Compiled ${changed} libraries in ${time} s\n");
+    print("Recompiled ${changed} libraries in ${time} s\n");
   }
 
   _dumpInfoIfRequested() {
@@ -264,8 +264,33 @@ class DevServer {
 
     var generatedHandler =
         shelf_static.createStaticHandler(outDir, defaultDocument: _entryPath);
-    var sourceHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
-        serveFilesOutsidePath: true);
+    shelf.Handler sourceHandler;
+    if (compiler.options.sourceOptions.useMultiPackage) {
+      print('Installing multipackage handler');
+      var originalHandler = shelf_static.createStaticHandler(Directory.current.path,
+          serveFilesOutsidePath: true);
+      sourceHandler = (shelf.Request request) {
+        var requestedUri = request.requestedUri;
+        var requestedPath = requestedUri.path;
+        print('multipackage lookup: $requestedUri');
+        if (requestedPath.startsWith('/packages/')) {
+          // TODO(vsm): Search all paths
+          var parts = requestedPath.substring(10).split('/');
+          var mapped = '/' + parts[0].replaceAll('.', '/') + '/lib/' + parts.sublist(1).join('/');
+          //var mappedUri = new Uri(scheme: requestedUri.scheme, host: requestedUri.host,
+          //    port: requestedUri.port, path: mapped);
+          var mappedUri = requestedUri.resolve(mapped);
+          print('Fallback to $mappedUri from ${compiler.inputBaseDir}');
+          var mappedRequest = new shelf.Request(request.method, mappedUri);
+          return originalHandler(mappedRequest);
+        }
+        return new shelf.Response.notFound(requestedUri);
+      };
+    } else {
+      sourceHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
+          serveFilesOutsidePath: true);
+    }
+
     // TODO(vsm): Is there a better builtin way to compose these handlers?
     var topLevelHandler = (shelf.Request request) {
       // Prefer generated code
@@ -281,11 +306,11 @@ class DevServer {
         .addMiddleware(rebuildAndCache)
         .addHandler(topLevelHandler);
     await shelf.serve(handler, host, port);
-    print('Serving $_entryPath at http://$host:$port/');
     // Give the compiler a head start. This is not needed for correctness,
     // but will likely speed up the first load. Regardless of whether compile
     // succeeds we should still start the server.
     compiler.run();
+    print('Serving $_entryPath at http://$host:$port/');
     // Server has started so this future will complete.
   }
 
@@ -293,7 +318,10 @@ class DevServer {
         // Trigger recompile only when requesting the HTML page.
         var segments = request.url.pathSegments;
         bool isEntryPage = segments.length == 0 || segments[0] == _entryPath;
-        if (isEntryPage) compiler._runAgain();
+        if (isEntryPage) {
+          compiler._runAgain();
+          print('Serving $_entryPath at http://$host:$port/');
+        }
 
         // To help browsers cache resources that don't change, we serve these
         // resources by adding a query parameter containing their hash:

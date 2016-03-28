@@ -5,11 +5,13 @@ dart_library.library('cascade', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/cascade.dart';
   class A extends core.Object {
     A() {
       this.x = null;
     }
   }
+  A[dart.owner] = exports;
   function test_closure_with_mutate() {
     let a = new A();
     a.x = dart.fn(() => {
@@ -92,6 +94,7 @@ dart_library.library('cascade', null, /* Imports */[
         this.x = dart.list([], T);
       }
     }
+    Base[dart.owner] = exports;
     return Base;
   });
   let Base = Base$();
@@ -109,6 +112,7 @@ dart_library.library('cascade', null, /* Imports */[
   dart.setSignature(Foo, {
     methods: () => ({test_final_field_generic: [dart.void, [dart.dynamic]]})
   });
+  Foo[dart.owner] = exports;
   // Exports:
   exports.A = A;
   exports.test_closure_with_mutate = test_closure_with_mutate;

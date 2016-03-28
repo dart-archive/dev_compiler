@@ -5,11 +5,13 @@ dart_library.library('fieldtest', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/fieldtest.dart';
   class A extends core.Object {
     A() {
       this.x = 42;
     }
   }
+  A[dart.owner] = exports;
   const B$ = dart.generic(function(T) {
     class B extends core.Object {
       B() {
@@ -18,6 +20,7 @@ dart_library.library('fieldtest', null, /* Imports */[
         this.z = null;
       }
     }
+    B[dart.owner] = exports;
     return B;
   });
   let B = B$();
@@ -61,6 +64,7 @@ dart_library.library('fieldtest', null, /* Imports */[
       return 1;
     }
   }
+  BaseWithGetter[dart.owner] = exports;
   class Derived extends BaseWithGetter {
     Derived() {
       this.foo = 2;
@@ -68,6 +72,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     }
   }
   dart.virtualField(Derived, 'foo');
+  Derived[dart.owner] = exports;
   const Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
       foo(t) {
@@ -78,11 +83,13 @@ dart_library.library('fieldtest', null, /* Imports */[
     dart.setSignature(Generic, {
       methods: () => ({foo: [dart.dynamic, [T]]})
     });
+    Generic[dart.owner] = exports;
     Generic.bar = 'hello';
     return Generic;
   });
   let Generic = Generic$();
   class StaticFieldOrder1 extends core.Object {}
+  StaticFieldOrder1[dart.owner] = exports;
   StaticFieldOrder1.d = 4;
   dart.defineLazyProperties(StaticFieldOrder1, {
     get a() {
@@ -96,6 +103,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     }
   });
   class StaticFieldOrder2 extends core.Object {}
+  StaticFieldOrder2[dart.owner] = exports;
   StaticFieldOrder2.d = 4;
   dart.defineLazyProperties(StaticFieldOrder2, {
     get a() {

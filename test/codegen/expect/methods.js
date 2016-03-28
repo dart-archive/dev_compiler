@@ -5,6 +5,7 @@ dart_library.library('methods', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/methods.dart';
   const _c = Symbol('_c');
   class A extends core.Object {
     A() {
@@ -63,6 +64,7 @@ dart_library.library('methods', null, /* Imports */[
       clashWithJsReservedName: [dart.dynamic, [], {function: dart.dynamic}]
     })
   });
+  A[dart.owner] = exports;
   class Bar extends core.Object {
     call(x) {
       return core.print(`hello from ${x}`);
@@ -71,11 +73,13 @@ dart_library.library('methods', null, /* Imports */[
   dart.setSignature(Bar, {
     methods: () => ({call: [dart.dynamic, [dart.dynamic]]})
   });
+  Bar[dart.owner] = exports;
   class Foo extends core.Object {
     Foo() {
       this.bar = new Bar();
     }
   }
+  Foo[dart.owner] = exports;
   function test() {
     let f = new Foo();
     dart.dcall(f.bar, "Bar's call method!");

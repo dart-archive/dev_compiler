@@ -5,6 +5,7 @@ dart_library.library('expect', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/expect.dart';
   class Expect extends core.Object {
     static _truncateString(string, start, end, length) {
       if (dart.notNull(end) - dart.notNull(start) > dart.notNull(length)) {
@@ -258,6 +259,7 @@ dart_library.library('expect', null, /* Imports */[
     }),
     names: ['_truncateString', '_stringDifference', 'equals', 'isTrue', 'isFalse', 'isNull', 'isNotNull', 'identical', 'fail', 'approxEquals', 'notEquals', 'listEquals', 'mapEquals', 'stringEquals', 'setEquals', 'throws', '_getMessage', '_fail']
   });
+  Expect[dart.owner] = exports;
   function _identical(a, b) {
     return core.identical(a, b);
   }
@@ -276,6 +278,7 @@ dart_library.library('expect', null, /* Imports */[
   dart.setSignature(ExpectException, {
     constructors: () => ({ExpectException: [ExpectException, [core.String]]})
   });
+  ExpectException[dart.owner] = exports;
   class NoInline extends core.Object {
     NoInline() {
     }
@@ -283,6 +286,7 @@ dart_library.library('expect', null, /* Imports */[
   dart.setSignature(NoInline, {
     constructors: () => ({NoInline: [NoInline, []]})
   });
+  NoInline[dart.owner] = exports;
   class TrustTypeAnnotations extends core.Object {
     TrustTypeAnnotations() {
     }
@@ -290,6 +294,7 @@ dart_library.library('expect', null, /* Imports */[
   dart.setSignature(TrustTypeAnnotations, {
     constructors: () => ({TrustTypeAnnotations: [TrustTypeAnnotations, []]})
   });
+  TrustTypeAnnotations[dart.owner] = exports;
   class AssumeDynamic extends core.Object {
     AssumeDynamic() {
     }
@@ -297,6 +302,7 @@ dart_library.library('expect', null, /* Imports */[
   dart.setSignature(AssumeDynamic, {
     constructors: () => ({AssumeDynamic: [AssumeDynamic, []]})
   });
+  AssumeDynamic[dart.owner] = exports;
   // Exports:
   exports.Expect = Expect;
   exports.ExpectException = ExpectException;

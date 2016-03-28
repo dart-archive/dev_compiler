@@ -5,6 +5,7 @@ dart_library.library('sunflower/circle', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/sunflower/circle.dart';
   class Circle extends core.Object {
     Circle(x, y, radius) {
       this.x = x;
@@ -15,6 +16,7 @@ dart_library.library('sunflower/circle', null, /* Imports */[
   dart.setSignature(Circle, {
     constructors: () => ({Circle: [Circle, [core.num, core.num, core.num]]})
   });
+  Circle[dart.owner] = exports;
   // Exports:
   exports.Circle = Circle;
 });

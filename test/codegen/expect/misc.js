@@ -5,6 +5,7 @@ dart_library.library('misc', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/misc.dart';
   class _Uninitialized extends core.Object {
     _Uninitialized() {
     }
@@ -12,6 +13,7 @@ dart_library.library('misc', null, /* Imports */[
   dart.setSignature(_Uninitialized, {
     constructors: () => ({_Uninitialized: [_Uninitialized, []]})
   });
+  _Uninitialized[dart.owner] = exports;
   const UNINITIALIZED = dart.const(new _Uninitialized());
   const Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
@@ -25,6 +27,7 @@ dart_library.library('misc', null, /* Imports */[
     dart.setSignature(Generic, {
       methods: () => ({m: [dart.dynamic, []]})
     });
+    Generic[dart.owner] = exports;
     return Generic;
   });
   let Generic = Generic$();
@@ -37,6 +40,7 @@ dart_library.library('misc', null, /* Imports */[
       return dart.is(obj, Base) && obj.x == this.x && obj.y == this.y;
     }
   }
+  Base[dart.owner] = exports;
   class Derived extends core.Object {
     Derived() {
       this.z = 3;
@@ -45,6 +49,7 @@ dart_library.library('misc', null, /* Imports */[
       return dart.is(obj, Derived) && obj.z == this.z && super['=='](obj);
     }
   }
+  Derived[dart.owner] = exports;
   function _isWhitespace(ch) {
     return ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
   }

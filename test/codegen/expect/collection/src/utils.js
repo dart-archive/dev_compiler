@@ -5,6 +5,7 @@ dart_library.library('collection/src/utils', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'package:collection/src/utils.dart';
   const Pair$ = dart.generic(function(E, F) {
     class Pair extends core.Object {
       Pair(first, last) {
@@ -15,6 +16,7 @@ dart_library.library('collection/src/utils', null, /* Imports */[
     dart.setSignature(Pair, {
       constructors: () => ({Pair: [Pair$(E, F), [E, F]]})
     });
+    Pair[dart.owner] = exports;
     return Pair;
   });
   let Pair = Pair$();

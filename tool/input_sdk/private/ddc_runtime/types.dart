@@ -10,6 +10,8 @@ final _mixins = JS('', 'Symbol("mixins")');
 @JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 final metadata = JS('', 'Symbol("metadata")');
+final owner = JS('', 'Symbol("owner")');
+final uri = JS('', 'Symbol("uri")');
 
 
 ///

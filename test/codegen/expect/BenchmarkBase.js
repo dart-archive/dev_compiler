@@ -5,6 +5,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/BenchmarkBase.dart';
   class Expect extends core.Object {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {
@@ -31,6 +32,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     }),
     names: ['equals', 'listEquals']
   });
+  Expect[dart.owner] = exports;
   class BenchmarkBase extends core.Object {
     BenchmarkBase(name) {
       this.name = name;
@@ -89,6 +91,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     statics: () => ({measureFor: [core.double, [core.Function, core.int]]}),
     names: ['measureFor']
   });
+  BenchmarkBase[dart.owner] = exports;
   // Exports:
   exports.Expect = Expect;
   exports.BenchmarkBase = BenchmarkBase;

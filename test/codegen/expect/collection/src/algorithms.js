@@ -6,6 +6,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
 ], function(exports, dart, core, math) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'package:collection/src/algorithms.dart';
   function _comparableBinarySearch(list, value) {
     let min = 0;
     let max = list[dartx.length];

@@ -6,6 +6,7 @@ dart_library.library('syncstar_syntax', null, /* Imports */[
 ], function(exports, dart, core, expect) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/syncstar_syntax.dart';
   function foo() {
     return dart.syncStar(function*() {
       yield 1;
@@ -32,6 +33,7 @@ dart_library.library('syncstar_syntax', null, /* Imports */[
     statics: () => ({baz: [core.Iterable$(core.int), []]}),
     names: ['baz']
   });
+  Class[dart.owner] = exports;
   function main() {
     function qux() {
       return dart.syncStar(function*() {

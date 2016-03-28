@@ -5,6 +5,7 @@ dart_library.library('notnull', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/notnull.dart';
   function intAssignments() {
     let i = 0;
     i = i & 1;
@@ -177,6 +178,7 @@ dart_library.library('notnull', null, /* Imports */[
   dart.setSignature(Foo, {
     methods: () => ({f: [dart.dynamic, [Foo]]})
   });
+  Foo[dart.owner] = exports;
   function _foo() {
     return 1;
   }

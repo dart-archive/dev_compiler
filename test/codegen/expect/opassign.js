@@ -5,6 +5,7 @@ dart_library.library('opassign', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/opassign.dart';
   dart.copyProperties(exports, {
     get index() {
       core.print('called "index" getter');
@@ -27,6 +28,7 @@ dart_library.library('opassign', null, /* Imports */[
       this.x = 100;
     }
   }
+  Foo[dart.owner] = exports;
   function main() {
     let f = dart.map([0, 40]);
     core.print('should only call "index" 2 times:');

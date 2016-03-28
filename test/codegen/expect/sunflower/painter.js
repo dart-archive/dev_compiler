@@ -8,6 +8,7 @@ dart_library.library('sunflower/painter', null, /* Imports */[
 ], function(exports, dart, math, dom, core, circle) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/sunflower/painter.dart';
   const ORANGE = "orange";
   const RED = "red";
   const BLUE = "blue";
@@ -45,6 +46,7 @@ dart_library.library('sunflower/painter', null, /* Imports */[
   dart.setSignature(CirclePainter, {
     methods: () => ({draw: [dart.void, [dom.CanvasRenderingContext2D]]})
   });
+  CirclePainter[dart.owner] = exports;
   // Exports:
   exports.ORANGE = ORANGE;
   exports.RED = RED;

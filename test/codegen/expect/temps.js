@@ -5,6 +5,7 @@ dart_library.library('temps', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/temps.dart';
   const _x = Symbol('_x');
   const __x = Symbol('__x');
   const _function = Symbol('_function');
@@ -18,6 +19,7 @@ dart_library.library('temps', null, /* Imports */[
   dart.setSignature(FormalCollision, {
     constructors: () => ({FormalCollision: [FormalCollision, [core.int, core.int, core.Function]]})
   });
+  FormalCollision[dart.owner] = exports;
   const _opt = Symbol('_opt');
   class OptionalArg extends core.Object {
     OptionalArg(opt) {
@@ -38,6 +40,7 @@ dart_library.library('temps', null, /* Imports */[
       named: [OptionalArg, [], {opt: core.int}]
     })
   });
+  OptionalArg[dart.owner] = exports;
   function main() {
     core.print(new FormalCollision(1, 2, dart.fn(x => x)));
     core.print(new OptionalArg()[_opt]);

@@ -6,6 +6,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
 ], function(exports, dart, core, collection) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'package:collection/src/priority_queue.dart';
   const PriorityQueue$ = dart.generic(function(E) {
     class PriorityQueue extends core.Object {
       static new(comparison) {
@@ -15,6 +16,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
     dart.setSignature(PriorityQueue, {
       constructors: () => ({new: [PriorityQueue$(E), [], [dart.functionType(core.int, [E, E])]]})
     });
+    PriorityQueue[dart.owner] = exports;
     return PriorityQueue;
   });
   let PriorityQueue = PriorityQueue$();
@@ -231,6 +233,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
         [_grow]: [dart.void, []]
       })
     });
+    HeapPriorityQueue[dart.owner] = exports;
     HeapPriorityQueue._INITIAL_CAPACITY = 7;
     return HeapPriorityQueue;
   });

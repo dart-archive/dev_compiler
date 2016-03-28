@@ -5,6 +5,7 @@ dart_library.library('functions', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/functions.dart';
   function bootstrap() {
     return dart.list([new Foo()], Foo);
   }
@@ -19,6 +20,7 @@ dart_library.library('functions', null, /* Imports */[
   }
   dart.fn(id, () => dart.definiteFunctionType(A2B$(Foo, Foo), [A2B$(Foo, Foo)]));
   class Foo extends core.Object {}
+  Foo[dart.owner] = exports;
   function main() {
     core.print(bootstrap()[dartx.get](0));
   }

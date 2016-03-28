@@ -6,6 +6,7 @@ dart_library.library('map_keys', null, /* Imports */[
 ], function(exports, dart, core, math) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/map_keys.dart';
   function main() {
     core.print(dart.map({'1': 2, '3': 4, '5': 6}));
     core.print(dart.map([1, 2, 3, 4, 5, 6]));

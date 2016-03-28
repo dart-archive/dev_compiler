@@ -5,6 +5,7 @@ dart_library.library('try_catch', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
+  exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/try_catch.dart';
   function foo() {
     try {
       dart.throw("hi there");

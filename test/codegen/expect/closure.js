@@ -3,6 +3,7 @@ import dart from "./dart/_runtime";
 import core from "./dart/core";
 import js from "./dart/js";
 let dartx = dart.dartx;
+exports[dart.uri] = 'file:///usr/local/google/vsm/dev_compiler/test/codegen/closure.dart';
 function generic_function<T>(items: core.List<T>, seed: T): core.List<T> {
   let strings = items[dartx.map](dart.fn((i: T): string => `${i}`, core.String, [dart.dynamic]))[dartx.toList]();
   return items;
@@ -74,6 +75,7 @@ const Foo$ = dart.generic(function(T) {
     statics: () => ({named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: core.int}]}),
     names: ['named_params']
   });
+  Foo[dart.owner] = exports;
   /** @final {string} */
   Foo.some_static_constant = "abc";
   /** @final {string} */
@@ -84,6 +86,7 @@ const Foo$ = dart.generic(function(T) {
 });
 let Foo = Foo$();
 class Bar extends core.Object {}
+Bar[dart.owner] = exports;
 const Baz$super = dart.mixin(Foo$(core.int), Bar);
 class Baz extends Baz$super {
   Baz(i: number) {
@@ -93,6 +96,7 @@ class Baz extends Baz$super {
 dart.setSignature(Baz, {
   constructors: () => ({Baz: [Baz, [core.int]]})
 });
+Baz[dart.owner] = exports;
 function main(args): void {
 }
 dart.fn(main, dart.void, [dart.dynamic]);

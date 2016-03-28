@@ -82,9 +82,18 @@ class JsInstanceMirror implements InstanceMirror {
   }
 }
 
+class JsLibraryMirror implements LibraryMirror {
+  final dynamic libraryObject;
+
+  JsLibraryMirror._(this.libraryObject);
+
+  String get uri => JS('String', '#[dart.uri]', libraryObject);
+}
+
 class JsClassMirror implements ClassMirror {
   final Type _cls;
   final Symbol simpleName;
+  final LibraryMirror _owner;
 
   List<InstanceMirror> _metadata;
   Map<Symbol, MethodMirror> _declarations;
@@ -102,6 +111,7 @@ class JsClassMirror implements ClassMirror {
         ? <InstanceMirror>[]
         : new List<InstanceMirror>.from(
             fn().map((i) => new JsInstanceMirror._(i)));
+    _owner = new JsLibraryMirror._(JS('', '#[dart.owner]', _cls));
 
     // Load declarations.
     // TODO(vsm): This is only populating the default constructor right now.
@@ -166,7 +176,7 @@ class JsClassMirror implements ClassMirror {
     return this;
   }
   DeclarationMirror get owner =>
-      throw new UnimplementedError("ClassMirror.owner unimplemented");
+      _owner;
   Symbol get qualifiedName =>
       throw new UnimplementedError("ClassMirror.qualifiedName unimplemented");
   Type get reflectedType { return _cls; }
