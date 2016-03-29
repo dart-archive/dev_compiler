@@ -110,9 +110,26 @@ class ServerCompiler extends AbstractCompiler {
     return true;
   }
 
+  String _linker(Uri mainUri, String mainLibraryName, List<String> files) {
+    var name = 'aggregated.dart.js';
+
+    String outputFile = path.join(outputDir, name);
+    File file = new File(outputFile)
+      ..createSync(recursive: true);
+    file.writeAsStringSync('');
+
+    for (var f in files) {
+      var inputFile = path.join(outputDir, f);
+      var content = new File(inputFile).readAsStringSync();
+      file.writeAsStringSync(content, mode: FileMode.APPEND);
+    }
+    return '<script src="$name"></script>\n';
+  }
+
   void _buildHtmlFile(HtmlSourceNode node) {
     if (outputDir == null) return;
-    var output = generateEntryHtml(node, this);
+    // TODO(vsm): Callback to link?
+    var output = generateEntryHtml(node, this, _linker);
     if (output == null) {
       _failure = true;
       return;
@@ -266,21 +283,17 @@ class DevServer {
         shelf_static.createStaticHandler(outDir, defaultDocument: _entryPath);
     shelf.Handler sourceHandler;
     if (compiler.options.sourceOptions.useMultiPackage) {
-      print('Installing multipackage handler');
+      // TODO(vsm): Why is inputBaseDir broken here?
       var originalHandler = shelf_static.createStaticHandler(Directory.current.path,
           serveFilesOutsidePath: true);
       sourceHandler = (shelf.Request request) {
         var requestedUri = request.requestedUri;
         var requestedPath = requestedUri.path;
-        print('multipackage lookup: $requestedUri');
         if (requestedPath.startsWith('/packages/')) {
-          // TODO(vsm): Search all paths
+          // TODO(vsm): Search all paths in the resolver.
           var parts = requestedPath.substring(10).split('/');
           var mapped = '/' + parts[0].replaceAll('.', '/') + '/lib/' + parts.sublist(1).join('/');
-          //var mappedUri = new Uri(scheme: requestedUri.scheme, host: requestedUri.host,
-          //    port: requestedUri.port, path: mapped);
           var mappedUri = requestedUri.resolve(mapped);
-          print('Fallback to $mappedUri from ${compiler.inputBaseDir}');
           var mappedRequest = new shelf.Request(request.method, mappedUri);
           return originalHandler(mappedRequest);
         }

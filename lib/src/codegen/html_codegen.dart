@@ -20,7 +20,7 @@ import '../utils.dart' show colorOf, resourceOutputPath;
 /// application. When compiling to Dart, we ensure that the document contains a
 /// single Dart script tag, but otherwise emit the original document
 /// unmodified.
-String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
+String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler, Function linker) {
   var options = compiler.options;
   var document = root.document.clone(true);
   var scripts = document.querySelectorAll('script[type="application/dart"]');
@@ -74,16 +74,20 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
         from: rootDir);
   }
 
+  var aggregatedFiles = <String>[];
   var fragment = new DocumentFragment();
   for (var resource in resources) {
     var resourcePath = rootRelative(
         resourceOutputPath(resource.uri, root.uri, options.runtimeDir));
     var ext = path.extension(resourcePath);
+    aggregatedFiles.add(resourcePath);
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
     }
     if (ext == '.js') {
-      fragment.nodes.add(libraryInclude(resourcePath));
+      if (linker == null) {
+        fragment.nodes.add(libraryInclude(resourcePath));
+      }
     } else if (ext == '.css') {
       var stylesheetLink = '<link rel="stylesheet" href="$resourcePath">\n';
       fragment.nodes.add(parseFragment(stylesheetLink));
@@ -94,16 +98,29 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
   var src = scripts[0].attributes["src"];
   var scriptUri = root.source.resolveRelativeUri(Uri.parse(src));
 
-  for (var lib in libraries) {
-    var info = lib.info;
-    if (info == null) continue;
-    var uri = info.library.source.uri;
-    var jsPath = rootRelative(compiler.getModulePath(uri));
-    if (uri == scriptUri) mainLibraryName = compiler.getModuleName(uri);
-    if (lib.cachingHash != null) {
-      jsPath = _addHash(jsPath, lib.cachingHash);
+  if (linker != null) {
+    for (var lib in libraries) {
+      var info = lib.info;
+      if (info == null) continue;
+      var uri = info.library.source.uri;
+      var jsPath = rootRelative(compiler.getModulePath(uri));
+      if (uri == scriptUri) mainLibraryName = compiler.getModuleName(uri);
+      aggregatedFiles.add(jsPath);
     }
-    fragment.nodes.add(libraryInclude(jsPath));
+    var result = linker(scriptUri, mainLibraryName, aggregatedFiles);
+    fragment.nodes.add(parseFragment(result));
+  } else {
+    for (var lib in libraries) {
+      var info = lib.info;
+      if (info == null) continue;
+      var uri = info.library.source.uri;
+      var jsPath = rootRelative(compiler.getModulePath(uri));
+      if (uri == scriptUri) mainLibraryName = compiler.getModuleName(uri);
+      if (lib.cachingHash != null) {
+        jsPath = _addHash(jsPath, lib.cachingHash);
+      }
+      fragment.nodes.add(libraryInclude(jsPath));
+    }
   }
   fragment.nodes.add(invokeMain(mainLibraryName));
   scripts[0].replaceWith(fragment);

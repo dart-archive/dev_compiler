@@ -477,7 +477,8 @@ rebuild(SourceNode start, bool build(SourceNode node)) {
   // of those transitive cases, but is not sufficient. See
   // https://github.com/dart-lang/dev_compiler/issues/76
   var apiChangeDetected = new HashSet<SourceNode>();
-  bool htmlNeedsRebuild = false;
+  // TODO(vsm): Fix!
+  bool htmlNeedsRebuild = true;
 
   bool shouldBuildNode(SourceNode n) {
     if (n.needsRebuild) return true;
