@@ -80,7 +80,9 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler, Functio
     var resourcePath = rootRelative(
         resourceOutputPath(resource.uri, root.uri, options.runtimeDir));
     var ext = path.extension(resourcePath);
-    aggregatedFiles.add(resourcePath);
+    if (ext == '.js') {
+      aggregatedFiles.add(resourcePath);
+    }
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
     }
@@ -107,7 +109,7 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler, Functio
       if (uri == scriptUri) mainLibraryName = compiler.getModuleName(uri);
       aggregatedFiles.add(jsPath);
     }
-    var result = linker(scriptUri, mainLibraryName, aggregatedFiles);
+    var result = linker(scriptUri, invokeMain(mainLibraryName), aggregatedFiles);
     fragment.nodes.add(parseFragment(result));
   } else {
     for (var lib in libraries) {
@@ -121,8 +123,8 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler, Functio
       }
       fragment.nodes.add(libraryInclude(jsPath));
     }
+    fragment.nodes.add(parseFragment('<script>${invokeMain(mainLibraryName)}</script>\n'));
   }
-  fragment.nodes.add(invokeMain(mainLibraryName));
   scripts[0].replaceWith(fragment);
   return '${document.outerHtml}\n';
 }
@@ -136,13 +138,13 @@ Node libraryInclude(String jsUrl) =>
     parseFragment('<script src="$jsUrl"></script>\n');
 
 /// A script tag that invokes the main function on the entry point library.
-Node invokeMain(String mainLibraryName) {
+String invokeMain(String mainLibraryName) {
   var code = mainLibraryName == null
       ? 'console.error("dev_compiler error: main was not generated");'
       // TODO(vsm): Can we simplify this?
       // See: https://github.com/dart-lang/dev_compiler/issues/164
       : "document.addEventListener('DOMContentLoaded', function (e) { dart_library.start('$mainLibraryName'); });";
-  return parseFragment('<script>$code</script>\n');
+  return '$code'; //'<script>$code</script>\n';
 }
 
 /// Convert the outputPath to include the hash in it. This function is the

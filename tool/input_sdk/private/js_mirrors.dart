@@ -38,10 +38,17 @@ dynamic _dsend(obj, String name, List args) {
   return JS('', '#.dsend(#, #, ...#)', _dart, obj, name, args);
 }
 
+dynamic realRuntimeType(obj) {
+  return JS('', '#.realRuntimeType(#)', _dart, obj);
+}
+
 class JsInstanceMirror implements InstanceMirror {
   final Object reflectee;
 
   JsInstanceMirror._(this.reflectee);
+
+  // TODO(vsm): This belongs on ClosureMirror.
+  MethodMirror get function => new JsMethodMirror._method(reflectee);
 
   ClassMirror get type =>
       throw new UnimplementedError("ClassMirror.type unimplemented");
@@ -279,6 +286,11 @@ class JsMethodMirror implements MethodMirror {
   JsMethodMirror._(JsClassMirror cls, this._method)
       : _name = getName(cls.simpleName) {
     var ftype = JS('', '#.classGetConstructorType(#)', _dart, cls._cls);
+    _params = _createParameterMirrorList(ftype);
+  }
+
+  JsMethodMirror._method(dynamic method) : _name = JS('String', '#.name', method), _method = method {
+    var ftype = realRuntimeType(method);
     _params = _createParameterMirrorList(ftype);
   }
 

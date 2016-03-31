@@ -129,10 +129,11 @@ abstract class _RectangleBase<T extends num> {
  * immutable.
  */
 class Rectangle<T extends num> extends _RectangleBase<T> {
-  final T left;
-  final T top;
-  final T width;
-  final T height;
+  // FIXME(vsm):
+  /*final*/ T left;
+  /*final*/ T top;
+  /*final*/ T width;
+  /*final*/ T height;
 
   /**
    * Create a rectangle spanned by `(left, top)` and `(left+width, top+height)`.

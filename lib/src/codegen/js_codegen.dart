@@ -252,6 +252,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   @override
   void visitExportDirective(ExportDirective node) {
+    if (node.element == null) {
+      print('$node - ${node.parent}');
+    }
     var exportName = emitLibraryName(node.uriElement);
 
     var currentLibNames = currentLibrary.publicNamespace.definedNames;
@@ -1808,6 +1811,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
 
     var type = declaration ? emitTypeRef(element.type) : null;
+    if (element.name == '') {
+      print(element.enclosingElement);
+      return _getTemp(element, 'brokenUnknown');
+    }
     return new JS.Identifier(element.name, type: type);
   }
 
@@ -3401,7 +3408,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       // TODO(jmesserly): analyzer will usually infer `List<Object>` because
       // that is the least upper bound of the element types. So we rarely
       // generate a plain `List<dynamic>` anymore.
-      if (!elementType.isDynamic) {
+      if (!elementType.isDynamic && !elementType.name == 'EfficientLength') {
         // dart.list helper internally depends on _interceptors.JSArray.
         _loader.declareBeforeUse(_jsArray);
         list = js.call('dart.list(#, #)', [list, _emitTypeName(elementType)]);

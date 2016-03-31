@@ -89,6 +89,7 @@ class ServerCompiler extends AbstractCompiler {
     clock.stop();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
     print('Compiled ${_libraries.length} libraries in ${time} s\n');
+    _dumpInfoIfRequested();
     return new CheckerResults(
         _libraries, _failure || options.codegenOptions.forceCompile);
   }
@@ -110,8 +111,8 @@ class ServerCompiler extends AbstractCompiler {
     return true;
   }
 
-  String _linker(Uri mainUri, String mainLibraryName, List<String> files) {
-    var name = 'aggregated.dart.js';
+  String _linker(Uri mainUri, String loader, List<String> files) {
+    var name = 'main.dart.js';
 
     String outputFile = path.join(outputDir, name);
     File file = new File(outputFile)
@@ -123,6 +124,7 @@ class ServerCompiler extends AbstractCompiler {
       var content = new File(inputFile).readAsStringSync();
       file.writeAsStringSync(content, mode: FileMode.APPEND);
     }
+    file.writeAsStringSync('$loader\n', mode: FileMode.APPEND);
     return '<script src="$name"></script>\n';
   }
 
@@ -297,7 +299,7 @@ class DevServer {
           var mappedRequest = new shelf.Request(request.method, mappedUri);
           return originalHandler(mappedRequest);
         }
-        return new shelf.Response.notFound(requestedUri);
+        return new shelf.Response.notFound(requestedUri.toString());
       };
     } else {
       sourceHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
