@@ -429,6 +429,17 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
+
+  // TODO(vsm): Remove this!  Hack to get around mixin bug:
+  void forEach(void action(E element)) {
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      action(this[i]);
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+  }
 }
 
 bool _isBrowserType(o) => JS('bool',

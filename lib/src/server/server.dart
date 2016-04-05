@@ -288,23 +288,38 @@ class DevServer {
       // TODO(vsm): Why is inputBaseDir broken here?
       var originalHandler = shelf_static.createStaticHandler(Directory.current.path,
           serveFilesOutsidePath: true);
+      var relativeHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
+          serveFilesOutsidePath: true);
       sourceHandler = (shelf.Request request) {
         var requestedUri = request.requestedUri;
         var requestedPath = requestedUri.path;
         if (requestedPath.startsWith('/packages/')) {
-          // TODO(vsm): Search all paths in the resolver.
           var parts = requestedPath.substring(10).split('/');
-          var mapped = '/' + parts[0].replaceAll('.', '/') + '/lib/' + parts.sublist(1).join('/');
-          var mappedUri = requestedUri.resolve(mapped);
-          var mappedRequest = new shelf.Request(request.method, mappedUri);
-          return originalHandler(mappedRequest);
+          for (var packagePath in compiler.options.sourceOptions.packagePaths) {
+            var mapped = '/' + packagePath + parts[0].replaceAll('.', '/') + '/lib/' + parts.sublist(1).join('/');
+            var mappedUri = requestedUri.resolve(mapped);
+            print('Searching for $mappedUri');
+            var mappedRequest = new shelf.Request(request.method, mappedUri);
+            var response = originalHandler(mappedRequest);
+            if (response.statusCode != 404) {
+              print('Found $mappedUri');
+              return response;
+            }
+            print('Did not find $mappedUri');
+          }
+        } else {
+          print('Looking for ${request.requestedUri} in ${compiler.inputBaseDir}');
+          var response = relativeHandler(request);
+          if (response.statusCode != 404) {
+            return response;
+          }
         }
         return new shelf.Response.notFound(requestedUri.toString());
       };
-    } else {
+    } else { 
       sourceHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
           serveFilesOutsidePath: true);
-    }
+   }
 
     // TODO(vsm): Is there a better builtin way to compose these handlers?
     var topLevelHandler = (shelf.Request request) {

@@ -26,11 +26,13 @@ final StrongModeError = JS('', '''(function() {
 
 /// This error indicates a strong mode specific failure.
 void throwStrongModeError(String message) => JS('', '''(() => {
+  debugger;
   throw new $StrongModeError($message);
 })()''');
 
 /// This error indicates a bug in the runtime or the compiler.
 void throwInternalError(String message) => JS('', '''(() => {
+  debugger;
   throw Error($message);
 })()''');
 

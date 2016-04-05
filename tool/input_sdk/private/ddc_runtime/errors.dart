@@ -4,14 +4,17 @@
 part of dart._runtime;
 
 throwCastError(actual, type) => JS('', '''(() => {
+  debugger;
   $throw_(new $CastErrorImplementation($actual, $type));
 })()''');
 
 throwAssertionError() => JS('', '''(() => {
+  debugger;
   $throw_(new $AssertionError());
 })()''');
 
 throwNullValueError() => JS('', '''(() => {
+  debugger;
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.

@@ -79,6 +79,7 @@ _dartSymbol(name) => JS('', '''
 ''');
 
 throwNoSuchMethod(obj, name, pArgs, nArgs, extras) => JS('', '''(() => {
+  debugger;
   $throw_(new $NoSuchMethodError($obj, $_dartSymbol($name), $pArgs, $nArgs, $extras));
 })()''');
 
@@ -159,8 +160,10 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
       isSubtype($type, $Stream) && isSubtype($actual, $Stream) ||
       isSubtype($type, $StreamSubscription) &&
           isSubtype($actual, $StreamSubscription)) {
-    console.warn('Ignoring cast fail from ' + $typeName($actual) +
-      ' to ' + $typeName($type));
+    if (false) {
+      console.warn('Ignoring cast fail from ' + $typeName($actual) +
+          ' to ' + $typeName($type));
+    }
     return true;
   }
   return false;

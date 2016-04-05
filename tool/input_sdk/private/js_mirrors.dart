@@ -131,7 +131,13 @@ class JsClassMirror implements ClassMirror {
     // TODO(vsm): Support named constructors and named arguments.
     assert(getName(constructorName) == "");
     assert(namedArgs == null || namedArgs.isEmpty);
-    var instance = JS('', 'new #(...#)', _cls, args);
+    // TODO(vsm): Add error checking here!
+    var instance;
+    if (JS('bool', '#.new', _cls)) {
+      instance = JS('', '#.new(...#)', _cls, args);
+    } else {
+      instance = JS('', 'new #(...#)', _cls, args);
+    }
     return new JsInstanceMirror._(instance);
   }
 
@@ -286,6 +292,9 @@ class JsMethodMirror implements MethodMirror {
   JsMethodMirror._(JsClassMirror cls, this._method)
       : _name = getName(cls.simpleName) {
     var ftype = JS('', '#.classGetConstructorType(#)', _dart, cls._cls);
+    if (ftype == null) {
+      ftype = JS('', '#.classGetConstructorType(#, "new")', _dart, cls._cls);
+    }
     _params = _createParameterMirrorList(ftype);
   }
 

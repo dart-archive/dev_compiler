@@ -1479,7 +1479,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var id = new JS.Identifier(name);
     body.add(annotate(new JS.FunctionDeclaration(id, fn), node, node.element));
     if (!_isDartRuntime) {
-      body.add(_emitFunctionTagged(id, node.element.type, topLevel: true)
+      body.add(_emitFunctionTagged(id, node.element.type, parameters: node.functionExpression.parameters, topLevel: true)
           .toStatement());
     }
 
@@ -1560,7 +1560,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   JS.Expression _emitFunctionTagged(JS.Expression fn, DartType type,
-      {topLevel: false}) {
+      {FormalParameterList parameters, bool topLevel: false}) {
     var name = type.name;
     var lazy = topLevel && !_typeIsLoaded(type);
 
@@ -1572,9 +1572,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         return js.call('dart.fn(#)', [fn]);
       }
       if (lazy) {
-        return js.call('dart.fn(#, () => #)', [fn, _emitFunctionRTTI(type)]);
+        return js.call('dart.fn(#, () => #)', [fn, _emitFunctionRTTI(type, parameters)]);
       }
-      return js.call('dart.fn(#, #)', [fn, _emitFunctionTypeParts(type)]);
+      if ('$fn' == 'createLocationStrategy') {
+        if (parameters == null) {
+          throw '$fn $type';
+        }
+        var result = _emitFunctionTypeParts(type, parameters);
+        throw '$result';
+      }
+      return js.call('dart.fn(#, #)', [fn, _emitFunctionTypeParts(type, parameters)]);
     }
     throw 'Function has non function type: $type';
   }
@@ -1726,10 +1733,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
     declareFn = annotate(declareFn, node, node.functionDeclaration.element);
 
-    return new JS.Block([
+    var result = new JS.Block([
       declareFn,
-      _emitFunctionTagged(name, func.element.type).toStatement()
+      _emitFunctionTagged(name, func.element.type, parameters: func.functionExpression.parameters).toStatement()
     ]);
+    return result;
   }
 
   /// Writes a simple identifier. This can handle implicit `this` as well as
@@ -1880,8 +1888,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return [rt, ra];
   }
 
-  JS.Expression _emitFunctionRTTI(FunctionType type) {
-    var parts = _emitFunctionTypeParts(type);
+  JS.Expression _emitFunctionRTTI(FunctionType type, [FormalParameterList parameterList]) {
+    var parts = _emitFunctionTypeParts(type, parameterList);
     return js.call('dart.definiteFunctionType(#)', [parts]);
   }
 
