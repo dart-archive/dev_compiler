@@ -441,7 +441,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var jsPeer = findAnnotation(classElem, isJsPeerInterface);
     // Only look at "Native" annotations on registered extension types.
     // E.g., we're current ignoring the ones in dart:html.
-    if (jsPeer == null && _extensionTypes.contains(classElem)) {
+    if (jsPeer == null && _extensionTypes.isExtensionType(classElem)) {
       jsPeer = findAnnotation(classElem, isNativeAnnotation);
     }
     if (jsPeer != null) {
@@ -724,7 +724,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           hasIterator = true;
           jsMethods.add(_emitIterable(type));
         }
-      } else if (m is FieldDeclaration && _extensionTypes.contains(element)) {
+      } else if (m is FieldDeclaration && _extensionTypes.isExtensionType(element)) {
         jsMethods.addAll(_emitNativeFieldAccessors(m));
       }
     }
@@ -797,7 +797,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var name = classElem.name;
     var body = <JS.Statement>[];
 
-    if (_extensionTypes.contains(classElem)) {
+    if (_extensionTypes.maybeExtensionType(classElem)) {
       var dartxNames = <JS.Expression>[];
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
@@ -928,7 +928,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (extensions.isNotEmpty) {
       var methodNames = <JS.Expression>[];
       for (var e in extensions) {
-        methodNames.add(_elementMemberName(e));
+        methodNames.add(_elementMemberName(e, allowExtensions: false));
       }
       body.add(js.statement('dart.defineExtensionMembers(#, #);', [
         name,
@@ -973,7 +973,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   List<ExecutableElement> _extensionsToImplement(ClassElement element) {
     var members = <ExecutableElement>[];
-    if (_extensionTypes.contains(element)) return members;
+    if (_extensionTypes.isExtensionType(element)) return members;
 
     // Collect all extension types we implement.
     var type = element.type;
@@ -1003,7 +1003,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   void _collectExtensions(InterfaceType type, Set<ClassElement> types) {
     if (type.isObject) return;
     var element = type.element;
-    if (_extensionTypes.contains(element)) types.add(element);
+    if (_extensionTypes.isExtensibleType(element)) types.add(element);
     for (var m in type.mixins.reversed) {
       _collectExtensions(m, types);
     }
@@ -1425,7 +1425,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
 
     return annotate(
-        new JS.Method(_elementMemberName(node.element), fn,
+        new JS.Method(_elementMemberName(node.element, allowExtensions: _extensionTypes.isExtensionType(type.element)), fn,
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
@@ -3035,7 +3035,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // If the target may be an extension type, we also use static dispatch
     // as we don't symbolize object properties like hashCode.
     return isNullable(target) ||
-        (_extensionTypes.contains(type.element) && target is! SuperExpression);
+        (_extensionTypes.maybeExtensionType(type.element) && target is! SuperExpression);
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
@@ -3627,7 +3627,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
     if (allowExtensions &&
         baseType != null &&
-        _extensionTypes.contains(baseType.element) &&
+        _extensionTypes.maybeExtensionType(baseType.element) &&
         !isObjectProperty(name)) {
       return js.call('dartx.#', _propertyName(name));
     }
@@ -3725,6 +3725,11 @@ class ExtensionTypeSet extends GeneralizingElementVisitor {
   final AnalysisContext _context;
   final TypeProvider _types;
 
+  // Abstract types that may be implemented by both native and non-native
+  // classes.
+  final _extensibleTypes = new HashSet<ClassElement>();
+
+  // Concrete native types.
   final _extensionTypes = new HashSet<ClassElement>();
   final _pendingLibraries = new HashSet<String>();
 
@@ -3733,14 +3738,26 @@ class ExtensionTypeSet extends GeneralizingElementVisitor {
         _types = compiler.context.typeProvider;
 
   visitClassElement(ClassElement element) {
-    if (findAnnotation(element, isJsPeerInterface) != null ||
-        findAnnotation(element, isNativeAnnotation) != null) {
-      _addExtensionType(element.type);
+    if (_isNative(element)) {
+      _addExtensionType(element.type, true);
     }
   }
 
-  void _addExtensionType(InterfaceType t) {
-    if (t.isObject || !_extensionTypes.add(t.element)) return;
+  bool _isNative(ClassElement element) {
+    return findAnnotation(element, isJsPeerInterface) != null ||
+        findAnnotation(element, isNativeAnnotation) != null;
+  }
+
+  void _addExtensionType(InterfaceType t, [bool mustBeNative = false]) {
+    if (t.isObject) return;
+    var element = t.element;
+    if (_extensibleTypes.contains(element) || _extensionTypes.contains(element)) return;
+    bool isNative = mustBeNative || _isNative(element);
+    if (isNative) {
+      _extensionTypes.add(element);
+    } else {
+      _extensibleTypes.add(element);
+    }
     t = fillDynamicTypeArgs(t, _types) as InterfaceType;
     t.interfaces.forEach(_addExtensionType);
     t.mixins.forEach(_addExtensionType);
@@ -3766,8 +3783,7 @@ class ExtensionTypeSet extends GeneralizingElementVisitor {
     _pendingLibraries.add(libraryUri);
   }
 
-  bool contains(Element element) {
-    if (_extensionTypes.contains(element)) return true;
+  bool _processPending(Element element) {
     if (_pendingLibraries.isEmpty) return false;
     if (element is ClassElement) {
       var uri = element.library.source.uri.toString();
@@ -3777,10 +3793,30 @@ class ExtensionTypeSet extends GeneralizingElementVisitor {
           _addExtensionTypes(libraryUri);
         }
         _pendingLibraries.clear();
-        return _extensionTypes.contains(element);
+        return true;
       }
     }
     return false;
+  }
+
+  bool _setContains(HashSet<ClassElement> set, Element element) {
+    if (set.contains(element)) return true;
+    if (_processPending(element)) {
+      return set.contains(element);
+    }
+    return false;
+  }
+
+  bool isExtensionType(Element element) {
+    return _setContains(_extensionTypes, element);
+  }
+
+  bool isExtensibleType(Element element) {
+    return _setContains(_extensibleTypes, element);
+  }
+
+  bool maybeExtensionType(Element element) {
+    return isExtensibleType(element) || isExtensionType(element);
   }
 }
 
@@ -3798,14 +3834,16 @@ class JSGenerator extends CodeGenerator {
     // a little more efficient now, we do this in two phases.
 
     // First, core types:
-    _extensionTypes._addExtensionTypes('dart:_interceptors');
-    _extensionTypes._addExtensionTypes('dart:_native_typed_data');
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
-    _extensionTypes._addExtensionType(_types.intType);
-    _extensionTypes._addExtensionType(_types.doubleType);
-    _extensionTypes._addExtensionType(_types.boolType);
-    _extensionTypes._addExtensionType(_types.stringType);
+    _extensionTypes._addExtensionType(_types.intType, true);
+    _extensionTypes._addExtensionType(_types.doubleType, true);
+    _extensionTypes._addExtensionType(_types.boolType, true);
+    _extensionTypes._addExtensionType(_types.stringType, true);
+
+    _extensionTypes._addExtensionTypes('dart:_interceptors');
+    _extensionTypes._addExtensionTypes('dart:_native_typed_data');
+
     // These are used natively by dart:html but also not annotated.
     _extensionTypes
         ._addExtensionTypesForLibrary('dart:core', ['Comparable', 'Map']);

@@ -45,7 +45,7 @@ void checkForPropertyOverride(
       // If we find an abstract getter/setter pair, stop the search.
       var getter = superprop.getter;
       var setter = superprop.setter;
-      if (!extensionTypes.contains(superclass) &&
+      if (!extensionTypes.isExtensionType(superclass) &&
           (getter == null || getter.isAbstract) &&
           (setter == null || setter.isAbstract)) {
         break;
