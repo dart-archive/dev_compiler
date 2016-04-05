@@ -398,6 +398,9 @@ hashCode(obj) => JS('', '''(() => {
       // TODO(vsm): Call the JSString hashCode?
     return $obj.length;
   }
+  if ($obj.hashCode == void 0) {
+    return $hashCode($obj.toString());
+  }
   return $obj.hashCode;
 })()''');
 

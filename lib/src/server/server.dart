@@ -288,31 +288,27 @@ class DevServer {
       // TODO(vsm): Why is inputBaseDir broken here?
       var originalHandler = shelf_static.createStaticHandler(Directory.current.path,
           serveFilesOutsidePath: true);
-      var relativeHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
-          serveFilesOutsidePath: true);
       sourceHandler = (shelf.Request request) {
         var requestedUri = request.requestedUri;
         var requestedPath = requestedUri.path;
+        String lookupPath;
         if (requestedPath.startsWith('/packages/')) {
           var parts = requestedPath.substring(10).split('/');
-          for (var packagePath in compiler.options.sourceOptions.packagePaths) {
-            var mapped = '/' + packagePath + parts[0].replaceAll('.', '/') + '/lib/' + parts.sublist(1).join('/');
-            var mappedUri = requestedUri.resolve(mapped);
-            print('Searching for $mappedUri');
-            var mappedRequest = new shelf.Request(request.method, mappedUri);
-            var response = originalHandler(mappedRequest);
-            if (response.statusCode != 404) {
-              print('Found $mappedUri');
-              return response;
-            }
-            print('Did not find $mappedUri');
-          }
+          lookupPath = parts[0].replaceAll('.', '/') + '/lib/' + parts.sublist(1).join('/');
         } else {
-          print('Looking for ${request.requestedUri} in ${compiler.inputBaseDir}');
-          var response = relativeHandler(request);
+          lookupPath = path.relative(compiler.inputBaseDir) + '/' + path.basename(requestedPath);
+        }
+        for (var packagePath in compiler.options.sourceOptions.packagePaths) {
+          var mapped = '/' + packagePath + lookupPath;
+          var mappedUri = requestedUri.resolve(mapped);
+          print('Searching for $mappedUri');
+          var mappedRequest = new shelf.Request(request.method, mappedUri);
+          var response = originalHandler(mappedRequest);
           if (response.statusCode != 404) {
+            print('Found $mappedUri');
             return response;
           }
+          print('Did not find $mappedUri');
         }
         return new shelf.Response.notFound(requestedUri.toString());
       };
