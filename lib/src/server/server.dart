@@ -301,14 +301,14 @@ class DevServer {
         for (var packagePath in compiler.options.sourceOptions.packagePaths) {
           var mapped = '/' + packagePath + lookupPath;
           var mappedUri = requestedUri.resolve(mapped);
-          print('Searching for $mappedUri');
+          // print('Searching for $mappedUri');
           var mappedRequest = new shelf.Request(request.method, mappedUri);
           var response = originalHandler(mappedRequest);
           if (response.statusCode != 404) {
             print('Found $mappedUri');
             return response;
           }
-          print('Did not find $mappedUri');
+          //print('Did not find $mappedUri');
         }
         return new shelf.Response.notFound(requestedUri.toString());
       };

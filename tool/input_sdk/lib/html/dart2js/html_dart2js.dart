@@ -54,7 +54,7 @@ import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
 
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper' show
-    convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
+  /*convertDartClosureToJS,*/ Creates, JavaScriptIndexingBehavior,
     JSName, Native, Returns, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
@@ -67,9 +67,7 @@ import 'dart:_interceptors' show
 
 export 'dart:math' show Rectangle, Point;
 
-
-
-
+/*=T*/ convertDartClosureToJS/*<T>*/(/*=T*/ f) => f;
 
 /**
  * Top-level container for a web page, which is usually a browser tab or window.
@@ -28249,11 +28247,11 @@ class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, Immut
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DomName('SpeechRecognition')
+@DomName('webkitSpeechRecognition')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechreco-section
-@Native("SpeechRecognition")
+@Native("webkitSpeechRecognition")
 class SpeechRecognition extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognition._() { throw new UnsupportedError("Not supported"); }

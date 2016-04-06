@@ -311,6 +311,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // Skip the cast if it's not needed.
     if (rules.isSubtypeOf(from, to)) return fromExpr;
 
+    // TODO(vsm): This is dodgy!
+    if (to.isBottom) return fromExpr;
+
     // All Dart number types map to a JS double.
     if (_isNumberInJS(from) && _isNumberInJS(to)) {
       // Make sure to check when converting to int.
@@ -3401,7 +3404,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       // TODO(vsm): When we canonicalize, we need to treat private symbols
       // correctly.
       var name = js.string(node.components.join('.'), "'");
-      return new JS.New(_emitTypeName(types.symbolType), [name]);
+      return js.call('#.new(#)', [_emitTypeName(types.symbolType), name]);
+      //return new JS.New(_emitTypeName(types.symbolType), [name]);
     }
     return _emitConst(emitSymbol);
   }
@@ -3862,7 +3866,7 @@ class JSGenerator extends CodeGenerator {
 
   String generateLibrary(LibraryUnit unit) {
     // Clone the AST first, so we can mutate it.
-    print(unit.library.element);
+    // print(unit.library.element);
     for (var dir in unit.library.directives) {
       if (dir is LibraryDirective) {
         assert(dir.element != null);

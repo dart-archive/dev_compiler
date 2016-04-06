@@ -158,6 +158,7 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
       isSubtype($type, $Map) && isSubtype($actual, $Map) ||
       isSubtype($type, $Function) && isSubtype($actual, $Function) ||
       isSubtype($type, $Stream) && isSubtype($actual, $Stream) ||
+      isSubtype($type, $StreamController) && isSubtype($actual, $StreamController) ||
       isSubtype($type, $StreamSubscription) &&
           isSubtype($actual, $StreamSubscription)) {
     if (false) {

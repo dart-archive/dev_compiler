@@ -354,7 +354,9 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
 })()''');
 
 canonicalMember(obj, name) => JS('', '''(() => {
-  if ($obj != null && $obj[$_extensionType]) return $dartx[$name];
+  if ($obj != null && $obj[$_extensionType]) {
+    return typeof $name == "symbol" ? $name : $dartx[$name];
+  }
   // Check for certain names that we can't use in JS
   if ($name == 'constructor' || $name == 'prototype') {
     $name = '+' + $name;
