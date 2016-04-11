@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+
+import '../utils.dart';
 
 bool _isJsLibType(String expectedName, Element e) =>
     e?.name == expectedName && _isJsLib(e.library);
@@ -35,14 +38,36 @@ bool isJsSpreadInvocation(MethodInvocation i) =>
 bool isJSAnnotation(DartObjectImpl value) =>
     _isJsLibType('JS', value.type.element);
 
-/// Whether [value] is a `@JSExportName` (internal annotation used in SDK
-/// instead of `@JS` from `package:js`).
-bool isJSExportNameAnnotation(DartObjectImpl value) {
+bool _isBuiltinAnnotation(
+    DartObjectImpl value, String libraryName, String annotationName) {
   var e = value?.type?.element;
-  if (e?.name != 'JSExportName') return false;
+  if (e?.name != annotationName) return false;
   var uri = e.source.uri;
-  return uri.scheme == 'dart' && uri.path == '_foreign_helper';
+  var path = uri.pathSegments[0];
+  return uri.scheme == 'dart' && path == libraryName;
 }
 
+/// Whether [value] is a `@JSExportName` (internal annotation used in SDK
+/// instead of `@JS` from `package:js`).
+bool isJSExportNameAnnotation(DartObjectImpl value) =>
+    _isBuiltinAnnotation(value, '_foreign_helper', 'JSExportName');
+
+bool isJsName(DartObjectImpl value) =>
+    _isBuiltinAnnotation(value, '_js_helper', 'JSName');
+
 bool isJsPeerInterface(DartObjectImpl value) =>
-    value.type.name == 'JsPeerInterface';
+    _isBuiltinAnnotation(value, '_js_helper', 'JsPeerInterface');
+
+bool isNativeAnnotation(DartObjectImpl value) =>
+    _isBuiltinAnnotation(value, '_js_helper', 'Native');
+
+/// Returns the name value of the `JSExportName` annotation (when compiling
+/// the SDK), or `null` if there's none. This is used to control the name
+/// under which functions are compiled and exported.
+String getJSExportName(Element e, TypeProvider types) {
+  if (!e.source.isInSystemLibrary) {
+    return null;
+  }
+  var jsName = findAnnotation(e, isJSExportNameAnnotation);
+  return getConstantField(jsName, 'name', types.stringType)?.toStringValue();
+}

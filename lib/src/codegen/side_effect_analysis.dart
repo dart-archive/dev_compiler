@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/error.dart' show ErrorReporter;
-import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
+import 'package:analyzer/src/generated/error.dart'
+    show AnalysisErrorListener, ErrorReporter;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// True is the expression can be evaluated multiple times without causing
 /// code execution. This is true for final fields. This can be true for local
@@ -29,10 +32,10 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 /// certain the [node] is stateless, because generated code may rely on the
 /// correctness of a `true` value. However it may return `false` for things
 /// that are in fact, stateless.
-bool isStateless(Expression node, [AstNode context]) {
+bool isStateless(FunctionBody function, Expression node, [AstNode context]) {
   // `this` and `super` cannot be reassigned.
   if (node is ThisExpression || node is SuperExpression) return true;
-  if (node is SimpleIdentifier) {
+  if (node is Identifier) {
     var e = node.staticElement;
     if (e is PropertyAccessorElement) {
       e = e.variable;
@@ -41,7 +44,7 @@ bool isStateless(Expression node, [AstNode context]) {
       if (e.isFinal) return true;
       if (e is LocalVariableElement || e is ParameterElement) {
         // make sure the local isn't mutated in the context.
-        return !_isPotentiallyMutated(e, context);
+        return !_isPotentiallyMutated(function, e, context);
       }
     }
   }
@@ -50,9 +53,16 @@ bool isStateless(Expression node, [AstNode context]) {
 
 /// Returns true if the local variable is potentially mutated within [context].
 /// This accounts for closures that may have been created outside of [context].
-bool _isPotentiallyMutated(VariableElement e, [AstNode context]) {
-  if (e.isPotentiallyMutatedInClosure) return true;
-  if (e.isPotentiallyMutatedInScope) {
+bool _isPotentiallyMutated(FunctionBody function, VariableElement e,
+    [AstNode context]) {
+  if (function is FunctionBodyImpl && function.localVariableInfo == null) {
+    // TODO(jmesserly): this is a caching bug in Analyzer. They don't restore
+    // this info in some cases.
+    return true;
+  }
+
+  if (function.isPotentiallyMutatedInClosure(e)) return true;
+  if (function.isPotentiallyMutatedInScope(e)) {
     // Need to visit the context looking for assignment to this local.
     if (context != null) {
       var visitor = new _AssignmentFinder(e);
@@ -97,12 +107,11 @@ class _AssignmentFinder extends RecursiveAstVisitor {
 class ConstFieldVisitor {
   final ConstantVisitor _constantVisitor;
 
-  ConstFieldVisitor(TypeProvider types, CompilationUnit unit)
+  ConstFieldVisitor(TypeProvider types, Source source)
       // TODO(jmesserly): support -D variables on the command line
       : _constantVisitor = new ConstantVisitor(
             new ConstantEvaluationEngine(types, new DeclaredVariables()),
-            new ErrorReporter(
-                new RecordingErrorListener(), unit.element.source));
+            new ErrorReporter(AnalysisErrorListener.NULL_LISTENER, source));
 
   // TODO(jmesserly): this is used to determine if the field initialization is
   // side effect free. We should make the check more general, as things like
@@ -113,9 +122,9 @@ class ConstFieldVisitor {
 
   DartObject computeConstant(VariableDeclaration field) {
     // If the constant is already computed by ConstantEvaluator, just return it.
-    VariableElementImpl element = field.element;
-    var result = element.evaluationResult;
-    if (result != null) return result.value;
+    VariableElement element = field.element;
+    var result = element.constantValue;
+    if (result != null) return result;
 
     // ConstantEvaluator will not compute constants for non-const fields,
     // so run ConstantVisitor for those to figure out if the initializer is

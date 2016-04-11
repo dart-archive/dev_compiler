@@ -5,9 +5,8 @@
 /// Holds a couple utility functions used at various places in the system.
 
 import 'dart:io';
-
 import 'package:path/path.dart' as path;
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show
         ImportDirective,
         ExportDirective,
@@ -19,15 +18,17 @@ import 'package:analyzer/src/generated/ast.dart'
         Expression,
         SimpleIdentifier,
         MethodInvocation;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart' show DartObject;
-import 'package:analyzer/src/generated/element.dart';
+//TODO(leafp): Remove deprecated dependency
+//ignore: DEPRECATED_MEMBER_USE
+import 'package:analyzer/src/generated/element.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/error.dart' show ErrorCode;
 import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/analyzer.dart' show parseDirectives;
-import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
 
 import 'codegen/js_names.dart' show invalidVariableName;
@@ -297,18 +298,6 @@ SourceLocation locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
       sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
 }
 
-/// Computes a hash for the given contents.
-String computeHash(String contents) {
-  if (contents == null || contents == '') return null;
-  return CryptoUtils.bytesToHex((new MD5()..add(contents.codeUnits)).close());
-}
-
-/// Computes a hash for the given file path (reads the contents in binary form).
-String computeHashFromFile(String filepath) {
-  var bytes = new File(filepath).readAsBytesSync();
-  return CryptoUtils.bytesToHex((new MD5()..add(bytes)).close());
-}
-
 String resourceOutputPath(Uri resourceUri, Uri entryUri, String runtimeDir) {
   if (resourceUri.scheme == 'package') return resourceUri.path;
 
@@ -412,22 +401,6 @@ SourceSpanWithContext createSpanHelper(
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
 
-String _strongModeErrorPrefix = 'STRONG_MODE';
-
-bool isStrongModeError(ErrorCode errorCode) {
-  return errorCode.name.startsWith(_strongModeErrorPrefix);
-}
-
-String errorCodeName(ErrorCode errorCode) {
-  if (isStrongModeError(errorCode)) {
-    return errorCode.name.substring(_strongModeErrorPrefix.length + 1);
-  } else {
-    // TODO(jmesserly): this is for backwards compat, but not sure it's very
-    // useful to log this.
-    return 'AnalyzerMessage';
-  }
-}
-
 bool isInlineJS(Element e) =>
     e is FunctionElement &&
     e.library.source.uri.toString() == 'dart:_foreign_helper' &&
@@ -454,30 +427,6 @@ getEnumName(v) {
   return parts[1];
 }
 
-/// Simplistic directed graph.
-class DirectedGraph<V> {
-  final _adjacencyList = <V, Set<V>>{};
-
-  void addEdge(V from, V to) {
-    _adjacencyList.putIfAbsent(from, () => new Set<V>()).add(to);
-  }
-
-  /// Get all the vertices reachable from the provided [roots].
-  Set<V> getTransitiveClosure(Iterable<V> roots) {
-    final reached = new Set<V>();
-
-    visit(V e) {
-      if (reached.add(e)) {
-        var destinations = _adjacencyList[e];
-        if (destinations != null) destinations.forEach(visit);
-      }
-    }
-    roots.forEach(visit);
-
-    return reached;
-  }
-}
-
 class FileSystem {
   const FileSystem();
 
@@ -495,4 +444,17 @@ class FileSystem {
     _ensureParentExists(file);
     new File(file).writeAsStringSync(contents);
   }
+}
+
+//TODO(leafp): Is this really necessary?  In theory I think
+// the static type should always be filled in for resolved
+// ASTs.  This may be a vestigial workaround.
+DartType getStaticType(Expression e) =>
+    e.staticType ?? DynamicTypeImpl.instance;
+
+// TODO(leafp) Factor this out or use an existing library
+class Tuple2<T0, T1> {
+  final T0 e0;
+  final T1 e1;
+  Tuple2(this.e0, this.e1);
 }

@@ -12,28 +12,28 @@ dart_library.library('lib/typed_data/byte_data_test', null, /* Imports */[
   dart.fn(main);
   function testRegress10898() {
     let data = typed_data.ByteData.new(16);
-    expect.Expect.equals(16, data.lengthInBytes);
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i++) {
-      expect.Expect.equals(0, data.getInt8(i));
-      data.setInt8(i, 42 + i);
-      expect.Expect.equals(42 + i, data.getInt8(i));
+    expect.Expect.equals(16, data[dartx.lengthInBytes]);
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i++) {
+      expect.Expect.equals(0, data[dartx.getInt8](i));
+      data[dartx.setInt8](i, 42 + i);
+      expect.Expect.equals(42 + i, data[dartx.getInt8](i));
     }
     let backing = typed_data.ByteData.new(16);
-    let view = typed_data.ByteData.view(backing.buffer);
-    for (let i = 0; i < dart.notNull(view.lengthInBytes); i++) {
-      expect.Expect.equals(0, view.getInt8(i));
-      view.setInt8(i, 87 + i);
-      expect.Expect.equals(87 + i, view.getInt8(i));
+    let view = typed_data.ByteData.view(backing[dartx.buffer]);
+    for (let i = 0; i < dart.notNull(view[dartx.lengthInBytes]); i++) {
+      expect.Expect.equals(0, view[dartx.getInt8](i));
+      view[dartx.setInt8](i, 87 + i);
+      expect.Expect.equals(87 + i, view[dartx.getInt8](i));
     }
-    view = typed_data.ByteData.view(backing.buffer, 4);
-    expect.Expect.equals(12, view.lengthInBytes);
-    for (let i = 0; i < dart.notNull(view.lengthInBytes); i++) {
-      expect.Expect.equals(87 + i + 4, view.getInt8(i));
+    view = typed_data.ByteData.view(backing[dartx.buffer], 4);
+    expect.Expect.equals(12, view[dartx.lengthInBytes]);
+    for (let i = 0; i < dart.notNull(view[dartx.lengthInBytes]); i++) {
+      expect.Expect.equals(87 + i + 4, view[dartx.getInt8](i));
     }
-    view = typed_data.ByteData.view(backing.buffer, 8, 4);
-    expect.Expect.equals(4, view.lengthInBytes);
-    for (let i = 0; i < dart.notNull(view.lengthInBytes); i++) {
-      expect.Expect.equals(87 + i + 8, view.getInt8(i));
+    view = typed_data.ByteData.view(backing[dartx.buffer], 8, 4);
+    expect.Expect.equals(4, view[dartx.lengthInBytes]);
+    for (let i = 0; i < dart.notNull(view[dartx.lengthInBytes]); i++) {
+      expect.Expect.equals(87 + i + 8, view[dartx.getInt8](i));
     }
   }
   dart.fn(testRegress10898);
@@ -71,7 +71,7 @@ dart_library.library('lib/typed_data/constructor_checks_test', null, /* Imports 
   }
   dart.fn(checkLengthConstructors);
   function checkViewConstructors() {
-    let buffer = typed_data.Int8List.new(256).buffer;
+    let buffer = typed_data.Int8List.new(256)[dartx.buffer];
     function check1(creator) {
       expect.Expect.throws(dart.fn(() => dart.dcall(creator, 10), dart.void, []));
       expect.Expect.throws(dart.fn(() => dart.dcall(creator, null), dart.void, []));
@@ -134,58 +134,58 @@ dart_library.library('lib/typed_data/endianness_test', null, /* Imports */[
   dart.fn(main);
   function swapTest() {
     let data = typed_data.ByteData.new(16);
-    expect.Expect.equals(16, data.lengthInBytes);
+    expect.Expect.equals(16, data[dartx.lengthInBytes]);
     for (let i = 0; i < 4; i++) {
-      data.setInt32(i * 4, i);
+      data[dartx.setInt32](i * 4, i);
     }
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 4) {
-      let e = data.getInt32(i, typed_data.Endianness.BIG_ENDIAN);
-      data.setInt32(i, e, typed_data.Endianness.LITTLE_ENDIAN);
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 4) {
+      let e = data[dartx.getInt32](i, typed_data.Endianness.BIG_ENDIAN);
+      data[dartx.setInt32](i, e, typed_data.Endianness.LITTLE_ENDIAN);
     }
-    expect.Expect.equals(33554432, data.getInt32(8));
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 2) {
-      let e = data.getInt16(i, typed_data.Endianness.BIG_ENDIAN);
-      data.setInt16(i, e, typed_data.Endianness.LITTLE_ENDIAN);
+    expect.Expect.equals(33554432, data[dartx.getInt32](8));
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 2) {
+      let e = data[dartx.getInt16](i, typed_data.Endianness.BIG_ENDIAN);
+      data[dartx.setInt16](i, e, typed_data.Endianness.LITTLE_ENDIAN);
     }
-    expect.Expect.equals(131072, data.getInt32(8));
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 4) {
-      let e = data.getUint32(i, typed_data.Endianness.LITTLE_ENDIAN);
-      data.setUint32(i, e, typed_data.Endianness.BIG_ENDIAN);
+    expect.Expect.equals(131072, data[dartx.getInt32](8));
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 4) {
+      let e = data[dartx.getUint32](i, typed_data.Endianness.LITTLE_ENDIAN);
+      data[dartx.setUint32](i, e, typed_data.Endianness.BIG_ENDIAN);
     }
-    expect.Expect.equals(512, data.getInt32(8));
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 2) {
-      let e = data.getUint16(i, typed_data.Endianness.LITTLE_ENDIAN);
-      data.setUint16(i, e, typed_data.Endianness.BIG_ENDIAN);
+    expect.Expect.equals(512, data[dartx.getInt32](8));
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 2) {
+      let e = data[dartx.getUint16](i, typed_data.Endianness.LITTLE_ENDIAN);
+      data[dartx.setUint16](i, e, typed_data.Endianness.BIG_ENDIAN);
     }
-    expect.Expect.equals(2, data.getInt32(8));
+    expect.Expect.equals(2, data[dartx.getInt32](8));
   }
   dart.fn(swapTest);
   function swapTestVar(read, write) {
     let data = typed_data.ByteData.new(16);
-    expect.Expect.equals(16, data.lengthInBytes);
+    expect.Expect.equals(16, data[dartx.lengthInBytes]);
     for (let i = 0; i < 4; i++) {
-      data.setInt32(i * 4, i);
+      data[dartx.setInt32](i * 4, i);
     }
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 4) {
-      let e = data.getInt32(i, dart.as(read, typed_data.Endianness));
-      data.setInt32(i, e, dart.as(write, typed_data.Endianness));
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 4) {
+      let e = data[dartx.getInt32](i, dart.as(read, typed_data.Endianness));
+      data[dartx.setInt32](i, e, dart.as(write, typed_data.Endianness));
     }
-    expect.Expect.equals(33554432, data.getInt32(8));
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 2) {
-      let e = data.getInt16(i, dart.as(read, typed_data.Endianness));
-      data.setInt16(i, e, dart.as(write, typed_data.Endianness));
+    expect.Expect.equals(33554432, data[dartx.getInt32](8));
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 2) {
+      let e = data[dartx.getInt16](i, dart.as(read, typed_data.Endianness));
+      data[dartx.setInt16](i, e, dart.as(write, typed_data.Endianness));
     }
-    expect.Expect.equals(131072, data.getInt32(8));
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 4) {
-      let e = data.getUint32(i, dart.as(read, typed_data.Endianness));
-      data.setUint32(i, e, dart.as(write, typed_data.Endianness));
+    expect.Expect.equals(131072, data[dartx.getInt32](8));
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 4) {
+      let e = data[dartx.getUint32](i, dart.as(read, typed_data.Endianness));
+      data[dartx.setUint32](i, e, dart.as(write, typed_data.Endianness));
     }
-    expect.Expect.equals(512, data.getInt32(8));
-    for (let i = 0; i < dart.notNull(data.lengthInBytes); i = i + 2) {
-      let e = data.getUint16(i, dart.as(read, typed_data.Endianness));
-      data.setUint16(i, e, dart.as(write, typed_data.Endianness));
+    expect.Expect.equals(512, data[dartx.getInt32](8));
+    for (let i = 0; i < dart.notNull(data[dartx.lengthInBytes]); i = i + 2) {
+      let e = data[dartx.getUint16](i, dart.as(read, typed_data.Endianness));
+      data[dartx.setUint16](i, e, dart.as(write, typed_data.Endianness));
     }
-    expect.Expect.equals(2, data.getInt32(8));
+    expect.Expect.equals(2, data[dartx.getInt32](8));
   }
   dart.fn(swapTestVar);
   // Exports:
@@ -370,7 +370,7 @@ dart_library.library('lib/typed_data/float32x4_list_test', null, /* Imports */[
       testLoadStoreDeopt(list, 0, value);
     }
     try {
-      testLoadStoreDeopt([typed_data.Float32x4.new(2.0, 3.0, 4.0, 5.0)], 0, value);
+      testLoadStoreDeopt(dart.list([typed_data.Float32x4.new(2.0, 3.0, 4.0, 5.0)], typed_data.Float32x4), 0, value);
     } catch (_) {
     }
 
@@ -435,39 +435,37 @@ dart_library.library('lib/typed_data/float32x4_list_test', null, /* Imports */[
       }
     }
     dart.fn(checkEquals, dart.void, [dart.dynamic, dart.dynamic]);
-    let pairs = [[0.0, 0.0], [5e-324, 0.0], [2.225073858507201e-308, 0.0], [2.2250738585072014e-308, 0.0], [0.9999999999999999, 1.0], [1.0, 1.0], [1.0000000000000002, 1.0], [4294967295.0, 4294967296.0], [4294967296.0, 4294967296.0], [4503599627370495.5, 4503599627370496.0], [9007199254740992.0, 9007199254740992.0], [1.7976931348623157e+308, core.double.INFINITY], [0.49999999999999994, 0.5], [4503599627370497.0, 4503599627370496.0], [9007199254740991.0, 9007199254740992.0], [core.double.INFINITY, core.double.INFINITY], [core.double.NAN, core.double.NAN]];
-    let conserved = [1.401298464324817e-45, 1.1754942106924411e-38, 1.1754943508222875e-38, 0.9999999403953552, 1.0000001192092896, 8388607.5, 8388608.0, 3.4028234663852886e+38, 8388609.0, 16777215.0];
-    let minusPairs = pairs[dartx.map](dart.fn(pair => {
-      return [dart.dsend(dart.dindex(pair, 0), 'unary-'), dart.dsend(dart.dindex(pair, 1), 'unary-')];
-    }));
-    let conservedPairs = conserved[dartx.map](dart.fn(value => [value, value], core.List, [dart.dynamic]));
-    let allTests = [pairs, minusPairs, conservedPairs][dartx.expand](dart.fn(x => dart.as(x, core.Iterable), core.Iterable, [dart.dynamic]));
+    let pairs = dart.list([dart.list([0.0, 0.0], core.double), dart.list([5e-324, 0.0], core.double), dart.list([2.225073858507201e-308, 0.0], core.double), dart.list([2.2250738585072014e-308, 0.0], core.double), dart.list([0.9999999999999999, 1.0], core.double), dart.list([1.0, 1.0], core.double), dart.list([1.0000000000000002, 1.0], core.double), dart.list([4294967295.0, 4294967296.0], core.double), dart.list([4294967296.0, 4294967296.0], core.double), dart.list([4503599627370495.5, 4503599627370496.0], core.double), dart.list([9007199254740992.0, 9007199254740992.0], core.double), dart.list([1.7976931348623157e+308, core.double.INFINITY], core.double), dart.list([0.49999999999999994, 0.5], core.double), dart.list([4503599627370497.0, 4503599627370496.0], core.double), dart.list([9007199254740991.0, 9007199254740992.0], core.double), dart.list([core.double.INFINITY, core.double.INFINITY], core.double), dart.list([core.double.NAN, core.double.NAN], core.double)], core.List$(core.double));
+    let conserved = dart.list([1.401298464324817e-45, 1.1754942106924411e-38, 1.1754943508222875e-38, 0.9999999403953552, 1.0000001192092896, 8388607.5, 8388608.0, 3.4028234663852886e+38, 8388609.0, 16777215.0], core.double);
+    let minusPairs = pairs[dartx.map](dart.fn(pair => dart.list([-dart.notNull(pair[dartx.get](0)), -dart.notNull(pair[dartx.get](1))], core.double), core.List$(core.double), [core.List$(core.double)]));
+    let conservedPairs = conserved[dartx.map](dart.fn(value => dart.list([value, value], core.double), core.List$(core.double), [core.double]));
+    let allTests = dart.list([pairs, minusPairs, conservedPairs], core.Iterable$(core.List$(core.double)))[dartx.expand](dart.fn(x => x, core.Iterable$(core.List$(core.double)), [core.Iterable$(core.List$(core.double))]));
     for (let pair of allTests) {
-      let input = dart.dindex(pair, 0);
-      let expected = dart.dindex(pair, 1);
+      let input = pair[dartx.get](0);
+      let expected = pair[dartx.get](1);
       let f = null;
-      f = typed_data.Float32x4.new(dart.as(input, core.double), 2.0, 3.0, 4.0);
+      f = typed_data.Float32x4.new(input, 2.0, 3.0, 4.0);
       dart.dsetindex(array, 0, f);
       f = dart.dindex(array, 0);
       checkEquals(expected, dart.dload(f, 'x'));
       expect.Expect.equals(2.0, dart.dload(f, 'y'));
       expect.Expect.equals(3.0, dart.dload(f, 'z'));
       expect.Expect.equals(4.0, dart.dload(f, 'w'));
-      f = typed_data.Float32x4.new(1.0, dart.as(input, core.double), 3.0, 4.0);
+      f = typed_data.Float32x4.new(1.0, input, 3.0, 4.0);
       dart.dsetindex(array, 1, f);
       f = dart.dindex(array, 1);
       expect.Expect.equals(1.0, dart.dload(f, 'x'));
       checkEquals(expected, dart.dload(f, 'y'));
       expect.Expect.equals(3.0, dart.dload(f, 'z'));
       expect.Expect.equals(4.0, dart.dload(f, 'w'));
-      f = typed_data.Float32x4.new(1.0, 2.0, dart.as(input, core.double), 4.0);
+      f = typed_data.Float32x4.new(1.0, 2.0, input, 4.0);
       dart.dsetindex(array, 2, f);
       f = dart.dindex(array, 2);
       expect.Expect.equals(1.0, dart.dload(f, 'x'));
       expect.Expect.equals(2.0, dart.dload(f, 'y'));
       checkEquals(expected, dart.dload(f, 'z'));
       expect.Expect.equals(4.0, dart.dload(f, 'w'));
-      f = typed_data.Float32x4.new(1.0, 2.0, 3.0, dart.as(input, core.double));
+      f = typed_data.Float32x4.new(1.0, 2.0, 3.0, input);
       dart.dsetindex(array, 3, f);
       f = dart.dindex(array, 3);
       expect.Expect.equals(1.0, dart.dload(f, 'x'));
@@ -484,10 +482,10 @@ dart_library.library('lib/typed_data/float32x4_list_test', null, /* Imports */[
       testLoadStore(list);
     }
     let floatList = typed_data.Float32List.new(32);
-    for (let i = 0; i < dart.notNull(floatList.length); i++) {
-      floatList.set(i, i[dartx.toDouble]());
+    for (let i = 0; i < dart.notNull(floatList[dartx.length]); i++) {
+      floatList[dartx.set](i, i[dartx.toDouble]());
     }
-    list = typed_data.Float32x4List.view(floatList.buffer);
+    list = typed_data.Float32x4List.view(floatList[dartx.buffer]);
     for (let i = 0; i < 20; i++) {
       testView(list);
     }
@@ -2199,8 +2197,8 @@ dart_library.library('lib/typed_data/float32x4_unbox_phi_test', null, /* Imports
   function main() {
     let list = typed_data.Float32x4List.new(10);
     let floatList = typed_data.Float32List.view(list.buffer);
-    for (let i = 0; i < dart.notNull(floatList.length); i++) {
-      floatList.set(i, i[dartx.toDouble]());
+    for (let i = 0; i < dart.notNull(floatList[dartx.length]); i++) {
+      floatList[dartx.set](i, i[dartx.toDouble]());
     }
     for (let i = 0; i < 20; i++) {
       let r = testUnboxPhi(list);
@@ -2566,7 +2564,7 @@ dart_library.library('lib/typed_data/int32x4_list_test', null, /* Imports */[
       testLoadStoreDeopt(list, 0, value);
     }
     try {
-      testLoadStoreDeopt([typed_data.Int32x4.new(2, 3, 4, 5)], 0, value);
+      testLoadStoreDeopt(dart.list([typed_data.Int32x4.new(2, 3, 4, 5)], typed_data.Int32x4), 0, value);
     } catch (_) {
     }
 
@@ -2621,33 +2619,33 @@ dart_library.library('lib/typed_data/int32x4_list_test', null, /* Imports */[
   }
   dart.fn(testSublist);
   function testSpecialValues(array) {
-    let tests = [[2410207675578512, 878082192], [2410209554626704, -1537836912], [2147483648, -2147483648], [-2147483648, -2147483648], [2147483647, 2147483647], [-2147483647, -2147483647]];
+    let tests = dart.list([dart.list([2410207675578512, 878082192], core.int), dart.list([2410209554626704, -1537836912], core.int), dart.list([2147483648, -2147483648], core.int), dart.list([-2147483648, -2147483648], core.int), dart.list([2147483647, 2147483647], core.int), dart.list([-2147483647, -2147483647], core.int)], core.List$(core.int));
     let int32x4 = null;
     for (let test of tests) {
-      let input = dart.dindex(test, 0);
-      let expected = dart.dindex(test, 1);
-      int32x4 = typed_data.Int32x4.new(dart.as(input, core.int), 2, 3, 4);
+      let input = test[dartx.get](0);
+      let expected = test[dartx.get](1);
+      int32x4 = typed_data.Int32x4.new(input, 2, 3, 4);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(expected, dart.dload(int32x4, 'x'));
       expect.Expect.equals(2, dart.dload(int32x4, 'y'));
       expect.Expect.equals(3, dart.dload(int32x4, 'z'));
       expect.Expect.equals(4, dart.dload(int32x4, 'w'));
-      int32x4 = typed_data.Int32x4.new(1, dart.as(input, core.int), 3, 4);
+      int32x4 = typed_data.Int32x4.new(1, input, 3, 4);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(1, dart.dload(int32x4, 'x'));
       expect.Expect.equals(expected, dart.dload(int32x4, 'y'));
       expect.Expect.equals(3, dart.dload(int32x4, 'z'));
       expect.Expect.equals(4, dart.dload(int32x4, 'w'));
-      int32x4 = typed_data.Int32x4.new(1, 2, dart.as(input, core.int), 4);
+      int32x4 = typed_data.Int32x4.new(1, 2, input, 4);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(1, dart.dload(int32x4, 'x'));
       expect.Expect.equals(2, dart.dload(int32x4, 'y'));
       expect.Expect.equals(expected, dart.dload(int32x4, 'z'));
       expect.Expect.equals(4, dart.dload(int32x4, 'w'));
-      int32x4 = typed_data.Int32x4.new(1, 2, 3, dart.as(input, core.int));
+      int32x4 = typed_data.Int32x4.new(1, 2, 3, input);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(1, dart.dload(int32x4, 'x'));
@@ -2667,10 +2665,10 @@ dart_library.library('lib/typed_data/int32x4_list_test', null, /* Imports */[
       testSpecialValues(list);
     }
     let uint32List = typed_data.Uint32List.new(32);
-    for (let i = 0; i < dart.notNull(uint32List.length); i++) {
-      uint32List.set(i, i);
+    for (let i = 0; i < dart.notNull(uint32List[dartx.length]); i++) {
+      uint32List[dartx.set](i, i);
     }
-    list = typed_data.Int32x4List.view(uint32List.buffer);
+    list = typed_data.Int32x4List.view(uint32List[dartx.buffer]);
     for (let i = 0; i < 20; i++) {
       testView(list);
     }
@@ -2940,15 +2938,15 @@ dart_library.library('lib/typed_data/setRange_3_test', null, /* Imports */[
   let dartx = dart.dartx;
   function expandContractTest() {
     let a1 = typed_data.Int32List.new(8);
-    let buffer = a1.buffer;
+    let buffer = a1[dartx.buffer];
     let a2 = typed_data.Int8List.view(buffer, 12, 8);
     setRange_lib.initialize(a2);
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', `${a2}`);
-    a1.setRange(0, 8, a2);
+    a1[dartx.setRange](0, 8, a2);
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', `${a1}`);
     setRange_lib.initialize(a1);
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', `${a1}`);
-    a2.setRange(0, 8, a1);
+    a2[dartx.setRange](0, 8, a1);
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', `${a2}`);
   }
   dart.fn(expandContractTest);
@@ -2971,12 +2969,12 @@ dart_library.library('lib/typed_data/setRange_4_test', null, /* Imports */[
   let dartx = dart.dartx;
   function clampingTest() {
     let a1 = typed_data.Int8List.new(8);
-    let a2 = typed_data.Uint8ClampedList.view(a1.buffer);
+    let a2 = typed_data.Uint8ClampedList.view(a1[dartx.buffer]);
     setRange_lib.initialize(a1);
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', `${a1}`);
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', `${a2}`);
-    a1.set(0, -1);
-    a2.setRange(0, 2, a1);
+    a1[dartx.set](0, -1);
+    a2[dartx.setRange](0, 2, a1);
     expect.Expect.equals('[0, 2, 3, 4, 5, 6, 7, 8]', `${a2}`);
   }
   dart.fn(clampingTest);
@@ -2998,7 +2996,7 @@ dart_library.library('lib/typed_data/setRange_5_test', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function overlapTest() {
-    let buffer = typed_data.Float32List.new(3).buffer;
+    let buffer = typed_data.Float32List.new(3)[dartx.buffer];
     let a0 = typed_data.Int8List.view(buffer);
     let a1 = typed_data.Int8List.view(buffer, 1, 5);
     let a2 = typed_data.Int8List.view(buffer, 2, 5);
@@ -3006,13 +3004,13 @@ dart_library.library('lib/typed_data/setRange_5_test', null, /* Imports */[
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]', `${a0}`);
     expect.Expect.equals('[2, 3, 4, 5, 6]', `${a1}`);
     expect.Expect.equals('[3, 4, 5, 6, 7]', `${a2}`);
-    a1.setRange(0, 5, a2);
+    a1[dartx.setRange](0, 5, a2);
     expect.Expect.equals('[1, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11, 12]', `${a0}`);
     setRange_lib.initialize(a0);
     expect.Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]', `${a0}`);
     expect.Expect.equals('[2, 3, 4, 5, 6]', `${a1}`);
     expect.Expect.equals('[3, 4, 5, 6, 7]', `${a2}`);
-    a2.setRange(0, 5, a1);
+    a2[dartx.setRange](0, 5, a1);
     expect.Expect.equals('[1, 2, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]', `${a0}`);
   }
   dart.fn(overlapTest);
@@ -3126,16 +3124,16 @@ dart_library.library('lib/typed_data/simd_store_to_load_forward_test', null, /* 
 dart_library.library('lib/typed_data/typed_data_from_list_test', null, /* Imports */[
   'dart/_runtime',
   'dart/collection',
-  'dart/typed_data',
-  'dart/core'
+  'dart/core',
+  'dart/typed_data'
 ], /* Lazy imports */[
-], function(exports, dart, collection, typed_data, core) {
+], function(exports, dart, collection, core, typed_data) {
   'use strict';
   let dartx = dart.dartx;
   function main() {
-    let list = new collection.UnmodifiableListView([1, 2]);
+    let list = new collection.UnmodifiableListView(dart.list([1, 2], core.int));
     let typed = typed_data.Uint8List.fromList(dart.as(list, core.List$(core.int)));
-    if (typed.get(0) != 1 || typed.get(1) != 2 || typed.length != 2) {
+    if (typed[dartx.get](0) != 1 || typed[dartx.get](1) != 2 || typed[dartx.length] != 2) {
       dart.throw('Test failed');
     }
   }
@@ -3253,10 +3251,10 @@ dart_library.library('lib/typed_data/typed_data_list_test', null, /* Imports */[
       index = dart.notNull(index) - 1;
     }
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'add', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'clear'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insert', 0, 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'remove', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeAt', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeLast'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
@@ -3332,10 +3330,10 @@ dart_library.library('lib/typed_data/typed_data_list_test', null, /* Imports */[
     let reversed = dart.dload(list, 'reversed');
     expect.Expect.listEquals(dart.as(list, core.List), dart.as(dart.dsend(dart.dload(dart.dsend(reversed, 'toList'), 'reversed'), 'toList'), core.List));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'add', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'clear'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insert', 0, 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'remove', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeAt', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeLast'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
@@ -3355,7 +3353,7 @@ dart_library.library('lib/typed_data/typed_data_list_test', null, /* Imports */[
     let copy = dart.dsend(list, 'toList');
     dart.dsend(list, 'fillRange', 0, 0);
     expect.Expect.listEquals([], dart.as(dart.dsend(dart.dsend(list, 'getRange', 0, 0), 'toList'), core.List));
-    dart.dsend(list, 'setRange', 0, 0, [1, 2]);
+    dart.dsend(list, 'setRange', 0, 0, dart.list([1, 2], core.int));
     dart.dsend(list, 'sort');
     expect.Expect.listEquals([], dart.as(dart.dsend(list, 'sublist', 0, 0), core.List));
   }
@@ -3403,77 +3401,77 @@ dart_library.library('lib/typed_data/typed_data_load2_test', null, /* Imports */
   let dartx = dart.dartx;
   function aliasWithByteData1() {
     let aa = typed_data.Int8List.new(10);
-    let b = typed_data.ByteData.view(aa.buffer);
-    for (let i = 0; i < dart.notNull(aa.length); i++)
-      aa.set(i, 9);
-    let x1 = aa.get(3);
-    b.setInt8(3, 1);
-    let x2 = aa.get(3);
+    let b = typed_data.ByteData.view(aa[dartx.buffer]);
+    for (let i = 0; i < dart.notNull(aa[dartx.length]); i++)
+      aa[dartx.set](i, 9);
+    let x1 = aa[dartx.get](3);
+    b[dartx.setInt8](3, 1);
+    let x2 = aa[dartx.get](3);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(1, x2);
   }
   dart.fn(aliasWithByteData1);
   function aliasWithByteData2() {
     let b = typed_data.ByteData.new(10);
-    let aa = typed_data.Int8List.view(b.buffer);
-    for (let i = 0; i < dart.notNull(aa.length); i++)
-      aa.set(i, 9);
-    let x1 = aa.get(3);
-    b.setInt8(3, 1);
-    let x2 = aa.get(3);
+    let aa = typed_data.Int8List.view(b[dartx.buffer]);
+    for (let i = 0; i < dart.notNull(aa[dartx.length]); i++)
+      aa[dartx.set](i, 9);
+    let x1 = aa[dartx.get](3);
+    b[dartx.setInt8](3, 1);
+    let x2 = aa[dartx.get](3);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(1, x2);
   }
   dart.fn(aliasWithByteData2);
   function alias8x8() {
-    let buffer = typed_data.Int8List.new(10).buffer;
+    let buffer = typed_data.Int8List.new(10)[dartx.buffer];
     let a1 = typed_data.Int8List.view(buffer);
     let a2 = typed_data.Int8List.view(buffer, 1);
-    for (let i = 0; i < dart.notNull(a1.length); i++)
-      a1.set(i, 9);
-    let x1 = a1.get(1);
-    a2.set(0, 0);
-    let x2 = a1.get(1);
+    for (let i = 0; i < dart.notNull(a1[dartx.length]); i++)
+      a1[dartx.set](i, 9);
+    let x1 = a1[dartx.get](1);
+    a2[dartx.set](0, 0);
+    let x2 = a1[dartx.get](1);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(0, x2);
-    for (let i = 0; i < dart.notNull(a1.length); i++)
-      a1.set(i, 9);
-    x1 = a1.get(1);
-    a2.set(1, 5);
-    x2 = a1.get(1);
+    for (let i = 0; i < dart.notNull(a1[dartx.length]); i++)
+      a1[dartx.set](i, 9);
+    x1 = a1[dartx.get](1);
+    a2[dartx.set](1, 5);
+    x2 = a1[dartx.get](1);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(9, x2);
   }
   dart.fn(alias8x8);
   function alias8x16() {
     let a1 = typed_data.Int8List.new(10);
-    let a2 = typed_data.Int16List.view(a1.buffer);
-    for (let i = 0; i < dart.notNull(a1.length); i++)
-      a1.set(i, 9);
-    let x1 = a1.get(0);
-    a2.set(0, 257);
-    let x2 = a1.get(0);
+    let a2 = typed_data.Int16List.view(a1[dartx.buffer]);
+    for (let i = 0; i < dart.notNull(a1[dartx.length]); i++)
+      a1[dartx.set](i, 9);
+    let x1 = a1[dartx.get](0);
+    a2[dartx.set](0, 257);
+    let x2 = a1[dartx.get](0);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(1, x2);
-    for (let i = 0; i < dart.notNull(a1.length); i++)
-      a1.set(i, 9);
-    x1 = a1.get(4);
-    a2.set(2, 1285);
-    x2 = a1.get(4);
+    for (let i = 0; i < dart.notNull(a1[dartx.length]); i++)
+      a1[dartx.set](i, 9);
+    x1 = a1[dartx.get](4);
+    a2[dartx.set](2, 1285);
+    x2 = a1[dartx.get](4);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(5, x2);
-    for (let i = 0; i < dart.notNull(a1.length); i++)
-      a1.set(i, 9);
-    x1 = a1.get(3);
-    a2.set(3, 1285);
-    x2 = a1.get(3);
+    for (let i = 0; i < dart.notNull(a1[dartx.length]); i++)
+      a1[dartx.set](i, 9);
+    x1 = a1[dartx.get](3);
+    a2[dartx.set](3, 1285);
+    x2 = a1[dartx.get](3);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(9, x2);
-    for (let i = 0; i < dart.notNull(a1.length); i++)
-      a1.set(i, 9);
-    x1 = a1.get(2);
-    a2.set(0, 1285);
-    x2 = a1.get(2);
+    for (let i = 0; i < dart.notNull(a1[dartx.length]); i++)
+      a1[dartx.set](i, 9);
+    x1 = a1[dartx.get](2);
+    a2[dartx.set](0, 1285);
+    x2 = a1[dartx.get](2);
     expect.Expect.equals(9, x1);
     expect.Expect.equals(9, x2);
   }
@@ -3501,13 +3499,13 @@ dart_library.library('lib/typed_data/typed_data_load_test', null, /* Imports */[
   let dartx = dart.dartx;
   function main() {
     let list = typed_data.Int8List.new(1);
-    list.set(0, 300);
-    if (list.get(0) != 44) {
+    list[dartx.set](0, 300);
+    if (list[dartx.get](0) != 44) {
       dart.throw('Test failed');
     }
-    let a = list.get(0);
-    list.set(0, 0);
-    if (list.get(0) != 0) {
+    let a = list[dartx.get](0);
+    list[dartx.set](0, 0);
+    if (list[dartx.get](0) != 0) {
       dart.throw('Test failed');
     }
   }
@@ -3517,11 +3515,11 @@ dart_library.library('lib/typed_data/typed_data_load_test', null, /* Imports */[
 });
 dart_library.library('lib/typed_data/typed_data_sublist_type_test', null, /* Imports */[
   'dart/_runtime',
-  'dart/core',
   'expect/expect',
+  'dart/core',
   'dart/typed_data'
 ], /* Lazy imports */[
-], function(exports, dart, core, expect, typed_data) {
+], function(exports, dart, expect, core, typed_data) {
   'use strict';
   let dartx = dart.dartx;
   exports.inscrutable = null;
@@ -3584,13 +3582,13 @@ dart_library.library('lib/typed_data/typed_data_sublist_type_test', null, /* Imp
     let isIntList = new (Is$(core.List$(core.int)))('List<int>');
     let isDoubleList = new (Is$(core.List$(core.double)))('List<double>');
     let isNumList = new (Is$(core.List$(core.num)))('List<num>');
-    let allChecks = [isFloat32list, isFloat64list, isInt8List, isInt16List, isInt32List, isUint8List, isUint16List, isUint32List, isUint8ClampedList];
+    let allChecks = dart.list([isFloat32list, isFloat64list, isInt8List, isInt16List, isInt32List, isUint8List, isUint16List, isUint32List, isUint8ClampedList], Is$(core.List));
     function testInt(list, check) {
-      testSublistType(list, [check, isIntList, isNumList], allChecks);
+      testSublistType(list, dart.list([dart.as(check, Is$(core.List)), isIntList, isNumList], Is$(core.List)), allChecks);
     }
     dart.fn(testInt);
     function testDouble(list, check) {
-      testSublistType(list, [check, isDoubleList, isNumList], allChecks);
+      testSublistType(list, dart.list([dart.as(check, Is$(core.List)), isDoubleList, isNumList], Is$(core.List)), allChecks);
     }
     dart.fn(testDouble);
     testDouble(typed_data.Float32List.new(10), isFloat32list);
@@ -3643,7 +3641,7 @@ dart_library.library('lib/typed_data/typed_list_iterable_test', null, /* Imports
           return true;
         }
         return false;
-      })));
+      }, core.bool, [dart.dynamic])));
     }
     expect.Expect.isFalse(dart.dload(list, 'isEmpty'));
     let i = 0;
@@ -3689,7 +3687,7 @@ dart_library.library('lib/typed_data/typed_list_iterable_test', null, /* Imports
     let whereList = dart.dsend(list, 'where', dart.fn(x => {
       whereCount++;
       return true;
-    }));
+    }, core.bool, [dart.dynamic]));
     expect.Expect.equals(0, whereCount);
     expect.Expect.equals(dart.dload(list, 'length'), dart.dload(whereList, 'length'));
     expect.Expect.equals(dart.dload(list, 'length'), whereCount);
@@ -3756,7 +3754,7 @@ dart_library.library('lib/typed_data/typed_list_iterable_test', null, /* Imports
     let whereList = dart.dsend(list, 'where', dart.fn(x => {
       whereCount++;
       return true;
-    }));
+    }, core.bool, [dart.dynamic]));
     expect.Expect.equals(0, whereCount);
     expect.Expect.equals(dart.dload(list, 'length'), dart.dload(whereList, 'length'));
     expect.Expect.equals(dart.dload(list, 'length'), whereCount);

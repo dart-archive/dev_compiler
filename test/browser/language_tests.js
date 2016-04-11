@@ -14,7 +14,7 @@
     'language': {
       expectedFailures: new Set([
         'arithmetic2_test',
-	'assert_with_type_test_or_cast_test',
+        'assert_with_type_test_or_cast_test',
         'assertion_test',
         'async_star_await_pauses_test',
         'async_star_cancel_while_paused_test',
@@ -257,6 +257,7 @@
         'regress_13462_1_test',
         'regress_14105_test',
         'regress_16640_test',
+	'regress_18535_test',
         'regress_21795_test',
         'regress_22443_test',
         'regress_22666_test',
@@ -317,6 +318,12 @@
         'multiline_newline_test_06_multi',
         'multiline_newline_test_none_multi',
         'no_main_test_01_multi',
+
+        // https://github.com/dart-lang/sdk/issues/26123
+        'bad_raw_string_negative_test',
+
+        // https://github.com/dart-lang/sdk/issues/26124
+        'prefix10_negative_test'
       ]),
       helpers: new Set([
         'library_prefixes_test1',
@@ -326,40 +333,27 @@
     },
     'lib/typed_data': {
       expectedFailures: new Set([
-        'byte_data_test',
-	'constructor_checks_test',
-	'endianness_test',
-	'float32x4_clamp_test',
-	'float32x4_cross_test',
-	'float32x4_list_test',
-	'float32x4_shuffle_test',
-	'float32x4_sign_mask_test',
-	'float32x4_transpose_test',
-	'float32x4_two_arg_shuffle_test',
-	'float32x4_unbox_phi_test',
-	'float32x4_unbox_regress_test',
-	'float64x2_typed_list_test',
-	'int32x4_arithmetic_test',
-	'int32x4_bigint_test',
-	'int32x4_list_test',
-	'int32x4_shuffle_test',
-	'int32x4_sign_mask_test',
-	'int64_list_load_store_test',
-	'native_interceptor_no_own_method_to_intercept_test',
-	'setRange_1_test',
-	'setRange_2_test',
-	'setRange_3_test',
-	'setRange_4_test',
-	'setRange_5_test',
-	'simd_store_to_load_forward_test',
-	'typed_data_from_list_test',
-	'typed_data_hierarchy_int64_test',
-	'typed_data_hierarchy_test',
-	'typed_data_list_test',
-	'typed_data_load2_test',
-	'typed_data_load_test',
-	'typed_data_sublist_type_test',
-	'typed_list_iterable_test',
+        // TODO(vsm): Right shift should not propagate sign
+        // https://github.com/dart-lang/dev_compiler/issues/446
+        'float32x4_sign_mask_test',
+        'int32x4_sign_mask_test',
+
+        // No bigint or int64 support
+        'int32x4_bigint_test',
+        'int64_list_load_store_test',
+        'typed_data_hierarchy_int64_test',
+
+        // TODO(vsm): List.toString is different in DDC
+        // https://github.com/dart-lang/dev_compiler/issues/445
+        'setRange_1_test',
+        'setRange_2_test',
+        'setRange_3_test',
+        'setRange_4_test',
+        'setRange_5_test',
+
+        // TODO(vsm): Triage further
+        // exports._GeneratorIterable$ is not a function
+        'typed_data_list_test',
       ]),
       helpers: new Set([
       ])
@@ -405,7 +399,12 @@
             async_helper.asyncTestInitialize(done);
             console.debug('Running ' + s + ' test:  ' + name);
 
-            dart_library.import(s + '/' + name).main();
+            let mainLibrary = dart_library.import(s + '/' + name);
+            if (/negative_test/.test(name)) {
+              assert.throws(mainLibrary.main);
+            } else {
+              mainLibrary.main();
+            }
 
             if (!async_helper.asyncTestStarted) done();
           });
@@ -415,6 +414,8 @@
   }
 
   dart_library.import('language/async_await_test_none_multi').main();
-  dart_library.import('language/async_star_test_none_multi').main();
+  // TODO(vsm): Re-enable.
+  // See https://github.com/dart-lang/dev_compiler/issues/456
+  // dart_library.import('language/async_star_test_none_multi').main();
 
 })();

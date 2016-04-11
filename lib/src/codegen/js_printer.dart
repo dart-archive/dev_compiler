@@ -5,7 +5,7 @@
 import 'dart:convert' show JSON, JsonEncoder;
 import 'dart:io' show Directory, File, Platform, Process;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' as srcmaps show Printer;
 import 'package:source_maps/source_maps.dart' show SourceMapSpan;
@@ -16,23 +16,23 @@ import '../utils.dart' show FileSystem, computeHash, locationForOffset;
 
 import 'js_names.dart' show TemporaryNamer;
 
-String writeJsLibrary(
-    JS.Program jsTree, String outputPath, String inputDir, Uri serverUri,
-    {bool emitSourceMaps: false, FileSystem fileSystem}) {
+void writeJsLibrary(JS.Program jsTree, String outputPath, String inputDir,
+    {bool emitSourceMaps: false,
+    bool emitTypes: false,
+    FileSystem fileSystem}) {
   var outFilename = path.basename(outputPath);
   var outDir = path.dirname(outputPath);
 
   JS.JavaScriptPrintingContext context;
   if (emitSourceMaps) {
     var printer = new srcmaps.Printer(outFilename);
-    context =
-        new SourceMapPrintingContext(printer, outDir, inputDir, serverUri);
+    context = new SourceMapPrintingContext(printer, outDir, inputDir, null);
   } else {
     context = new JS.SimpleJavaScriptPrintingContext();
   }
 
   var opts = new JS.JavaScriptPrintingOptions(
-      shouldEmitTypes: true,
+      emitTypes: emitTypes,
       allowKeywordsInProperties: true,
       allowSingleLineIfStatements: true);
   var jsNamer = new TemporaryNamer(jsTree);
@@ -45,6 +45,8 @@ String writeJsLibrary(
     // Write output file and source map
     text = printer.text;
     var sourceMap = JSON.decode(printer.map);
+    // TODO(jmesserly): I'm not sure where this logic came from, but we should
+    // upstream this, rather than workaround source_map's formatting ourselves.
     var sourceMapText = new JsonEncoder.withIndent('  ').convert(sourceMap);
     // Convert:
     //   "names": [
@@ -65,8 +67,6 @@ String writeJsLibrary(
     // TODO(jmesserly): should only do this if the input file was executable?
     if (!Platform.isWindows) Process.runSync('chmod', ['+x', outputPath]);
   }
-
-  return computeHash(text);
 }
 
 class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
@@ -74,15 +74,13 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
   final String outputDir;
   final String inputDir;
 
-  // TODO(vsm): we could abstract this out and have a generic Uri mapping
-  // instead of hardcoding a notion of a server uri.
-  final Uri serverUri;
+  final Uri baseUri;
 
   CompilationUnit unit;
   Uri uri;
 
   SourceMapPrintingContext(
-      this.printer, this.outputDir, this.inputDir, this.serverUri);
+      this.printer, this.outputDir, this.inputDir, this.baseUri);
 
   void emit(String string) {
     printer.add(string);
@@ -120,13 +118,13 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
       locationForOffset(unit.lineInfo, uri, offset);
 
   Uri _makeRelativeUri(Uri src) {
-    if (serverUri == null) {
+    if (baseUri == null) {
       return new Uri(path: path.relative(src.path, from: outputDir));
     } else {
       if (src.path.startsWith('/')) {
-        return serverUri.resolve(path.relative(src.path, from: inputDir));
+        return baseUri.resolve(path.relative(src.path, from: inputDir));
       } else {
-        return serverUri.resolve(path.join('packages', src.path));
+        return baseUri.resolve(path.join('packages', src.path));
       }
     }
   }

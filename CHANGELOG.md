@@ -1,5 +1,31 @@
 # dev_compiler changelog
 
+## 0.1.24
+- workaround breaking change on requestAnimationFrame
+
+## 0.1.23
+- updates for the latest analyzer
+- removal of deprecated functionality (server mode) in prep for refactoring
+
+## 0.1.22
+- fixes to support the latest analyzer
+- improvements in compile speed
+- bug fixes on function / closure handling
+
+## 0.1.21
+- bug fix for dart:js constructor invocation
+
+## 0.1.20
+- support new StackTrace.current method
+
+## 0.1.19
+- support for dom libraries (dart:html, etc)
+
+## 0.1.18
+- dart:typed_data support
+- preliminary TS / Closure output support
+- various runtime typing fixes
+
 ## 0.1.17
 - preliminary node module support
 - support for compiling / serving multiple html files

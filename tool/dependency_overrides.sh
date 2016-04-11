@@ -21,11 +21,10 @@ function checkout_dependency_override_from_github() {
 
   local url=https://github.com/$org_project
 
-  echo "dependency_name = $dependency_name"
-  echo "url = $url$path"
-  echo "branch = $branch"
+  echo "** Checking out $dependency_name override from $url$path#$branch"
 
-  local dep_dir=dependency_overrides/$dependency_name
+  : ${TMPDIR:="/tmp"}
+  local dep_dir=$TMPDIR/dependency_overrides/$dependency_name
 
   [[ -d `dirname $dep_dir` ]] || mkdir `dirname $dep_dir`
 

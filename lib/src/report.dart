@@ -2,27 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Summarizes the information produced by the checker.
-
-import 'dart:math' show max;
-
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:source_span/source_span.dart';
-
-import 'utils.dart';
-import 'summary.dart';
+import 'package:analyzer/source/error_processor.dart';
 
 final _checkerLogger = new Logger('dev_compiler.checker');
 
 /// Collects errors, and then sorts them and sends them
 class ErrorCollector implements AnalysisErrorListener {
+  final AnalysisContext _context;
   final AnalysisErrorListener listener;
   final List<AnalysisError> _errors = [];
 
-  ErrorCollector(this.listener);
+  ErrorCollector(this._context, this.listener);
 
   /// Flushes errors to the log. Until this is called, errors are buffered.
   void flush() {
@@ -30,8 +24,8 @@ class ErrorCollector implements AnalysisErrorListener {
     // sort errors
     _errors.sort((AnalysisError error1, AnalysisError error2) {
       // severity
-      var severity1 = _strongModeErrorSeverity(error1);
-      var severity2 = _strongModeErrorSeverity(error2);
+      var severity1 = errorSeverity(_context, error1);
+      var severity2 = errorSeverity(_context, error2);
       int compare = severity2.compareTo(severity1);
       if (compare != 0) return compare;
 
@@ -57,15 +51,134 @@ class ErrorCollector implements AnalysisErrorListener {
   }
 }
 
-ErrorSeverity _strongModeErrorSeverity(AnalysisError error) {
-  // Upgrade analyzer warnings to errors.
-  // TODO(jmesserly: reconcile this with analyzer_cli
-  var severity = error.errorCode.errorSeverity;
-  if (!isStrongModeError(error.errorCode) &&
-      severity == ErrorSeverity.WARNING) {
-    return ErrorSeverity.ERROR;
+ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
+  var code = error.errorCode;
+  if (code is StaticWarningCode) {
+    // TODO(jmesserly): many more warnings need to be promoted for soundness.
+    // Also code generation will blow up finding null types/elements for many
+    // of these, or we rely on them to produce valid optimizations.
+    switch (code.name) {
+      case 'AMBIGUOUS_IMPORT':
+      case 'ARGUMENT_TYPE_NOT_ASSIGNABLE':
+      case 'ARGUMENT_TYPE_NOT_ASSIGNABLE_STATIC_WARNING':
+      case 'ASSIGNMENT_TO_CONST':
+      case 'ASSIGNMENT_TO_FINAL':
+      case 'ASSIGNMENT_TO_FINAL_NO_SETTER':
+      case 'ASSIGNMENT_TO_FUNCTION':
+      case 'ASSIGNMENT_TO_METHOD':
+      case 'ASSIGNMENT_TO_TYPE':
+      case 'CASE_BLOCK_NOT_TERMINATED':
+      case 'CAST_TO_NON_TYPE':
+      case 'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER':
+      case 'CONFLICTING_DART_IMPORT':
+      case 'CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER':
+      case 'CONFLICTING_INSTANCE_METHOD_SETTER':
+      case 'CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER':
+      case 'CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER':
+      case 'CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER':
+      case 'CONST_WITH_ABSTRACT_CLASS':
+      case 'CONST_WITH_INVALID_TYPE_PARAMETERS':
+      case 'EQUAL_KEYS_IN_MAP':
+      case 'EXPORT_DUPLICATED_LIBRARY_NAMED':
+      case 'EXTRA_POSITIONAL_ARGUMENTS':
+      case 'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION':
+      case 'FIELD_INITIALIZER_NOT_ASSIGNABLE':
+      case 'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE':
+      case 'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR':
+      case 'FUNCTION_WITHOUT_CALL':
+      case 'IMPORT_DUPLICATED_LIBRARY_NAMED':
+      case 'IMPORT_OF_NON_LIBRARY':
+      case 'INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD':
+      case 'INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC':
+      case 'INVALID_GETTER_OVERRIDE_RETURN_TYPE':
+      case 'INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE':
+      case 'INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE':
+      case 'INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE':
+      case 'INVALID_METHOD_OVERRIDE_RETURN_TYPE':
+      case 'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS':
+      case 'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND':
+      case 'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED':
+      case 'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL':
+      case 'INVALID_OVERRIDE_NAMED':
+      case 'INVALID_OVERRIDE_POSITIONAL':
+      case 'INVALID_OVERRIDE_REQUIRED':
+      case 'INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE':
+      case 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE':
+      case 'MAP_KEY_TYPE_NOT_ASSIGNABLE':
+      case 'MAP_VALUE_TYPE_NOT_ASSIGNABLE':
+      case 'NEW_WITH_ABSTRACT_CLASS':
+      case 'NEW_WITH_INVALID_TYPE_PARAMETERS':
+      case 'NEW_WITH_NON_TYPE':
+      case 'NEW_WITH_UNDEFINED_CONSTRUCTOR':
+      case 'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT':
+      case 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS':
+      case 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR':
+      case 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE':
+      case 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE':
+      case 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO':
+      case 'NON_TYPE_IN_CATCH_CLAUSE':
+      case 'NOT_A_TYPE':
+      case 'NOT_ENOUGH_REQUIRED_ARGUMENTS':
+      case 'PART_OF_DIFFERENT_LIBRARY':
+      case 'REDIRECT_TO_INVALID_FUNCTION_TYPE':
+      case 'REDIRECT_TO_INVALID_RETURN_TYPE':
+      case 'REDIRECT_TO_MISSING_CONSTRUCTOR':
+      case 'REDIRECT_TO_NON_CLASS':
+      case 'STATIC_ACCESS_TO_INSTANCE_MEMBER':
+      case 'SWITCH_EXPRESSION_NOT_ASSIGNABLE':
+      case 'TYPE_ANNOTATION_DEFERRED_CLASS':
+      case 'TYPE_PARAMETER_REFERENCED_BY_STATIC':
+      case 'TYPE_TEST_WITH_NON_TYPE':
+      case 'TYPE_TEST_WITH_UNDEFINED_NAME':
+      case 'UNDEFINED_CLASS':
+      case 'UNDEFINED_CLASS_BOOLEAN':
+      case 'UNDEFINED_GETTER':
+      case 'UNDEFINED_GETTER_STATIC_WARNING':
+      case 'UNDEFINED_IDENTIFIER':
+      case 'UNDEFINED_NAMED_PARAMETER':
+      case 'UNDEFINED_SETTER':
+      case 'UNDEFINED_SETTER_STATIC_WARNING':
+      case 'UNDEFINED_STATIC_METHOD_OR_GETTER':
+      case 'UNDEFINED_SUPER_GETTER':
+      case 'UNDEFINED_SUPER_GETTER_STATIC_WARNING':
+      case 'UNDEFINED_SUPER_SETTER':
+      case 'UNDEFINED_SUPER_SETTER_STATIC_WARNING':
+      case 'WRONG_NUMBER_OF_TYPE_ARGUMENTS':
+        return ErrorSeverity.ERROR;
+
+      // All of the following ones are okay as warnings.
+      case 'FINAL_NOT_INITIALIZED':
+      case 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_':
+
+      // We don't rely on these for override checking, AFAIK.
+      case 'MISMATCHED_GETTER_AND_SETTER_TYPES':
+      case 'MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE':
+
+      case 'MISSING_ENUM_CONSTANT_IN_SWITCH':
+      case 'MIXED_RETURN_TYPES':
+
+      // TODO(jmesserly): I think codegen already handles this for []=.
+      // Though we could simplify it if we didn't need to handle this case.
+      case 'NON_VOID_RETURN_FOR_OPERATOR':
+
+      case 'NON_VOID_RETURN_FOR_SETTER':
+      case 'RETURN_WITHOUT_VALUE':
+      case 'STATIC_WARNING':
+      case 'VOID_RETURN_FOR_GETTER':
+        break;
+    }
   }
-  return severity;
+
+  // TODO(jmesserly): this Analyzer API totally bonkers, but it's what
+  // analyzer_cli and server use.
+  //
+  // Among the issues with ErrorProcessor.getProcessor:
+  // * it needs to be called per-error, so it's a performance trap.
+  // * it can return null
+  // * using AnalysisError directly is now suspect, it's a correctness trap
+  // * it requires an AnalysisContext
+  return ErrorProcessor.getProcessor(context, error)?.severity ??
+      error.errorCode.errorSeverity;
 }
 
 /// Simple reporter that logs checker messages as they are seen.
@@ -77,7 +190,7 @@ class LogReporter implements AnalysisErrorListener {
   LogReporter(this._context, {this.useColors: false});
 
   void onError(AnalysisError error) {
-    var level = _severityToLevel[_strongModeErrorSeverity(error)];
+    var level = _severityToLevel[errorSeverity(_context, error)];
 
     // TODO(jmesserly): figure out what to do with the error's name.
     var lineInfo = _context.computeLineInfo(error.source);
@@ -85,7 +198,7 @@ class LogReporter implements AnalysisErrorListener {
 
     // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
     var text = new StringBuffer()
-      ..write('[${errorCodeName(error.errorCode)}] ')
+      ..write('[${error.errorCode.name}] ')
       ..write(error.message)
       ..write(' (${path.prettyUri(error.source.uri)}')
       ..write(', line ${location.lineNumber}, col ${location.columnNumber})');
@@ -101,269 +214,3 @@ const _severityToLevel = const {
   ErrorSeverity.WARNING: Level.WARNING,
   ErrorSeverity.INFO: Level.INFO
 };
-
-/// A reporter that gathers all the information in a [GlobalSummary].
-class SummaryReporter implements AnalysisErrorListener {
-  GlobalSummary result = new GlobalSummary();
-  final Level _level;
-  final AnalysisContext _context;
-
-  SummaryReporter(this._context, [this._level = Level.ALL]);
-
-  IndividualSummary _getIndividualSummary(Uri uri) {
-    if (uri.path.endsWith('.html')) {
-      return result.loose.putIfAbsent('$uri', () => new HtmlSummary('$uri'));
-    }
-
-    var container;
-    if (uri.scheme == 'package') {
-      var pname = path.split(uri.path)[0];
-      result.packages.putIfAbsent(pname, () => new PackageSummary(pname));
-      container = result.packages[pname].libraries;
-    } else if (uri.scheme == 'dart') {
-      container = result.system;
-    } else {
-      container = result.loose;
-    }
-    return container.putIfAbsent('$uri', () => new LibrarySummary('$uri'));
-  }
-
-  void onError(AnalysisError error) {
-    // Only summarize messages per configured logging level
-    var code = error.errorCode;
-    if (_severityToLevel[code.errorSeverity] < _level) return;
-
-    var span = _toSpan(_context, error);
-    var summary = _getIndividualSummary(error.source.uri);
-    if (summary is LibrarySummary) {
-      summary.recordSourceLines(error.source.uri, () {
-        // TODO(jmesserly): parsing is serious overkill for this.
-        // Should be cached, but still.
-        // On the other hand, if we are going to parse, we could get a much
-        // better source lines of code estimate by excluding things like
-        // comments, blank lines, and closing braces.
-        var unit = _context.parseCompilationUnit(error.source);
-        return unit.lineInfo.getLocation(unit.endToken.end).lineNumber;
-      });
-    }
-    summary.messages.add(new MessageSummary(errorCodeName(code),
-        code.errorSeverity.displayName, span, error.message));
-  }
-
-  // TODO(jmesserly): fix to not depend on SourceSpan. This will be really slow
-  // because it will reload source text from disk, for every single message...
-  SourceSpanWithContext _toSpan(AnalysisContext context, AnalysisError error) {
-    var source = error.source;
-    var lineInfo = context.computeLineInfo(source);
-    var content = context.getContents(source).data;
-    var start = error.offset;
-    var end = start + error.length;
-    return createSpanHelper(lineInfo, start, end, source, content);
-  }
-
-  void clearLibrary(Uri uri) {
-    (_getIndividualSummary(uri) as LibrarySummary).clear();
-  }
-
-  void clearHtml(Uri uri) {
-    HtmlSummary htmlSummary = result.loose['$uri'];
-    if (htmlSummary != null) htmlSummary.messages.clear();
-  }
-}
-
-/// Produces a string representation of the summary.
-String summaryToString(GlobalSummary summary) {
-  var counter = new _Counter();
-  summary.accept(counter);
-
-  var table = new _Table();
-  // Declare columns and add header
-  table.declareColumn('package');
-  table.declareColumn('AnalyzerError', abbreviate: true);
-
-  var activeInfoTypes = counter.totals.keys;
-  activeInfoTypes.forEach((t) => table.declareColumn(t, abbreviate: true));
-  table.declareColumn('LinesOfCode', abbreviate: true);
-  table.addHeader();
-
-  // Add entries for each package
-  appendCount(count) => table.addEntry(count == null ? 0 : count);
-  for (var package in counter.errorCount.keys) {
-    appendCount(package);
-    appendCount(counter.errorCount[package]['AnalyzerError']);
-    activeInfoTypes.forEach((t) => appendCount(counter.errorCount[package][t]));
-    appendCount(counter.linesOfCode[package]);
-  }
-
-  // Add totals, percents and a new header for quick reference
-  table.addEmptyRow();
-  table.addHeader();
-  table.addEntry('total');
-  appendCount(counter.totals['AnalyzerError']);
-  activeInfoTypes.forEach((t) => appendCount(counter.totals[t]));
-  appendCount(counter.totalLinesOfCode);
-
-  appendPercent(count, total) {
-    if (count == null) count = 0;
-    var value = (count * 100 / total).toStringAsFixed(2);
-    table.addEntry(value);
-  }
-
-  var totalLOC = counter.totalLinesOfCode;
-  table.addEntry('%');
-  appendPercent(counter.totals['AnalyzerError'], totalLOC);
-  activeInfoTypes.forEach((t) => appendPercent(counter.totals[t], totalLOC));
-  appendCount(100);
-
-  return table.toString();
-}
-
-/// Helper class to combine all the information in table form.
-class _Table {
-  int _totalColumns = 0;
-  int get totalColumns => _totalColumns;
-
-  /// Abbreviations, used to make headers shorter.
-  Map<String, String> abbreviations = {};
-
-  /// Width of each column.
-  List<int> widths = <int>[];
-
-  /// The header for each column (`header.length == totalColumns`).
-  List header = [];
-
-  /// Each row on the table. Note that all rows have the same size
-  /// (`rows[*].length == totalColumns`).
-  List<List> rows = [];
-
-  /// Whether we started adding entries. Indicates that no more columns can be
-  /// added.
-  bool _sealed = false;
-
-  /// Current row being built by [addEntry].
-  List _currentRow;
-
-  /// Add a column with the given [name].
-  void declareColumn(String name, {bool abbreviate: false}) {
-    assert(!_sealed);
-    var headerName = name;
-    if (abbreviate) {
-      // abbreviate the header by using only the capital initials.
-      headerName = name.replaceAll(new RegExp('[a-z]'), '');
-      while (abbreviations[headerName] != null) headerName = "$headerName'";
-      abbreviations[headerName] = name;
-    }
-    widths.add(max(5, headerName.length + 1) as int);
-    header.add(headerName);
-    _totalColumns++;
-  }
-
-  /// Add an entry in the table, creating a new row each time [totalColumns]
-  /// entries are added.
-  void addEntry(entry) {
-    if (_currentRow == null) {
-      _sealed = true;
-      _currentRow = [];
-    }
-    int pos = _currentRow.length;
-    assert(pos < _totalColumns);
-
-    widths[pos] = max(widths[pos], '$entry'.length + 1);
-    _currentRow.add('$entry');
-
-    if (pos + 1 == _totalColumns) {
-      rows.add(_currentRow);
-      _currentRow = [];
-    }
-  }
-
-  /// Add an empty row to divide sections of the table.
-  void addEmptyRow() {
-    var emptyRow = [];
-    for (int i = 0; i < _totalColumns; i++) {
-      emptyRow.add('-' * widths[i]);
-    }
-    rows.add(emptyRow);
-  }
-
-  /// Enter the header titles. OK to do so more than once in long tables.
-  void addHeader() {
-    rows.add(header);
-  }
-
-  /// Generates a string representation of the table to print on a terminal.
-  // TODO(sigmund): add also a .csv format
-  String toString() {
-    var sb = new StringBuffer();
-    sb.write('\n');
-    for (var row in rows) {
-      for (int i = 0; i < _totalColumns; i++) {
-        var entry = row[i];
-        // Align first column to the left, everything else to the right.
-        sb.write(
-            i == 0 ? entry.padRight(widths[i]) : entry.padLeft(widths[i] + 1));
-      }
-      sb.write('\n');
-    }
-    sb.write('\nWhere:\n');
-    for (var id in abbreviations.keys) {
-      sb.write('  $id:'.padRight(7));
-      sb.write(' ${abbreviations[id]}\n');
-    }
-    return sb.toString();
-  }
-}
-
-/// An example visitor that counts the number of errors per package and total.
-class _Counter extends RecursiveSummaryVisitor {
-  String _currentPackage;
-  String get currentPackage =>
-      _currentPackage != null ? _currentPackage : "*other*";
-  var sb = new StringBuffer();
-  Map<String, Map<String, int>> errorCount = <String, Map<String, int>>{};
-  Map<String, int> linesOfCode = <String, int>{};
-  Map<String, int> totals = <String, int>{};
-  int totalLinesOfCode = 0;
-
-  void visitGlobal(GlobalSummary global) {
-    if (!global.system.isEmpty) {
-      for (var lib in global.system.values) {
-        lib.accept(this);
-      }
-    }
-
-    if (!global.packages.isEmpty) {
-      for (var lib in global.packages.values) {
-        lib.accept(this);
-      }
-    }
-
-    if (!global.loose.isEmpty) {
-      for (var lib in global.loose.values) {
-        lib.accept(this);
-      }
-    }
-  }
-
-  void visitPackage(PackageSummary package) {
-    _currentPackage = package.name;
-    super.visitPackage(package);
-    _currentPackage = null;
-  }
-
-  void visitLibrary(LibrarySummary lib) {
-    super.visitLibrary(lib);
-    linesOfCode.putIfAbsent(currentPackage, () => 0);
-    linesOfCode[currentPackage] += lib.lines;
-    totalLinesOfCode += lib.lines;
-  }
-
-  visitMessage(MessageSummary message) {
-    var kind = message.kind;
-    errorCount.putIfAbsent(currentPackage, () => <String, int>{});
-    errorCount[currentPackage].putIfAbsent(kind, () => 0);
-    errorCount[currentPackage][kind]++;
-    totals.putIfAbsent(kind, () => 0);
-    totals[kind]++;
-  }
-}

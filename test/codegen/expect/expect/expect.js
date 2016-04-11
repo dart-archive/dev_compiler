@@ -31,7 +31,7 @@ dart_library.library('expect/expect', null, /* Imports */[
         }
       }
       if (dart.notNull(end) < dart.notNull(string[dartx.length])) buf.write("...");
-      return dart.toString(buf);
+      return buf.toString();
     }
     static _stringDifference(expected, actual) {
       if (dart.notNull(expected[dartx.length]) < 20 && dart.notNull(actual[dartx.length]) < 20) return null;
@@ -128,14 +128,14 @@ dart_library.library('expect/expect', null, /* Imports */[
     static mapEquals(expected, actual, reason) {
       if (reason === void 0) reason = null;
       let msg = Expect._getMessage(reason);
-      for (let key of expected.keys) {
-        if (!dart.notNull(actual.containsKey(key))) {
+      for (let key of expected[dartx.keys]) {
+        if (!dart.notNull(actual[dartx.containsKey](key))) {
           Expect._fail(`Expect.mapEquals(missing expected key: <${key}>${msg}) fails`);
         }
-        Expect.equals(expected.get(key), actual.get(key));
+        Expect.equals(expected[dartx.get](key), actual[dartx.get](key));
       }
-      for (let key of actual.keys) {
-        if (!dart.notNull(expected.containsKey(key))) {
+      for (let key of actual[dartx.keys]) {
+        if (!dart.notNull(expected[dartx.containsKey](key))) {
           Expect._fail(`Expect.mapEquals(unexpected key: <${key}>${msg}) fails`);
         }
       }
@@ -205,7 +205,7 @@ dart_library.library('expect/expect', null, /* Imports */[
       for (let val of extraSet) {
         sb.write(`${val} `);
       }
-      Expect._fail(dart.toString(sb));
+      Expect._fail(sb.toString());
     }
     static throws(f, check, reason) {
       if (check === void 0) check = null;

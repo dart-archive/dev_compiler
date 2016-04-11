@@ -1,5 +1,7 @@
 # Prototype Syntax for Generic Methods
 
+Generic methods are a [proposed addition to the Dart language](https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md).
+
 This is a summary of the current (as of January 2016) comment-based generic
 method syntax supported by the analyzer strong mode and the Dart Dev Compiler.
 The comment-based syntax essentially uses the proposed actual generic method
@@ -120,6 +122,33 @@ void foo/*<S>*/(/*=S*/ x) {
 
   // In strong mode, this attempts to cast 3 as type S
   var y = (3 as dynamic /*=S*/);
+}
+```
+
+You can use the `/*=T*/` syntax to replace any type with a generic type
+parameter, but you will usually want to replace `dynamic`. Otherwise, since the
+original type is used at runtime, it may cause checked mode errors:
+
+```dart
+List/*<T>*/ makeList/*<T extends num>*/() {
+  return new List<num /*=T*/>();
+}
+
+void main() {
+  List<int> list = makeList/*<int>*/(); // <-- Fails here.
+}
+```
+
+This program checks without error in strong mode but fails at runtime in checked
+mode since the list that gets created is a `List<num>`. A better choice is:
+
+```dart
+List/*<T>*/ makeList/*<T extends num>*/() {
+  return new List/*<T>*/();
+}
+
+void main() {
+  List<int> list = makeList/*<int>*/();
 }
 ```
 

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:logging/logging.dart' as logger;
 
@@ -522,6 +523,11 @@ class RawAstBuilder {
       [bool decl = false]) {
     Token semi = (decl) ? new Token(TokenType.SEMICOLON, 0) : null;
     return new ExpressionFunctionBody(null, null, body, semi);
+  }
+
+  static ExpressionStatement expressionStatement(Expression expression) {
+    Token semi = new Token(TokenType.SEMICOLON, 0);
+    return new ExpressionStatement(expression, semi);
   }
 
   static FunctionDeclaration functionDeclaration(

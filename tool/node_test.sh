@@ -26,13 +26,20 @@ function run() {
 
 # TODO(ochafik): Add full language tests (in separate Travis env/matrix config).
 
-echo "Compiling SDK for node to $output_dir"
-./tool/build_sdk.sh "${ddc_options[@]}"
+echo "*** Compiling SDK for node to $output_dir"
 
-echo "Now compiling hello_dart_test"
+dart bin/dartdevc.dart --force-compile --no-source-maps --sdk-check \
+    -l warning --dart-sdk tool/generated_sdk -o lib/runtime/ \
+    --no-destructure-named-params \
+    "${ddc_options[@]}" \
+    dart:_runtime \
+    dart:_debugger \
+    dart:js dart:mirrors dart:html || true
+
+echo "*** Compiling hello_dart_test"
 compile test/codegen/language/hello_dart_test.dart
 run hello_dart_test
 
-echo "Now compiling DeltaBlue"
+echo "*** Compiling DeltaBlue"
 compile test/codegen/DeltaBlue.dart
 run DeltaBlue

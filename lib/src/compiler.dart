@@ -6,12 +6,11 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert' show JSON;
 import 'dart:math' as math;
 import 'dart:io';
 
-import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisContext, ChangeSet, ParseDartTask;
 import 'package:analyzer/src/generated/error.dart'
@@ -27,11 +26,8 @@ import 'package:path/path.dart' as path;
 import 'analysis_context.dart';
 import 'codegen/html_codegen.dart' as html_codegen;
 import 'codegen/js_codegen.dart';
-import 'info.dart'
-    show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
 import 'options.dart';
 import 'report.dart';
-import 'report/html_reporter.dart';
 import 'utils.dart' show FileSystem, isStrongModeError;
 
 /// Sets up the type checker logger to print a span that highlights error
@@ -62,24 +58,9 @@ CompilerOptions validateOptions(List<String> args, {bool forceOutDir: false}) {
 
 /// Compile with the given options and return success or failure.
 bool compile(CompilerOptions options) {
-  assert(!options.serverMode);
-
   var context = createAnalysisContextWithSources(options.sourceOptions);
-  var reporter = createErrorReporter(context, options);
-  bool status = new BatchCompiler(context, options, reporter: reporter).run();
-
-  if (reporter is HtmlReporter) {
-    reporter.finish(options);
-  } else if (options.dumpInfo && reporter is SummaryReporter) {
-    var result = reporter.result;
-    print(summaryToString(result));
-    if (options.dumpInfoFile != null) {
-      var file = new File(options.dumpInfoFile);
-      file.writeAsStringSync(JSON.encode(result.toJsonMap()));
-    }
-  }
-
-  return status;
+  var reporter = new LogReporter(context, useColors: options.useColors);
+  return new BatchCompiler(context, options, reporter: reporter).run();
 }
 
 // Callback on each individual compiled library
@@ -97,7 +78,7 @@ class BatchCompiler extends AbstractCompiler {
   bool _failure = false;
   bool get failure => _failure;
 
-  final _pendingLibraries = <LibraryUnit>[];
+  final _pendingLibraries = <List<CompilationUnit>>[];
 
   BatchCompiler(AnalysisContext context, CompilerOptions options,
       {AnalysisErrorListener reporter,
@@ -105,7 +86,8 @@ class BatchCompiler extends AbstractCompiler {
       : super(
             context,
             options,
-            new ErrorCollector(reporter ?? AnalysisErrorListener.NULL_LISTENER),
+            new ErrorCollector(
+                context, reporter ?? AnalysisErrorListener.NULL_LISTENER),
             fileSystem) {
     _inputBaseDir = options.inputBaseDir;
     if (outputDir != null) {
@@ -162,11 +144,11 @@ class BatchCompiler extends AbstractCompiler {
 
     while (_pendingLibraries.isNotEmpty) {
       var unit = _pendingLibraries.removeLast();
-      var library = unit.library.element.enclosingElement;
+      var library = unit.first.element.library;
       assert(_compilationRecord[library] == true ||
           options.codegenOptions.forceCompile);
 
-      // Process dependences one more time to propagate failure from cycles
+      // Process dependencies one more time to propagate failure from cycles
       for (var import in library.imports) {
         if (!_compilationRecord[import.importedLibrary]) {
           _compilationRecord[library] = false;
@@ -197,7 +179,7 @@ class BatchCompiler extends AbstractCompiler {
     // Optimistically mark a library valid until proven otherwise
     _compilationRecord[library] = true;
 
-    if (!options.checkSdk && library.source.uri.scheme == 'dart') {
+    if (!options.checkSdk && library.source.isInSystemLibrary) {
       // We assume the Dart SDK is always valid
       if (_jsGen != null) _copyDartRuntime();
       return true;
@@ -219,7 +201,8 @@ class BatchCompiler extends AbstractCompiler {
     }
 
     // Check this library's own code
-    var unitElements = [library.definingCompilationUnit]..addAll(library.parts);
+    var unitElements = new List.from(library.parts)
+      ..add(library.definingCompilationUnit);
     var units = <CompilationUnit>[];
 
     bool failureInLib = false;
@@ -245,9 +228,7 @@ class BatchCompiler extends AbstractCompiler {
     // server/dependency_graph and perhaps the analyzer itself.
     success = _compilationRecord[library];
     if (success || options.codegenOptions.forceCompile) {
-      var unit = units.first;
-      var parts = units.skip(1).toList();
-      _pendingLibraries.add(new LibraryUnit(unit, parts));
+      _pendingLibraries.add(units);
     }
 
     // Return tentative success status.
@@ -277,7 +258,10 @@ class BatchCompiler extends AbstractCompiler {
 
     var loadedLibs = new LinkedHashSet<Uri>();
 
-    var htmlOutDir = path.dirname(getOutputPath(source.uri));
+    // If we're generating code, convert the HTML file as well.
+    // Otherwise, just search for Dart sources to analyze.
+    var htmlOutDir =
+        _jsGen != null ? path.dirname(getOutputPath(source.uri)) : null;
     for (var script in scripts) {
       Source scriptSource = null;
       var srcAttr = script.attributes['src'];
@@ -300,12 +284,16 @@ class BatchCompiler extends AbstractCompiler {
       if (scriptSource != null) {
         var lib = context.computeLibraryElement(scriptSource);
         _compileLibrary(lib, notifier);
-        script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
+        if (htmlOutDir != null) {
+          script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
+        }
       }
     }
 
-    fileSystem.writeAsStringSync(
-        getOutputPath(source.uri), document.outerHtml + '\n');
+    if (htmlOutDir != null) {
+      fileSystem.writeAsStringSync(
+          getOutputPath(source.uri), document.outerHtml + '\n');
+    }
   }
 
   html.DocumentFragment _linkLibraries(
@@ -448,102 +436,69 @@ abstract class AbstractCompiler {
     AnalysisContext errorContext = context;
     // TODO(jmesserly): should this be a fix somewhere in analyzer?
     // otherwise we fail to find the parts.
-    if (source.uri.scheme == 'dart') {
+    if (source.isInSystemLibrary) {
       errorContext = context.sourceFactory.dartSdk.context;
     }
     List<AnalysisError> errors = errorContext.computeErrors(source);
     bool failure = false;
     for (var error in errors) {
-      ErrorCode code = error.errorCode;
-      // Always skip TODOs.
-      if (code.type == ErrorType.TODO) continue;
-
-      // TODO(jmesserly): for now, treat DDC errors as having a different
-      // error level from Analayzer ones.
-      if (isStrongModeError(code)) {
+      // TODO(jmesserly): this is a very expensive lookup, and it has to be
+      // repeated every time we want to query error severity.
+      var severity = errorSeverity(errorContext, error);
+      if (severity == ErrorSeverity.ERROR) {
         reporter.onError(error);
-        if (code.errorSeverity == ErrorSeverity.ERROR) {
-          failure = true;
-        }
-      } else if (code.errorSeverity.ordinal >= ErrorSeverity.WARNING.ordinal) {
-        // All analyzer warnings or errors are errors for DDC.
         failure = true;
+      } else if (severity == ErrorSeverity.WARNING) {
         reporter.onError(error);
-      } else {
-        // Skip hints for now.
       }
     }
     return failure;
   }
 }
 
-AnalysisErrorListener createErrorReporter(
-    AnalysisContext context, CompilerOptions options) {
-  return options.htmlReport
-      ? new HtmlReporter(context)
-      : options.dumpInfo
-          ? new SummaryReporter(context, options.logLevel)
-          : new LogReporter(context, useColors: options.useColors);
-}
-
 // TODO(jmesserly): find a better home for these.
 /// Curated order to minimize lazy classes needed by dart:core and its
 /// transitive SDK imports.
-const corelibOrder = const [
-  'dart.core',
-  'dart.collection',
-  'dart._internal',
-  'dart.math',
-  'dart._interceptors',
-  'dart.async',
-  'dart._foreign_helper',
-  'dart._js_embedded_names',
-  'dart._js_helper',
-  'dart.isolate',
-  'dart.typed_data',
-  'dart._native_typed_data',
-  'dart._isolate_helper',
-  'dart._js_primitives',
-  'dart.convert',
+final corelibOrder = [
+  'dart:core',
+  'dart:collection',
+  'dart:_internal',
+  'dart:math',
+  'dart:_interceptors',
+  'dart:async',
+  'dart:_foreign_helper',
+  'dart:_js_embedded_names',
+  'dart:_js_helper',
+  'dart:isolate',
+  'dart:typed_data',
+  'dart:_native_typed_data',
+  'dart:_isolate_helper',
+  'dart:_js_primitives',
+  'dart:convert',
   // TODO(jmesserly): these are not part of corelib library cycle, and shouldn't
   // be listed here. Instead, their source should be copied on demand if they
   // are actually used by the application.
-  'dart.mirrors',
-  'dart._js_mirrors',
-  'dart.js',
-  'dart._metadata',
-  'dart.dom.html',
-  'dart.dom.html_common',
-  'dart._debugger'
+  'dart:mirrors',
+  'dart:_js_mirrors',
+  'dart:js',
+  'dart:_metadata',
+  'dart:html',
+  'dart:html_common',
+  'dart:indexed_db',
+  'dart:svg',
+  'dart:web_audio',
+  'dart:web_gl',
+  'dart:web_sql',
+  'dart:_debugger'
+
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
-];
-
-/// Returns the JS module name corresponding to a core library name (must be
-/// from the [corelibOrder] list).
-String getCorelibModuleName(String lib) {
-  assert(corelibOrder.contains(lib));
-  switch (lib) {
-    case 'dart.dom.html_common':
-      return 'dart/html_common';
-    case 'dart.dom.html':
-      return 'dart/html';
-    default:
-      return lib.replaceAll('dart.', 'dart/');
-  }
-}
+].map(Uri.parse).toList();
 
 /// Runtime files added to all applications when running the compiler in the
 /// command line.
 final defaultRuntimeFiles = () {
-  String coreToFile(String name) {
-    var parts = name.split('.');
-    var length = parts.length;
-    if (length > 1) {
-      name = parts[0] + '/' + parts[length - 1];
-    }
-    return name + '.js';
-  }
+  String coreToFile(Uri uri) => uri.toString().replaceAll(':', '/') + '.js';
 
   var files = [
     'harmony_feature_check.js',

@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashMap, HashSet;
-import 'package:analyzer/src/generated/ast.dart' show Identifier;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart' show Identifier;
+import 'package:analyzer/dart/element/element.dart';
 
-import '../info.dart' show LibraryUnit;
+import 'js_codegen.dart' show ExtensionTypeSet;
 
 /// We use a storage slot for fields that override or can be overridden by
 /// getter/setter pairs.
 HashSet<FieldElement> findFieldsNeedingStorage(
-    LibraryUnit library, HashSet<ClassElement> extensionTypes) {
+    Iterable<CompilationUnitElement> units, ExtensionTypeSet extensionTypes) {
   var overrides = new HashSet<FieldElement>();
-  for (var unit in library.partsThenLibrary) {
-    for (var cls in unit.element.types) {
+  for (var unit in units) {
+    for (var cls in unit.types) {
       var superclasses = getSuperclasses(cls);
       for (var field in cls.fields) {
         if (!field.isSynthetic && !overrides.contains(field)) {
@@ -32,7 +32,7 @@ void checkForPropertyOverride(
     FieldElement field,
     List<ClassElement> superclasses,
     HashSet<FieldElement> overrides,
-    HashSet<ClassElement> extensionTypes) {
+    ExtensionTypeSet extensionTypes) {
   assert(!field.isSynthetic);
 
   var library = field.library;

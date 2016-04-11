@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:_internal' show WhereIterable;
+import 'dart:web_gl' as gl;
 import 'dart:typed_data';
 import 'dart:_native_typed_data';
 import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
@@ -23,3 +24,8 @@ part 'conversions_dart2js.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
+
+class DartHtmlObject {
+  // FIXME(vsm): Make this final at least.  Private?
+  dynamic raw;
+}
