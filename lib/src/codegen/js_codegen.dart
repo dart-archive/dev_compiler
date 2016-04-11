@@ -45,6 +45,7 @@ import 'js_printer.dart' show writeJsLibrary;
 import 'js_typeref_codegen.dart';
 import 'module_builder.dart';
 import 'nullable_type_inference.dart';
+import 'reified_generics_checks_inference.dart';
 import 'side_effect_analysis.dart';
 
 // Various dynamic helpers we call.
@@ -152,6 +153,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // We'll need to be consistent about when we're generating functions, and
     // only run this on the outermost function.
     inferNullableTypesInLibrary(units);
+
+    if (!options.reifyGenericClassTypeArgs) {
+      final reifiedGenericsChecker = new ReifiedGenericsVisitor();
+      units.forEach((u) => u.accept(reifiedGenericsChecker));
+    }
 
     _constField = new ConstFieldVisitor(types, currentLibrary.source);
 
