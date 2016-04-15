@@ -74,6 +74,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   /// need storage slots.
   final HashSet<FieldElement> _fieldsNeedingStorage;
 
+  /// Information that indicates which properties are partial overrides of
+  /// superclass properties (e.g., getter-only override of a setter or
+  /// vice-versa).
+  final HashSet<FieldElement> _propertyOverrides;
+
   /// The variable for the target of the current `..` cascade expression.
   ///
   /// Usually a [SimpleIdentifier], but it can also be other expressions
@@ -120,7 +125,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   bool _isDartRuntime;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
-      this._extensionTypes, this._fieldsNeedingStorage)
+      this._extensionTypes, this._fieldsNeedingStorage, this._propertyOverrides)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
         _types = compiler.context.typeProvider {
@@ -723,6 +728,31 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       } else if (m is MethodDeclaration) {
         jsMethods.add(_emitMethodDeclaration(type, m));
 
+        var methodElement = m.element;
+        if (methodElement is PropertyAccessorElement) {
+          var fieldElement = methodElement.variable;
+          if (_propertyOverrides.contains(fieldElement)) {
+            // Generate a corresponding virtual getter / setter.
+            var name = fieldElement.name;
+            if (m.isGetter) {
+              // Generate a setter
+              var value = new JS.TemporaryId('value');
+              var fn = new JS.Fun(
+                [value], js.statement('{ super.# = #; }', [name, value]));
+                jsMethods.add(new JS.Method(_elementMemberName(methodElement, allowExtensions: _extensionTypes.isExtensionType(type.element)),
+                    fn,
+                    isSetter: true));
+            } else {
+              // Generate a getter
+              var fn = new JS.Fun(
+                [], js.statement('{ return super.#; }', [name]));
+                jsMethods.add(new JS.Method(_elementMemberName(methodElement, allowExtensions: _extensionTypes.isExtensionType(type.element)),
+                fn,
+                isGetter: true));
+            }
+          }
+        }
+
         if (!hasJsPeer && m.isGetter && m.name.name == 'iterator') {
           hasIterator = true;
           jsMethods.add(_emitIterable(type));
@@ -941,12 +971,63 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     // TODO(vsm): Make this optional per #268.
     // Metadata
-    if (metadata.isNotEmpty) {
-      body.add(js.statement('#[dart.metadata] = () => #;', [
-        name,
-        new JS.ArrayInitializer(
-            new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
-      ]));
+    if (true) {
+      // Class metadata
+      var properties = <JS.Expression>[];
+      if (metadata.isNotEmpty) {
+        properties.add(js.string('type', "'"));
+        var typeMetadata = new JS.ArrayInitializer(
+            new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)));
+        properties.add(typeMetadata);
+      }
+
+      // Field metadata
+      var fieldList = <JS.Expression>[];
+      for (FieldDeclaration member in fields) {
+        var fieldMetadata = member.metadata;
+        if (fieldMetadata.isNotEmpty) {
+          var typeMetadata = new JS.ArrayInitializer(
+              new List<JS.Expression>.from(fieldMetadata.map(_instantiateAnnotation)));
+          for (VariableDeclaration field in member.fields.variables) {
+            fieldList.add(js.string(field.name.name, "'"));
+            fieldList.add(typeMetadata);
+          }
+        }
+      }
+      if (fieldList.isNotEmpty) {
+        properties.add(js.string('fields', "'"));
+        var fieldMap = js.call('dart.map(#)', new JS.ArrayInitializer(fieldList));
+        properties.add(fieldMap);
+      }
+
+      // Getter / setter metadata
+      var propertyList = <JS.Expression>[];
+      for (MethodDeclaration node in methods) {
+        if (node.isStatic) continue;
+        if (node.isGetter || node.isSetter) {
+          var methodMetadata = node.metadata;
+          if (methodMetadata.isNotEmpty) {
+            var typeMetadata = new JS.ArrayInitializer(
+                new List<JS.Expression>.from(methodMetadata.map(_instantiateAnnotation)));
+            var name = node.name.name + (node.isSetter ? '=' : '');
+            propertyList.add(js.string(name, "'"));
+            propertyList.add(typeMetadata);
+          }
+        }
+      }
+      if (propertyList.isNotEmpty) {
+        properties.add(js.string('properties', "'"));
+        var getterMap = js.call('dart.map(#)', new JS.ArrayInitializer(propertyList));
+        properties.add(getterMap);
+      }
+
+      if (properties.isNotEmpty) {
+        var metadataList = new JS.ArrayInitializer(properties);
+        var metadataMap = js.call('dart.map(#)', metadataList);
+        body.add(js.statement('#[dart.metadata] = () => #;', [
+          name, metadataMap
+        ]));
+      }
     }
 
     body.add(js.statement('#[dart.owner] = #;', [
@@ -2712,6 +2793,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         var div = AstBuilder.binaryExpression(left, '/', right)
           ..staticType = node.staticType;
         return _emitSend(div, 'truncate', []);
+      } else if (op.type == TokenType.PERCENT) {
+        code = '(#)[dartx["%"]](#)';
       } else {
         // TODO(vsm): When do Dart ops not map to JS?
         code = '# $op #';
@@ -3879,10 +3962,13 @@ class JSGenerator extends CodeGenerator {
         assert(dir.element != null);
       }
     }
-    var fields = findFieldsNeedingStorage(unit, _extensionTypes);
+
+    var fields = new HashSet<FieldElement>();
+    var propertyOverrides = new HashSet<FieldElement>();
+    findFieldsNeedingStorage(fields, propertyOverrides, unit, _extensionTypes);
     var rules = new StrongTypeSystemImpl();
     var codegen =
-        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
+        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields, propertyOverrides);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     var flags = compiler.options;

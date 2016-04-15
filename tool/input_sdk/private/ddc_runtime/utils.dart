@@ -89,7 +89,12 @@ copyTheseProperties(to, from, names) => JS('', '''(() => {
   for (let name of $names) {
     var desc = $getOwnPropertyDescriptor($from, name);
     if (desc != void 0) {
-      $defineProperty($to, name, desc);
+      // On native types, Symbol.iterator may already be present.
+      if (name == Symbol.iterator && getOwnPropertyDescriptor($to, name)) {
+        $to[Symbol.iterator] = desc.value;
+      } else {
+        $defineProperty($to, name, desc);
+      }
     } else {
       $defineLazyProperty($to, name, () => $from[name]);
     }

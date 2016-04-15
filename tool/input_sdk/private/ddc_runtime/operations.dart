@@ -130,6 +130,8 @@ dcall(f, @rest args) => JS('', '''(() => {
 
 /// Shared code for dsend, dindex, and dsetindex. */
 callMethod(obj, name, args, displayName) => JS('', '''(() => {
+  if ($name == 'toString' && args.length == 0) return $toString($obj);
+  if ($name == 'hashCode' && args.length == 0) return $hashCode($obj);
   let symbol = $_canonicalFieldName($obj, $name, $args, $displayName);
   let f = $obj != null ? $obj[symbol] : null;
   let ftype = $getMethodType($obj, $name);
@@ -153,12 +155,15 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
   // TODO(vsm): Remove this hack ...
   // This is primarily due to the lack of generic methods,
   // but we need to triage all the types.
+  var raw = $getGenericClass($type);
+  if (raw && $isSubtype($actual, raw())) return true;
   if (isSubtype($type, $Iterable) && isSubtype($actual, $Iterable) ||
       isSubtype($type, $Future) && isSubtype($actual, $Future) ||
       isSubtype($type, $Map) && isSubtype($actual, $Map) ||
       isSubtype($type, $Function) && isSubtype($actual, $Function) ||
       isSubtype($type, $Stream) && isSubtype($actual, $Stream) ||
       isSubtype($type, $StreamController) && isSubtype($actual, $StreamController) ||
+      isSubtype($type, $StreamTransformer) && isSubtype($actual, $StreamTransformer) ||
       isSubtype($type, $StreamSubscription) &&
           isSubtype($actual, $StreamSubscription)) {
     if (false) {

@@ -11,9 +11,10 @@ import '../info.dart' show LibraryUnit;
 
 /// We use a storage slot for fields that override or can be overridden by
 /// getter/setter pairs.
-HashSet<FieldElement> findFieldsNeedingStorage(
+void findFieldsNeedingStorage(
+    HashSet<FieldElement> overrides,
+    HashSet<FieldElement> propertyOverrides,
     LibraryUnit library, ExtensionTypeSet extensionTypes) {
-  var overrides = new HashSet<FieldElement>();
   for (var unit in library.partsThenLibrary) {
     for (var cls in unit.element.types) {
       var superclasses = getSuperclasses(cls);
@@ -21,6 +22,13 @@ HashSet<FieldElement> findFieldsNeedingStorage(
         if (!field.isSynthetic && !overrides.contains(field)) {
           checkForPropertyOverride(
               field, superclasses, overrides, extensionTypes);
+        }
+        if (field.isSynthetic) {
+          if (field.setter == null) {
+            checkForPropertyOverride(field, superclasses, propertyOverrides, extensionTypes, checkGetter: false);
+          } else if (field.getter == null) {
+            checkForPropertyOverride(field, superclasses, propertyOverrides, extensionTypes, checkSetter: false);
+          }
         }
       }
     }
@@ -33,7 +41,8 @@ void checkForPropertyOverride(
     FieldElement field,
     List<ClassElement> superclasses,
     HashSet<FieldElement> overrides,
-    ExtensionTypeSet extensionTypes) {
+    ExtensionTypeSet extensionTypes,
+    {bool checkGetter: true, bool checkSetter: true}) {
   assert(!field.isSynthetic);
 
   var library = field.library;
@@ -51,9 +60,14 @@ void checkForPropertyOverride(
         break;
       }
 
-      found = true;
-      // Record that the super property is overridden.
-      if (superprop.library == library) overrides.add(superprop);
+      // TODO(vsm): Get rid of redundant check here.
+      if (checkGetter && getter != null && !getter.isAbstract ||
+        checkSetter && setter != null && !setter.isAbstract) {
+          found = true;
+          // TODO(vsm): Why do we need this?
+          // Record that the super property is overridden.
+          if (checkGetter && checkSetter && superprop.library == library) overrides.add(superprop);
+      }
     }
   }
 

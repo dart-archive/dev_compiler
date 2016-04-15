@@ -114,16 +114,40 @@ class JsClassMirror implements ClassMirror {
         simpleName = new Symbol(JS('String', '#.name', cls)) {
     // Load metadata.
     var fn = JS('Function', '#[dart.metadata]', _cls);
-    _metadata = (fn == null)
+    Map map = fn == null ? {} : fn();
+    var typedata = map['type'];
+    _metadata = (typedata == null)
         ? <InstanceMirror>[]
         : new List<InstanceMirror>.from(
-            fn().map((i) => new JsInstanceMirror._(i)));
+            typedata.map((i) => new JsInstanceMirror._(i)));
     _owner = new JsLibraryMirror._(JS('', '#[dart.owner]', _cls));
+
 
     // Load declarations.
     // TODO(vsm): This is only populating the default constructor right now.
     _declarations = new Map<Symbol, MethodMirror>();
-    _declarations[simpleName] = new JsMethodMirror._(this, _cls);
+    _declarations[simpleName] = new JsMethodMirror._(this, _cls, []);
+
+    Map properties = map['properties'];
+    if (properties != null) {
+      properties.forEach((String name, List annotations) {
+        var symbol = new Symbol(JS('String', '#', name));
+        var metadata = new List<InstanceMirror>.from(
+            annotations.map((i) => new JsInstanceMirror._(i)));
+        _declarations[symbol] = new JsMethodMirror._(this, null, metadata);
+      });
+    }
+
+    Map fields = map['fields'];
+    if (fields != null) {
+      fields.forEach((String name, List annotations) {
+        var symbol = new Symbol(JS('String', '#', name));
+        var metadata = new List<InstanceMirror>.from(
+            annotations.map((i) => new JsInstanceMirror._(i)));
+        // TODO(vsm): This is an egregious hack.  Create a VariableMirror instead.
+        _declarations[symbol] = new JsMethodMirror._(this, null, metadata);
+      });
+    }
   }
 
   InstanceMirror newInstance(Symbol constructorName, List args,
@@ -288,14 +312,18 @@ class JsMethodMirror implements MethodMirror {
   final String _name;
   final dynamic _method;
   List<ParameterMirror> _params;
+  List<InstanceMirror> _metadata;
 
-  JsMethodMirror._(JsClassMirror cls, this._method)
+  JsMethodMirror._(JsClassMirror cls, this._method, this._metadata)
       : _name = getName(cls.simpleName) {
-    var ftype = JS('', '#.classGetConstructorType(#)', _dart, cls._cls);
-    if (ftype == null) {
-      ftype = JS('', '#.classGetConstructorType(#, "new")', _dart, cls._cls);
+    // TODO(vsm): Support non-constructor method types.
+    if (_method != null) {
+      var ftype = JS('', '#.classGetConstructorType(#)', _dart, cls._cls);
+      if (ftype == null) {
+        ftype = JS('', '#.classGetConstructorType(#, "new")', _dart, cls._cls);
+      }
+      _params = _createParameterMirrorList(ftype);
     }
-    _params = _createParameterMirrorList(ftype);
   }
 
   JsMethodMirror._method(dynamic method) : _name = JS('String', '#.name', method), _method = method {
@@ -368,10 +396,7 @@ class JsMethodMirror implements MethodMirror {
       throw new UnimplementedError("MethodMirror.isTopLevel unimplemented");
   SourceLocation get location =>
       throw new UnimplementedError("MethodMirror.location unimplemented");
-  List<InstanceMirror> get metadata {
-    // TODO(vsm): Parse and store method metadata
-    return <InstanceMirror>[];
-  }
+  List<InstanceMirror> get metadata => _metadata;
   DeclarationMirror get owner =>
       throw new UnimplementedError("MethodMirror.owner unimplemented");
   Symbol get qualifiedName =>
