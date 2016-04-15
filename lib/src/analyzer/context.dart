@@ -107,13 +107,16 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
       ? createMockSdkResolver(mockSdkSources)
       : createSdkPathResolver(options.dartSdkPath);
 
-  var srcFactory = _createSourceFactory(options,
-      sdkResolver: sdkResolver, fileResolvers: fileResolvers);
   // Read the summaries.
   SummaryDataStore summaryData;
   if (options.summaryPaths.isNotEmpty) {
     summaryData = new SummaryDataStore(options.summaryPaths);
   }
+
+  var srcFactory = _createSourceFactory(options,
+      sdkResolver: sdkResolver,
+      fileResolvers: fileResolvers,
+      summaryData: summaryData);
 
   var context = createAnalysisContext();
   context.sourceFactory = srcFactory;
