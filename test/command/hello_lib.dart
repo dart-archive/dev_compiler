@@ -1,1 +1,0 @@
-String greeting = 'hello!';
