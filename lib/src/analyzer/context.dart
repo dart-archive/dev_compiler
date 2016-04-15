@@ -103,7 +103,11 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
     {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
   AnalysisEngine.instance.processRequiredPlugins();
 
-  var srcFactory = createSourceFactory(options,
+  sdkResolver ??= options.useMockSdk
+      ? createMockSdkResolver(mockSdkSources)
+      : createSdkPathResolver(options.dartSdkPath);
+
+  var srcFactory = _createSourceFactory(options,
       sdkResolver: sdkResolver, fileResolvers: fileResolvers);
   // Read the summaries.
   SummaryDataStore summaryData;
@@ -114,6 +118,7 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
   var context = createAnalysisContext();
   context.sourceFactory = srcFactory;
   if (summaryData != null) {
+    context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
     context.resultProvider =
         new InputPackagesResultProvider(context, summaryData);
   }
@@ -134,14 +139,10 @@ AnalysisContext createAnalysisContext() {
 ///
 /// If supplied, [fileResolvers] will override the default `file:` and
 /// `package:` URI resolvers.
-SourceFactory createSourceFactory(AnalyzerOptions options,
+SourceFactory _createSourceFactory(AnalyzerOptions options,
     {DartUriResolver sdkResolver,
     List<UriResolver> fileResolvers,
     SummaryDataStore summaryData}) {
-  sdkResolver ??= options.useMockSdk
-      ? createMockSdkResolver(mockSdkSources)
-      : createSdkPathResolver(options.dartSdkPath);
-
   var resolvers = <UriResolver>[];
   if (options.customUrlMappings.isNotEmpty) {
     resolvers.add(new CustomUriResolver(options.customUrlMappings));
