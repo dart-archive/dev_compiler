@@ -66,6 +66,9 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// The list of output module items, in the order they need to be emitted in.
   final _moduleItems = <JS.ModuleItem>[];
 
+  /// Table of named and possibly hoisted types.
+  final _typeTable = new _TypeTable();
+
   /// The global extension type table.
   final ExtensionTypeSet _extensionTypes;
 
@@ -251,6 +254,10 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Declare imports
     _finishImports(items);
+
+    // Discharge the type table cache variables and
+    // hoisted definitions.
+    items.addAll(_typeTable.discharge());
 
     // Add the module's code (produced by visiting compilation units, above)
     _copyAndFlattenBlocks(items, _moduleItems);
@@ -568,7 +575,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression body = annotate(
         js.call('dart.typedef(#, () => #)', [
           js.string(element.name, "'"),
-          _emitType(element.type, lowerTypedef: true)
+          _emitType(element.type, nameType: false, lowerTypedef: true)
         ]),
         node,
         element);
@@ -840,8 +847,12 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Statement _defineClassTypeArguments(TypeDefiningElement element,
       List<TypeParameterElement> formals, JS.Statement body) {
     assert(formals.isNotEmpty);
-    var genericCall = js.call('dart.generic((#) => { #; return #; })',
-        [_emitTypeFormals(formals), body, element.name]);
+    var genericCall = js.call('dart.generic((#) => { #; #; return #; })', [
+      _emitTypeFormals(formals),
+      _typeTable.discharge(formals),
+      body,
+      element.name
+    ]);
     if (element.library.isDartAsync &&
         (element.name == "Future" || element.name == "_Future")) {
       genericCall = js.call('dart.flattenFutures(#)', [genericCall]);
@@ -894,10 +905,13 @@ class CodeGenerator extends GeneralizingAstVisitor
       supertype = fillDynamicTypeArgs(supertype.element.type);
       _hasDeferredSupertype.add(element);
     }
-    heritage = _emitType(supertype);
+    // We could choose to name the superclasses, but it's
+    // not clear that there's much benefit
+    heritage = _emitType(supertype, nameType: false);
 
     if (type.mixins.isNotEmpty) {
-      var mixins = type.mixins.map(_emitType).toList();
+      var mixins =
+          type.mixins.map((t) => _emitType(t, nameType: false)).toList();
       mixins.insert(0, heritage);
       heritage = js.call('dart.mixin(#)', [mixins]);
     }
@@ -1159,7 +1173,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           'dart.setExtensionBaseClass(#, #);', [className, newBaseClass]));
     } else if (_hasDeferredSupertype.contains(classElem)) {
       var newBaseClass = _emitType(classElem.type.superclass,
-          subClass: classElem, className: className);
+          nameType: false, subClass: classElem, className: className);
       body.add(
           js.statement('dart.setBaseClass(#, #);', [className, newBaseClass]));
     }
@@ -1259,9 +1273,12 @@ class CodeGenerator extends GeneralizingAstVisitor
         }
         var memberName = _elementMemberName(element,
             useExtension: _extensionTypes.isNativeClass(classElem));
-        var parts = _emitFunctionTypeParts(element.type);
-        var property =
-            new JS.Property(memberName, new JS.ArrayInitializer(parts));
+        // TODO(leafp):  Settle on a policy for this.  Naming these makes the
+        // signature more compact, but it generates a lot of noise at the
+        // top level, and it's not clear that there's much benefit.
+        var type =
+            _emitFunctionType(element.type, nameType: false, definite: true);
+        var property = new JS.Property(memberName, type);
         if (node.isStatic) {
           tStatics.add(property);
           sNames.add(memberName);
@@ -1275,10 +1292,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (ConstructorDeclaration node in ctors) {
       var memberName = _constructorName(node.element);
       var element = node.element;
-      var parts = _emitFunctionTypeParts(element.type,
-          parameters: node.parameters.parameters);
-      var property =
-          new JS.Property(memberName, new JS.ArrayInitializer(parts));
+      var type = _emitFunctionType(element.type,
+          parameters: node.parameters.parameters,
+          nameType: false,
+          definite: true);
+      var property = new JS.Property(memberName, type);
       tCtors.add(property);
     }
 
@@ -1918,25 +1936,12 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   JS.Expression _emitFunctionTagged(JS.Expression fn, DartType type,
       {topLevel: false}) {
-    var name = type.name;
     var lazy = topLevel && !_typeIsLoaded(type);
-
-    if (type is FunctionType && (name == '' || name == null)) {
-      if (type.typeFormals.isEmpty &&
-          type.returnType.isDynamic &&
-          type.optionalParameterTypes.isEmpty &&
-          type.namedParameterTypes.isEmpty &&
-          type.normalParameterTypes.every((t) => t.isDynamic)) {
-        return js.call('dart.fn(#)', [fn]);
-      }
-
-      var parts = _emitFunctionTypeParts(type);
-      if (lazy) {
-        return js.call(
-            'dart.lazyFn(#, () => #)', [fn, new JS.ArrayInitializer(parts)]);
-      } else {
-        return js.call('dart.fn(#, #)', [fn, parts]);
-      }
+    var typeRep = _emitFunctionType(type, definite: true);
+    if (lazy) {
+      return js.call('dart.lazyFn(#, () => #)', [fn, typeRep]);
+    } else {
+      return js.call('dart.fn(#, #)', [fn, typeRep]);
     }
     throw 'Function has non function type: $type';
   }
@@ -2012,21 +2017,21 @@ class CodeGenerator extends GeneralizingAstVisitor
       FormalParameterList parameters, FunctionBody body) {
     FunctionType type = element.type;
 
-    // sync*, async, async*
-    if (element.isAsynchronous || element.isGenerator) {
-      return new JS.Fun(
-          visitFormalParameterList(parameters, destructure: false),
-          new JS.Block([
-            _emitGeneratorFunctionBody(element, parameters, body).toReturn()
-          ]),
-          typeParams: _emitTypeFormals(type.typeFormals),
-          returnType: emitTypeRef(type.returnType));
+    // normal function (sync), vs (sync*, async, async*)
+    var stdFn = !(element.isAsynchronous || element.isGenerator);
+    var formals = visitFormalParameterList(parameters, destructure: stdFn);
+    var code = (stdFn)
+        ? _visit(body)
+        : new JS.Block(
+            [_emitGeneratorFunctionBody(element, parameters, body).toReturn()]);
+    var typeFormals = _emitTypeFormals(type.typeFormals);
+    var returnType = emitTypeRef(type.returnType);
+    if (type.typeFormals.isNotEmpty) {
+      code = new JS.Block(
+          [new JS.Block(_typeTable.discharge(type.typeFormals)), code]);
     }
-
-    // normal function (sync)
-    return new JS.Fun(visitFormalParameterList(parameters), _visit(body),
-        typeParams: _emitTypeFormals(type.typeFormals),
-        returnType: emitTypeRef(type.returnType));
+    return new JS.Fun(formals, code,
+        typeParams: typeFormals, returnType: returnType);
   }
 
   JS.Expression _emitGeneratorFunctionBody(ExecutableElement element,
@@ -2249,13 +2254,15 @@ class CodeGenerator extends GeneralizingAstVisitor
           ? p.metadata
           : (p as DefaultFormalParameter).parameter.metadata;
 
-  JS.ArrayInitializer _emitTypeNames(List<DartType> types,
-      [List<FormalParameter> parameters]) {
+  JS.ArrayInitializer _emitTypeNames(
+      List<DartType> types, List<FormalParameter> parameters,
+      {bool nameType: true, bool hoistType: true}) {
     var result = <JS.Expression>[];
     for (int i = 0; i < types.length; ++i) {
       var metadata =
           parameters != null ? _parameterMetadata(parameters[i]) : [];
-      var typeName = _emitType(types[i]);
+      var typeName =
+          _emitType(types[i], nameType: nameType, hoistType: hoistType);
       var value = typeName;
       if (options.emitMetadata && metadata.isNotEmpty) {
         metadata = metadata.map(_instantiateAnnotation).toList();
@@ -2278,13 +2285,37 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// Emit the pieces of a function type, as an array of return type,
   /// regular args, and optional/named args.
+  JS.Expression _emitFunctionType(FunctionType type,
+      {List<FormalParameter> parameters,
+      bool lowerTypedef: false,
+      bool nameType: true,
+      bool hoistType: true,
+      definite: false}) {
+    var parts = _emitFunctionTypeParts(type,
+        parameters: parameters,
+        lowerTypedef: lowerTypedef,
+        nameType: nameType,
+        hoistType: hoistType);
+    var helper = (definite) ? 'definiteFunctionType' : 'functionType';
+    var fullType = js.call('dart.${helper}(#)', [parts]);
+    if (!nameType) return fullType;
+    return _typeTable.nameType(type, fullType, hoistType, definite: definite);
+  }
+
+  /// Emit the pieces of a function type, as an array of return type,
+  /// regular args, and optional/named args.
   List<JS.Expression> _emitFunctionTypeParts(FunctionType type,
-      {List<FormalParameter> parameters, bool lowerTypedef: false}) {
+      {List<FormalParameter> parameters,
+      bool lowerTypedef: false,
+      bool nameType: true,
+      bool hoistType: true}) {
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
-    var rt = _emitType(type.returnType);
-    var ra = _emitTypeNames(parameterTypes, parameters);
+    var rt =
+        _emitType(type.returnType, nameType: nameType, hoistType: hoistType);
+    var ra = _emitTypeNames(parameterTypes, parameters,
+        nameType: nameType, hoistType: hoistType);
 
     List<JS.Expression> typeParts;
     if (namedTypes.isNotEmpty) {
@@ -2295,7 +2326,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else if (optionalTypes.isNotEmpty) {
       assert(namedTypes.isEmpty);
       var oa = _emitTypeNames(
-          optionalTypes, parameters?.sublist(parameterTypes.length));
+          optionalTypes, parameters?.sublist(parameterTypes.length),
+          nameType: nameType, hoistType: hoistType);
       typeParts = [rt, ra, oa];
     } else {
       typeParts = [rt, ra];
@@ -2307,7 +2339,17 @@ class CodeGenerator extends GeneralizingAstVisitor
       // function types (as callable functions). See discussion at:
       // https://github.com/dart-lang/dev_compiler/issues/526
       var tf = _emitTypeFormals(typeFormals);
-      typeParts = [new JS.ArrowFun(tf, new JS.ArrayInitializer(typeParts))];
+      var names = _typeTable.discharge(typeFormals);
+      var parts = new JS.ArrayInitializer(typeParts);
+      if (names.isEmpty) {
+        typeParts = [
+          js.call('(#) => #', [tf, parts])
+        ];
+      } else {
+        typeParts = [
+          js.call('(#) => {#; return #;}', [tf, names, parts])
+        ];
+      }
     }
     return typeParts;
   }
@@ -2325,6 +2367,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Expression _emitType(DartType type,
       {bool lowerTypedef: false,
       bool lowerGeneric: false,
+      bool nameType: true,
+      bool hoistType: true,
       ClassElement subClass,
       JS.Expression className}) {
     // The void and dynamic types are not defined in core.
@@ -2347,9 +2391,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       // TODO(jmesserly): should we change how typedefs work? They currently
       // go through use similar logic as generic classes. This makes them
       // different from universal function types.
-      var ft = type as FunctionType;
-      var parts = _emitFunctionTypeParts(ft, lowerTypedef: lowerTypedef);
-      return js.call('dart.functionType(#)', [parts]);
+      return _emitFunctionType(type as FunctionType,
+          lowerTypedef: lowerTypedef, nameType: nameType, hoistType: hoistType);
     }
 
     if (type is TypeParameterType) {
@@ -2365,14 +2408,20 @@ class CodeGenerator extends GeneralizingAstVisitor
       var args = type.typeArguments;
       Iterable jsArgs = null;
       if (args.any((a) => !a.isDynamic)) {
-        jsArgs = args
-            .map((x) => _emitType(x, subClass: subClass, className: className));
+        jsArgs = args.map((x) => _emitType(x,
+            nameType: nameType,
+            hoistType: hoistType,
+            subClass: subClass,
+            className: className));
       } else if (lowerGeneric) {
         jsArgs = [];
       }
       if (jsArgs != null) {
         var genericName = _emitTopLevelName(element, suffix: '\$');
-        return js.call('#(#)', [genericName, jsArgs]);
+        var typeRep = js.call('#(#)', [genericName, jsArgs]);
+        return nameType
+            ? _typeTable.nameType(type, typeRep, hoistType)
+            : typeRep;
       }
     }
 
@@ -4565,3 +4614,210 @@ LibraryElement _getLibrary(AnalysisContext c, String uri) =>
 
 bool _isDartRuntime(LibraryElement l) =>
     l.isInSdk && l.source.uri.toString() == 'dart:_runtime';
+
+Set<TypeParameterElement> _freeTypeParameters(DartType t) {
+  var result = new HashSet<TypeParameterElement>();
+  void find(DartType t) {
+    if (t is TypeParameterType) {
+      result.add(t.element);
+    } else if (t is FunctionType) {
+      find(t.returnType);
+      t.parameters.forEach((p) => find(p.type));
+      t.typeFormals.forEach((p) => find(p.bound));
+      t.typeFormals.forEach(result.remove);
+    } else if (t is InterfaceType) {
+      t.typeArguments.forEach(find);
+    }
+  }
+  find(t);
+  return result;
+}
+
+/// _CacheTable tracks cache variables for variables that
+/// are emitted in place with a hoisted variable for a cache.
+class _CacheTable {
+  /// Mapping from types to their canonical names.
+  final _names = new Map<DartType, JS.TemporaryId>();
+  Iterable<DartType> get keys => _names.keys.toList();
+
+  JS.Statement _dischargeType(DartType type) {
+    var name = _names.remove(type);
+    if (name != null) {
+      return (js.statement('let #;', [name]));
+    }
+    return null;
+  }
+
+  /// Emit a list of statements declaring the cache variables for
+  /// types tracked by this table.  If [typeFilter] is given,
+  /// only emit the types listed in the filter.
+  List<JS.Statement> discharge([Iterable<DartType> typeFilter]) {
+    var decls = <JS.Statement>[];
+    var types = typeFilter ?? keys;
+    for (var t in types) {
+      var stmt = _dischargeType(t);
+      if (stmt != null) decls.add(stmt);
+    }
+    return decls;
+  }
+
+  bool isNamed(DartType type) => _names.containsKey(type);
+
+  /// If [type] is not already in the table, choose a new canonical
+  /// variable to contain it. Emit an expression which uses [typeRep] to
+  /// lazily initialize the cache in place.
+  JS.Expression nameType(DartType type, JS.Expression typeRep) {
+    var temp = _names[type];
+    if (temp == null) {
+      ;
+      _names[type] = temp = chooseTypeName(type);
+    }
+    return js.call('# || (# = #)', [temp, temp, typeRep]);
+  }
+
+  String _typeString(DartType type, {bool flat: false}) {
+    if (type is ParameterizedType && type.name != null) {
+      var clazz = type.name;
+      var params = type.typeArguments;
+      if (params == null) return clazz;
+      if (params.every((p) => p.isDynamic)) return clazz;
+      var paramStrings = params.map(_typeString);
+      var paramString = paramStrings.join("\$");
+      return "${clazz}Of${paramString}";
+    }
+    if (type is FunctionType) {
+      if (flat) return "Fn";
+      var rType = _typeString(type.returnType, flat: true);
+      var paramStrings = type.normalParameterTypes
+          .take(3)
+          .map((p) => _typeString(p, flat: true));
+      var paramString = paramStrings.join("And");
+      var count = type.normalParameterTypes.length;
+      if (count > 3 ||
+          type.namedParameterTypes.isNotEmpty ||
+          type.optionalParameterTypes.isNotEmpty) {
+        paramString = "${paramString}__";
+      } else if (count == 0) {
+        paramString = "Void";
+      }
+      return "${paramString}To${rType}";
+    }
+    if (type is TypeParameterType) return type.name;
+    if (type.name != null) return type.name;
+    return "type";
+  }
+
+  /// Heuristically choose a good name for the cache and generator
+  /// variables.
+  JS.Identifier chooseTypeName(DartType type) {
+    return new JS.TemporaryId(_typeString(type));
+  }
+}
+
+/// _GeneratorTable tracks types which have been
+/// named and hoisted.
+class _GeneratorTable extends _CacheTable {
+  final _defs = new Map<DartType, JS.Expression>();
+
+  _GeneratorTable();
+
+  JS.Statement _dischargeType(DartType t) {
+    var name = _names.remove(t);
+    if (name != null) {
+      JS.Expression init = _defs.remove(t);
+      assert(init != null);
+      return js.statement(
+          'let # = () => ((# = dart.constFn(#))());', [name, name, init]);
+    }
+    return null;
+  }
+
+  /// If [type] does not already have a generator name chosen for it,
+  /// assign it one, using [typeRep] as the initializer for it.
+  /// Emit an expression which calls the generator name.
+  JS.Expression nameType(DartType type, JS.Expression typeRep) {
+    var temp = _names[type];
+    if (temp == null) {
+      _names[type] = temp = chooseTypeName(type);
+      _defs[type] = typeRep;
+    }
+    return js.call('#()', [temp]);
+  }
+}
+
+class _TypeTable {
+  /// Cache variable names for types emitted in place.
+  final _cacheNames = new _CacheTable();
+
+  /// Cache variable names for definite function types emitted in place.
+  final _definiteCacheNames = new _CacheTable();
+
+  /// Generator variable names for hoisted types.
+  final _generators = new _GeneratorTable();
+
+  /// Generator variable names for hoisted definite function types.
+  final _definiteGenerators = new _GeneratorTable();
+
+  /// Mapping from type parameters to the types which must have their
+  /// cache/generator variables discharged at the binding site for the
+  /// type variable since the type definition depends on the type
+  /// parameter.
+  final _scopeDependencies = new Map<TypeParameterElement, List<DartType>>();
+
+  /// Emit a list of statements declaring the cache variables and generator
+  /// definitions tracked by the table.  If [formals] is present, only
+  /// emit the definitions which depend on the formals.
+  List<JS.Statement> discharge([List<TypeParameterElement> formals]) {
+    var filter = formals?.expand((p) => _scopeDependencies[p] ?? []);
+    var stmts = [
+      _cacheNames,
+      _definiteCacheNames,
+      _generators,
+      _definiteGenerators
+    ].expand((c) => c.discharge(filter)).toList();
+    formals?.forEach(_scopeDependencies.remove);
+    return stmts;
+  }
+
+  /// Record the dependencies of the type on its free variables
+  bool recordScopeDependencies(DartType type) {
+    var fvs = _freeTypeParameters(type);
+    // TODO(leafp): This is a hack to avoid trying to hoist out of
+    // generic functions and generic function types.  This often degrades
+    // readability to little or no benefit.  It would be good to do this
+    // when we know that we can hoist it to an outer scope, but for
+    // now we just disable it.
+    if (fvs.any((i) => i.enclosingElement is FunctionTypedElement)) {
+      return true;
+    }
+    void addScope(TypeParameterElement i) {
+      List<DartType> types = _scopeDependencies[i];
+      if (types == null) _scopeDependencies[i] = types = [];
+      types.add(type);
+    }
+    fvs.forEach(addScope);
+    return false;
+  }
+
+  /// Given a type [type], and a JS expression [typeRep] which implements it,
+  /// Add the type and its representation to the table, returning an
+  /// expression which implements the type (but which caches the value).
+  /// If [hoist] is true, then the JS representation will be hoisted up
+  /// as far as possible and shared between instances of the type.
+  /// If [hoist] is false, the cache variable will be hoisted up as
+  /// far as possible and shared between instances of the type, but the
+  /// initializer expression will be emitted in place.
+  /// The boolean parameter [definite] distinguishes between definite function
+  /// types and other types (since the same DartType may have different
+  /// representations as definite and indefinite function types).
+  JS.Expression nameType(DartType type, JS.Expression typeRep, bool hoist,
+      {bool definite: false}) {
+    var table = hoist
+        ? (definite ? _definiteGenerators : _generators)
+        : (definite ? _definiteCacheNames : _cacheNames);
+    if (!table.isNamed(type)) {
+      if (recordScopeDependencies(type)) return typeRep;
+    }
+    return table.nameType(type, typeRep);
+  }
+}
