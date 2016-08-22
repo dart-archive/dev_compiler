@@ -438,6 +438,11 @@ typeName(type) => JS('', '''(() => {
     return $type.toString();
   }
 
+  // TODO(vsm): Does this belong here?
+  if ($type instanceof $WrappedType) {
+    return "Wrapped(" + $unwrapType($type) + ")";
+  }
+
   // Instance types
   let tag = $_getRuntimeType($type);
   if (tag === $Type) {

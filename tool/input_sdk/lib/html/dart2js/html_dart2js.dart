@@ -43066,7 +43066,7 @@ class _HistoryCrossFrame implements HistoryBase {
 @Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
-  KeyboardEvent _parent;
+  Event _parent;
 
   /** The "fixed" value of whether the alt key is being pressed. */
   bool _shadowAltKey;
@@ -43114,7 +43114,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent.wrap(KeyboardEvent parent): super(parent) {
+  KeyEvent.wrap(Event parent): super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
