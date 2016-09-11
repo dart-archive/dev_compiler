@@ -5324,7 +5324,7 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
   // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
   var separator = '__';
   String qualifiedPath;
-  if (uri.scheme == 'package') {
+  if (uri.scheme == 'package' || uri.scheme == 'asset') {
     // Strip the package name.
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
