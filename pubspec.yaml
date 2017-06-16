@@ -1,11 +1,9 @@
 name: dev_compiler
 version: 0.2.0
-description: >
-  Experimental Dart to JavaScript compiler designed to create idiomatic,
-  readable JavaScript output.
+description: This package is deprecated. See the README for details.
 
 author: Dart Dev Compiler team <dev-compiler@dartlang.org>
-homepage: https://github.com/dart-lang/dev_compiler
+homepage: https://webdev.dartlang.org/tools/dartdevc
 
 dependencies:
   analyzer: ^0.28.0-alpha.1

@@ -1,6 +1,9 @@
 # dev_compiler changelog
 
-## next release
+## 0.2.0
+- **This package is now deprecated** and will not be maintained going forward.
+  See [the README](https://pub.dartlang.org/packages/dev_compiler)
+  for details.
 - add support for AMD modules and make it the default.
 - precompile the SDK in AMD, CommonJS, and ES6 flavors.
 - legacy module format is deprecated.
