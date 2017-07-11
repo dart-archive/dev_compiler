@@ -1,9 +1,15 @@
-dev_compiler
-============
+[![Gitter](https://img.shields.io/gitter/room/dart-lang/angular2.svg)](https://gitter.im/dart-lang/dev_compiler)
 
-[![Build Status](https://travis-ci.org/dart-lang/dev_compiler.svg?branch=master)](https://travis-ci.org/dart-lang/dev_compiler)
-[![Coverage Status](https://coveralls.io/repos/dart-lang/dev_compiler/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/dev_compiler)
+**This package is deprecated.** It will not be maintained going forward.
 
-DDC has moved into the main [Dart SDK](https://github.com/dart-lang/sdk/tree/master/pkg/dev_compiler).  All further development will take place there.  This repository is now obsolete.
+The Dart development compiler (**dartdevc**, also known as _DDC_)
+is now part of the Dart SDK.
 
-Please file issues [there](https://github.com/dart-lang/sdk/issues?q=label%3Aarea-dev-compiler).
+
+Resources:
+
+* Documentation:
+  * [How to use dartdevc](https://webdev.dartlang.org/tools/dartdevc)
+  * [dartdevc FAQ](https://webdev.dartlang.org/tools/dartdevc/faq)
+* [Issue tracker](https://github.com/dart-lang/sdk/issues?q=label%3Aarea-dev-compiler)
+* [Source code](https://github.com/dart-lang/sdk/tree/master/pkg/dev_compiler)
